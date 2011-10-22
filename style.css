@@ -1,0 +1,216 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	min-width: 62em;
+	overflow: auto;
+    font-family: Helvetica, Verdana, sans-serif; 
+	font-size: 12px;
+	color: #666666;
+	background-image: url("images/bg.png");
+	background-repeat: repeat-x;
+}
+
+#strona {
+	width: 800px;
+	height: 800px;
+	margin: 0 auto;	
+}
+
+#top {
+	height: 30px;
+	margin: 0 auto;
+	font-family: Helvetica, Verdana, sans-serif; 
+	font-size: 10px;
+}
+
+#menu {
+	height: 47px;
+	width: 800px;
+	background-image: url("images/menubg.png");
+	background-repeat: repeat-x;
+	color: white;
+	text-align: center;	
+}
+
+#menu ul, ul li {
+	display: block;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	color: white;
+}
+
+#menu ul{
+	padding-top: 16px;
+}
+
+#menu ul li {
+	display: inline;
+	white-space: nowrap;
+	color: white;
+}
+
+#menu ul a:link, #menu  ul a:visited{
+	font-family: Helvetica, Verdana, sans-serif; 
+	font-size: 12px;
+	color: white;
+	text-decoration: none;
+}
+
+#menu ul a:hover{
+	color: white;
+	text-decoration: underline;
+}
+
+#menuleft{
+	float: left;
+	padding-top: 0px;
+}
+
+#menulogo{
+	float: left;
+	margin-top: 2px;
+}
+
+#menuright{
+	float: right;
+}
+
+#submenu {
+	height: 50px;
+	width: 800px;
+	padding-top: 10px;
+	background-image: url("images/linia.png");
+	background-repeat: repeat-x;
+	background-position: top;
+	margin-top: 5px;
+}
+
+#submenu ul, ul li {
+	display: block;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#submenu ul {
+	text-align: center;
+	background-image: url("images/submenubg.png");
+	background-repeat: repeat-x;
+	background-position: bottom;
+	padding-bottom: 10px;
+}
+
+#submenu ul li {
+	display: inline;
+	white-space: nowrap;
+}
+
+.deactive{
+	text-decoration: none;
+	background-color: white;
+	color: #000;
+	border: 1px solid #e0e0e0;
+	border-bottom: 0px;
+	padding: 5px;
+}
+
+.active  {
+	color: #000;
+	text-decoration: none;
+	background-color: #fff;
+	border: 1px solid #e0e0e0;
+	border-bottom: 5px;
+	padding: 5px; 
+	padding-top:10px;
+	padding-bottom:10px;
+	text-shadow: 1px 1px 1px #999;
+}
+
+
+#submenu ul a:hover {
+	background-color: #fff;
+	border-bottom-color: #fff;
+	border-bottom: 5px;
+	padding-top:10px;
+	padding-bottom:10px;
+	text-shadow: 1px 1px 1px #999;
+}
+
+#tytulsubmenu {
+	color: black;
+	font-family: Helvetica, Verdana, sans-serif; 
+	font-size: 15px;
+	font-weight: bold;
+}
+
+#footer {
+	background-color: #666;
+	border-top: 2px solid #333333;
+	color: white;
+	padding: 10px;
+}
+
+
+#content {
+	text-align: center;
+	padding: 10px;
+}
+
+#content a:link, #content a:visited{
+	font-family: Helvetica, Verdana, sans-serif; 
+	font-size: 12px;
+	color: black;
+	text-decoration: none;
+}
+
+#content a:hover{
+	text-decoration: underline;
+}
+
+#content input[value="-"], #content input[value="+"], #addMapPage input[value="<"], #addMapPage input[value=">"]{
+    background-image:url(images/intlo.png);
+    border:0;
+    width:15px;
+    height:15px;
+	color: white;
+	font-size: 12px;
+}
+
+#lista {
+	margin-top: -15px;
+	float: right;
+}
+#createOrganism , #login, .submit, #addClimate, #addMap, #startSimulate{
+	background-image:url(images/submittlo.png);
+    border:0;
+    width:100px;
+    height:30px;
+	color: white;
+	font-size: 12px;
+	
+}
+
+#tooltip {
+	width: 200px;
+	height: 0;
+	
+}
+
+#typeTooltip {
+	width: 200px;
+	height: 10px;
+	float: right;
+}
+
+#addOrganismPage p , #addMapPage p{
+	margin: 10px;
+}
+#steppe, #swamp, #desert, #forest, #mountain, #hill , #river, #hp, #instinct , #toughness, #left {
+	width: 50px;
+}
+
+instinct toughness
