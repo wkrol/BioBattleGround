@@ -148,5 +148,5 @@ function mapuj($mapa, $pojemnik){
 	echo "</table>";
 }
 
-	
+//TODO umyæ w³osy macgyvvera	
 ?>	
