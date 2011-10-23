@@ -1,7 +1,7 @@
 ﻿<?php
 session_start();
 	require("strona.php");
-	
+	require("db2.php");
 	class Logowanie extends Strona {
 	public function Wyswietl()
   {
@@ -20,45 +20,16 @@ session_start();
     echo "</body>\n</html>\n";
   }
   
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
 	
-	public function Loguj($nazwa_uz, $haslo) {
-
-
-		$wynik = $this -> Lacz()->prepare("select * from uzytkownicy where NAZWA = :nazwa and HASLO = :haslo");
-			$wynik->bindParam(':nazwa', $nazwa_uz, PDO::PARAM_STR);
-			$wynik->bindParam(':haslo', $haslo, PDO::PARAM_STR);
-			$wynik->execute();
-			if (!$wynik) {
-				throw new Exception('Logowanie nie powiodło się.');
-			}
-		$count = $wynik->fetchColumn();
-		if ($count>0) {
-				return true;
-		}else {
-			throw new Exception('Logowanie nie powiodło się.');
-		}
-	}
 	
 	public function FunkcjaLogowanie() {
 		$nazwa_uz = $_POST['nazwa_uz'];
 		$haslo = $_POST['haslo'];
-
+		$db = new DB();
 		if ($nazwa_uz && $haslo) {
 
 			try {
-				$this -> Loguj($nazwa_uz, $haslo);
+				$db -> Loguj($nazwa_uz, $haslo);
     
 				$_SESSION['zalogowany'] = $nazwa_uz;
 				$wyswietl= 'Witaj '.$_SESSION['zalogowany'].'.<a href="index.php">Idź do strony głównej.</a>';

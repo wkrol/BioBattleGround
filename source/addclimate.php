@@ -1,34 +1,8 @@
 ﻿<?php
 session_start();
+	require("db2.php");
 	require("strona.php");
 	class DodajKlimat extends Strona {
-	
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
-	
-	public function insertClimate($name, $rain, $wind, $sun, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO klimat(nazwa, opady, wiatr, naslonecznienie, id_uzyt) VALUES (:name, :rain, :wind, :sun, :id)");
-		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
-		$wynik->bindParam(':rain', $rain, PDO::PARAM_INT);
-		$wynik->bindParam(':wind', $wind, PDO::PARAM_INT);
-		$wynik->bindParam(':sun', $sun, PDO::PARAM_INT);
-		$wynik->bindParam(':id', $id, PDO::PARAM_INT);
-		$wynik->execute();
-		if (!$wynik) {
-			throw new Exception('Wykonanie zapytania nie powiodło się.');
-		}
-	}
-	
 	
 	public function WyswietlZawartosc() {
 		echo "
@@ -112,7 +86,8 @@ session_start();
 	}
 	if(isset($_GET['name'])){
 		$id = $_SESSION["zalogowany"];
-		$strona->insertClimate($climateName,$rain,$wind,$sun,$id);
+		$db = new DB();
+		$db->insertClimate($climateName,$rain,$wind,$sun,$id);
 	}
 		
 ?>

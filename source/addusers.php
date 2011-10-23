@@ -1,50 +1,8 @@
 ﻿<?php
 session_start();
 	require("strona.php");
+	require("db2.php");
 	class DodajUsera extends Strona {
-	
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
-	
-	public function Rejestruj($nazwa_uz, $haslo, $opis, $mistrz, $admin) {
-
-		$wynik = $this -> Lacz()->prepare("select * from uzytkownicy where NAZWA = :nazwa");
-		$wynik->bindParam(':nazwa', $nazwa_uz, PDO::PARAM_STR);
-		$wynik->execute();
-		if (!$wynik) {
-			throw new Exception('Wykonanie zapytania nie powiodło się.');
-		}
-
-		$count = $wynik->fetchColumn();
-		if ($count>0) {
-			throw new Exception('Nazwa użytkownika zajęta — proszę wrócić i wybrać inną.');
-		}
-
-		$wynik = $this -> Lacz()->prepare("insert into uzytkownicy (nazwa, haslo, opis, mistrz, admin) values
-                       (:nazwa, :haslo, :opis, :mistrz, :admin)");
-		$wynik->bindParam(':nazwa', $nazwa_uz, PDO::PARAM_STR);
-		$wynik->bindParam(':haslo', $haslo, PDO::PARAM_STR);
-		$wynik->bindParam(':opis', $opis, PDO::PARAM_STR);
-		$wynik->bindParam(':mistrz', $mistrz, PDO::PARAM_STR);
-		$wynik->bindParam(':admin', $admin, PDO::PARAM_STR);
-	
-		$wynik->execute();
-		if (!$wynik) {
-			throw new Exception('Rejestracja w bazie danych niemożliwa — proszę spróbować później.');
-		}
-
-		return true;
-	}
 	
 	public function Wypelniony($zmienne_formularza) {
 		foreach ($zmienne_formularza as $klucz => $wartosc) {
@@ -103,8 +61,8 @@ session_start();
 				throw new Exception('Hasło musi mieć co najmniej 4 i maksymalnie 16 znaków — proszę wrócić i spróbować ponownie.');
 			}
 
-     
-			$this -> Rejestruj($nazwa_uz, $haslo, $opis, $mistrz, $admin);
+     		$db = new DB();
+			$db -> Rejestruj($nazwa_uz, $haslo, $opis, $mistrz, $admin);
      
 			
 			echo 'Zarejestrowano! Powrót do strony głównej <a href="index.php">Idź do strony głównej.</a>';

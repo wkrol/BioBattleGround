@@ -1,37 +1,14 @@
 ﻿<?php
 session_start();
 	require("strona.php");
+	require("db2.php");
 	class PrzegladOrganizmow extends Strona {
-	
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
-	
-	public function Organizmy() {
-		$id_uzyt = $_SESSION["zalogowany"];
-		$wynik = $this -> Lacz()->prepare("select * from organizm where id_uzyt = :id");
-		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
-		$wynik->execute();
-		if (!$wynik) {
-			throw new Exception('Wyświetlenie jest niemożliwe.');
-		}
-
-		return $wynik;
-	}
 	
 	
 	public function WyswietlZawartosc() {
+		$db = new DB();
 		echo "Organizmy stworzone przez użytkownika ".$_SESSION["zalogowany"].":</br></br>";
-		$stmt=$this -> Organizmy();
+		$stmt=$db -> OrganizmyAll();
 		foreach($stmt as $row)
 		{
 			if($row['typ'] == "Roslina") {

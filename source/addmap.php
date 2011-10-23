@@ -1,31 +1,8 @@
 ﻿<?php
 session_start();
+	require("db2.php");
 	require("strona.php");
 	class DodajMape extends Strona {
-	
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
-	
-	public function insertMap($name, $string, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO mapa(nazwa, mapString, id_uzyt) VALUES (:name, :string, :id)");
-		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
-		$wynik->bindParam(':string', $string, PDO::PARAM_STR);
-		$wynik->bindParam(':id', $id, PDO::PARAM_STR);
-		$wynik->execute();
-		if (!$wynik) {
-			throw new Exception('Wykonanie zapytania nie powiodło się.');
-		}
-	}
 	
 	public function encodeMap($tab){
 	$mapString="";
@@ -153,7 +130,8 @@ echo "</table>";
 
 $test = $this->encodeMap($map);
 $id = $_SESSION["zalogowany"];
-$this->insertMap($name,$test,$id);
+$db = new DB();
+$db->insertMap($name,$test,$id);
 }
 	}
 	}
