@@ -1,34 +1,8 @@
 ﻿<?php
 session_start();
 	require("strona.php");
+	require("db2.php");
 	class DodajOrganizm extends Strona {
-	
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
-	
-	public function insertOrganism($name, $stat1, $stat2, $stat3, $type, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO organizm(nazwa, hp, instynkt, odpornosc, typ, id_uzyt) VALUES (:name, :stat1, :stat2, :stat3, :type, :id)");
-		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
-		$wynik->bindParam(':stat1', $stat1, PDO::PARAM_INT);
-		$wynik->bindParam(':stat2', $stat2, PDO::PARAM_INT);
-		$wynik->bindParam(':stat3', $stat3, PDO::PARAM_INT);
-		$wynik->bindParam(':type', $type, PDO::PARAM_STR);
-		$wynik->bindParam(':id', $id, PDO::PARAM_STR);
-		$wynik->execute();
-		if (!$wynik) {
-			throw new Exception('Wykonanie zapytania nie powiodło się.');
-		}
-	}
 	
 	
 	public function WyswietlZawartosc() {
@@ -98,7 +72,8 @@ session_start();
 	}
 	if(isset($_GET['name'])){
 		$id = $_SESSION["zalogowany"];
-		$strona->insertOrganism($name,$stat1,$stat2,$stat3,$type,$id);
+		$db = new DB();
+		$db->insertOrganism($name,$stat1,$stat2,$stat3,$type,$id);
 	}
 		
 ?>

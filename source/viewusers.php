@@ -1,32 +1,13 @@
 ﻿<?php
 session_start();
 	require("strona.php");
+	require("db2.php");
 	class WyswietlanieUzytkownikow extends Strona {
 	
-	public function Lacz() {
-		try
-		{
-			$pdo = new PDO('mysql:host=localhost;dbname=biobattleground', 'root', '');
-			$pdo -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			return $pdo;
-		}
-		catch(PDOException $e)
-		{
-			echo 'Połączenie nie mogło zostać utworzone: ' . $e->getMessage();
-		}
-	}
-	
-	public function Uzytkownicy() {
-		$wynik = $this -> Lacz()->query("select * from uzytkownicy");
-		if (!$wynik) {
-			throw new Exception('Wysiwetlenie newsa jest niemożliwe.');
-		}
-
-		return $wynik;
-	}
 	
 	public function WyswietlZawartosc() {
-		$stmt=$this -> Uzytkownicy();
+		$db = new DB();
+		$stmt=$db -> Uzytkownicy();
 		foreach($stmt as $row)
 		{
 			echo '<b>Nazwa</b>: '.$row['nazwa'].' | <a href="profil.php?id='.$row['nazwa'].'">Zobacz profil użytkownika.</a><br/>';
