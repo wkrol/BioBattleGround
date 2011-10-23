@@ -148,7 +148,7 @@ class Organizm {
 			$pozycja=$this->getPozycja();
 			$x = $pozycja['x']+$a;
 			$y = $pozycja['y']+$b;
-			while($x < 10 || $x > 20 || $y < 20 || $y > 30){
+			while($x <= 10 || $x >= 20 || $y <= 20 || $y >= 30){
 				$a=rand(-1,1);
 				$b=rand(-1,1);
 				$pozycja=$this->getPozycja();
@@ -201,12 +201,12 @@ class Organizm {
 			$tmp = getWspolrzedne($i);
 			$wsp = explode(",", $tmp);
 			$pozycja=$this->getPozycja();
-			$x = $pozycja['x']+$a;
-			$y = $pozycja['y']+$b;
+			$x = $pozycja['x']+$wsp[0];
+			$y = $pozycja['y']+$wsp[1];
 			
 			if($x >= 10 || $x <= 20 || $y >= 20 || $y <= 30){
 				$org[$i] = clone $this;
-				$org[$i]->setPozycja(($this->pozycja['x'])+$wsp[0],($this->pozycja['y'])+$wsp[1]);
+				$org[$i]->setPozycja($x,$y);
 			}
 		}
 	}
@@ -214,9 +214,12 @@ class Organizm {
 	public function czekaj() {}
 	
 	public function smierc() {
-		$padlina = new Padlina();
-		$padlina->setPozycja($this->pozycja['x'],$this->pozycja['y']);
 		$this->anihilate();
+	}
+	
+	public function smierc2($atakujacy){
+		$this->anihilate();
+		$atakujacy->setGlod(10);
 	}
 	
 	public function zamordowany($atakujacy) {
@@ -232,22 +235,14 @@ class Roslina extends Organizm {
 
 	public function akcja($pogoda){
 
-		/*if($this->getWiek() > 2 && $this->getGlod() > 8){
+		if($this->getWiek() > 3 && $this->getGlod() > 8){
 		
 			$this->reprodukcja();
 			}
 		else if($this->getGlod()<8)
 				$this->szukajJedzenia($pogoda);
 		else
-			$this->czekaj();*/
-		
-		if($this->getWiek() >3 && $this->getGlod() > 8)
-			$this->reprodukcja();
-		else if($this->getGlod()<9)
-			$check = $this->szukajJedzenia($pogoda);
-		else
-			$this->ruch();
-
+			$this->czekaj();		
 	}
 
 	public function ruch(){
@@ -263,18 +258,6 @@ class Roslina extends Organizm {
 		}
 		
 	public function reprodukcja(){
-		
-		/*for($i=0;$i<8; $i++){
-			$tmp = getWspolrzedne($i);
-			$wsp = explode(",", $tmp);
-			$org[$i] = clone $this;
-			$org[$i]->setPozycja(($this->pozycja['x'])+$wsp[0],($this->pozycja['y'])+$wsp[1]);
-		}
-		$instynkt = $this->getInstynkt();
-		$los = rand(1,100);
-		//echo $instynkt."-".$los." ";
-		if($instynkt >= $los)
-			$this->rozsiew();*/
 			
 		for($i=0;$i<8; $i++){
 			$tmp = getWspolrzedne($i);
@@ -285,24 +268,46 @@ class Roslina extends Organizm {
 			
 			if($x >= 10 || $x <= 20 || $y >= 20 || $y <= 30){
 				$org[$i] = clone $this;
-				$org[$i]->setPozycja(($this->pozycja['x'])+$wsp[0],($this->pozycja['y'])+$wsp[1]);
-				//$org[$i]->setPozycja($x,$y);
+				$org[$i]->setPozycja($x,$y);
 			}
 		}
+		$instynkt = $this->getInstynkt();
+		$los = rand(1,100);
+
+		if($instynkt >= $los)
+			$this->rozsiew();
 	}
 	
 	public function rozsiew(){
 		$pozycja=$this->getPozycja();
 		$new = clone $this;
 		
-		$x=rand(-2,2);
-		$tab = array(0=>-2,1=>2);
-		if( $x > -2 && $x < 2){
-			$y=rand(0,1);
-			$y=$tab[$y];
+		$check=FALSE;
+		while($check == FALSE){
+			$x=rand(-2,2);
+			$tab = array(0=>-2,1=>2);
+			if( $x > -2 && $x < 2){
+				$y=rand(0,1);
+				$y=$tab[$y];
+			
+				$pozX = $pozycja['x']+$x;
+				$pozY = $pozycja['y']+$y;
+			
+				if($pozX >= 10 || $pozX <= 20 || $pozY >= 20 || $pozY <= 30)
+					$check = TRUE;
+				else
+					continue;
 			}
-		else{
+		else
 			$y=rand(-2,2);
+			
+				$pozX = $pozycja['x']+$x;
+				$pozY = $pozycja['y']+$y;
+			
+				if($pozX >= 10 || $pozX <= 20 || $pozY >= 20 || $pozY <= 30)
+					$check = TRUE;
+				else
+					continue;
 		}
 		$new->setPozycja(($pozycja['x'])+$x,($pozycja['y'])+$y);
 	}
@@ -362,11 +367,11 @@ class Roslina extends Organizm {
 				break;
 				
 			case "5":
-				//s�aby rozsiew
+				//sĹ‚aby rozsiew
 				break;
 				
 			case "6":
-				//s�aby rozsiew
+				//sĹ‚aby rozsiew
 				break;
 				
 			case "7":
@@ -381,9 +386,9 @@ class Roslinozerca extends Organizm {
 
 	public function akcja($pojemnik){
 	
-		if($this->getWiek() >2 && $this->getGlod() > 8)
+		if($this->getWiek() >2 && $this->getGlod() > 7)
 			$this->reprodukcja();
-		else if($this->getGlod()<8)
+		else if($this->getGlod()<9)
 			$check = $this->szukajJedzenia($pojemnik);
 		else
 			$this->ruch();
@@ -481,47 +486,102 @@ class Roslinozerca extends Organizm {
 	
 class Padlinozerca extends Organizm {
 
-	public function wech(){}
+	public function akcja($pojemnik){
 	
-		public function szukajJedzenia($pokarm){
+		if($this->getWiek() >2 && $this->getGlod() > 7)
+			$this->reprodukcja();
+		else if($this->getGlod()<9)
+			$check = $this->wech($pojemnik);
+		else
+			$this->ruch();
+		
+		/*if(isset($check) == true && $check == 0)
+			$this->ruch();*/
+	
+		}
+
+	public function wech($pojemnik){
 	
 		$poz = $this->getPozycja();
 		
+		for($tmp=0;$tmp<count($pojemnik);$tmp++){
+			if(gettype($pojemnik[$tmp]) == "object"){
+				$pokarm = get_class($pojemnik[$tmp]);
+				$pozycjaPokarmu = $pojemnik[$tmp]->getPozycja();
+				
+					if($pokarm === "Roslinozerca" && $poz['x'] == $pozycjaPokarmu['x'] && $poz['y'] == $pozycjaPokarmu['y']){
+						$papu=$pojemnik[$tmp];
+						$this->sepienie($papu);
+						break;
+						}
+				}
+		}
 	}
 	
+	
+	
 	public function sepienie($ofiara){
-		$hp = $ofiara->getPunktyZycia();
-		$hp--;
-		$ofiara->setPunktyZycia($hp);
-		
-		if($ofiara->getPuntkyZycia() == 0){
-			$padlina = $ofiara->smierc();
-			$this->jedz($padlina);
-			}
+	
+		$result = $ofiara->unik();
+		if(isset($result) != TRUE ||$result=="fiasko"){
+			
+			/*$hp = $ofiara->getPunktyZycia();
+			$hp--;
+			$ofiara->setPunktyZycia($hp);*/
+			
+			$glod = $ofiara->getGlod();
+			$glod-=2;
+			$ofiara->setGlod($glod);
+			
+			$zycie = $ofiara->getPunktyZycia();
+			$glod = $ofiara->getGlod();
+			if($zycie < 1 || $glod < 1){
+				$ofiara->smierc2($this);
+				
+				}
+		}
 	}
 	
 	public function jedz($padlina){
-		$poz = $this->getPozycja();
-		$ilosc = $padlina->getIlosc();
-		$ilosc--;
-		$padlina->setIlosc($poz['x'],$poz['y']);
+		
 		$this->setGlod(10);
+		unset($padlina);
 		}
 	
 }
 
 class Miesozerca extends Organizm {
 
-	public function wech(){
+	public function akcja($pojemnik){
+	
+		if($this->getWiek() >2 && $this->getGlod() > 7)
+			$this->reprodukcja();
+		else if($this->getGlod()<9)
+			$this->wech($pojemnik);
+		else
+			$this->ruch();
+		
+		/*if(isset($check) == true && $check == 0)
+			$this->ruch();*/
+	
+		}
+
+	public function wech($pojemnik){			
+			
 		$poz = $this->getPozycja();
 		
 		for($tmp=0;$tmp<count($pojemnik);$tmp++){
-			
-			$pokarm = get_class($pojemnik[$tmp]);
-			$pozycjaPokarmu = $pojemnik[$tmp]->getPozycja();
-			if($pokarm == "Roslinozerca" && $poz['x'] == $pozycjaPokarmu['x'] && $poz['y'] == $pozycjaPokarmu['y'])
-				$this->atak($pojemnik[$tmp]);
-			
+			if(gettype($pojemnik[$tmp]) == "object"){
+				$pokarm = get_class($pojemnik[$tmp]);
+				$pozycjaPokarmu = $pojemnik[$tmp]->getPozycja();
+				if($pokarm == "Roslinozerca" && $poz['x'] == $pozycjaPokarmu['x'] && $poz['y'] == $pozycjaPokarmu['y']){
+						$papu=$pojemnik[$tmp];
+						$this->atak($papu);
+						
+						break;
+						}
+						
+				}
 			}
 		
 	}
@@ -532,7 +592,7 @@ class Miesozerca extends Organizm {
 		$result = $ofiara->unik();
 		if($result=="fiasko"){
 	
-				$obrazenia = $this->getInstynkt() - $ofiara->getOdpornosc();
+				$obrazenia = 2 * $this->getInstynkt() - $ofiara->getOdpornosc();
 				$los = $ofiara->getPunktyZycia() - $obrazenia;
 				if($los > 0)
 					$ofiara->setPunktyZycia($los);
@@ -552,15 +612,15 @@ class Miesozerca extends Organizm {
 	
 }
 
+
+
 class Padlina {
 	
 
-	private $pozycja=array();
 	private $ilosc=0;
 	
 	public function __construct(){
-		
-		$this->ilosc+=1;
+		$this->ilosc++;
 	}
 	
 	public function setIlosc($x){
@@ -571,18 +631,6 @@ class Padlina {
 		return $this->ilosc;
 	}
 	
-	public function setPozycja($x,$y){
-		$this->pozycja['x']=$x;
-		$this->pozycja['y']=$y;
-		}
-		
-	public function getPozycja(){
-		return $this->pozycja;
-	}
-	
-	public function sprawdz($x,$y){
-
-	}
 }
 
 class Mieso {

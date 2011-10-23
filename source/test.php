@@ -5,30 +5,34 @@ $symulacja = new Symulacja("nowa");
 $mapa = $symulacja->wczytajMalaMape("dziwna");
 $klimat = $symulacja->wczytajKlimat("okrutny");
 $pogoda = $symulacja->stworzMalaPogode($klimat,$mapa);
+//$pokarm = $symulacja->generujPokarm();
 $o[0] = new Roslina("krzak",3,8,5);
-$o[0]->setPozycja(13,23);
+$o[0]->setPozycja(13,26);
 $o[0]->reprodukcja();
-$o[1] = new Roslinozerca("wrona",5,3,1);
-$o[1]->setPozycja(14,22);
+$o[1] = new Roslinozerca("wrona",6,3,5);
+$o[1]->setPozycja(13,26);
 $o[1]->reprodukcja();
-$o[2] = new Roslina("drzewo",7,7,7);
-$o[2]->setPozycja(16,27);
+$o[1]->setGlod(8);
+$o[2] = new Roslina("jagody",2,2,4);
+$o[2]->setPozycja(16,24);
 $o[2]->reprodukcja();
-$o[3] = new Roslinozerca("wrona",1,1,1);
-$o[3]->setPozycja(18,28);
+$o[3] = new Miesozerca("pantera",4,5,4);
+$o[3]->setPozycja(15,24);
 $o[3]->reprodukcja();
+$o[4] = new Roslinozerca("zebra",4,6,4);
+$o[4]->setPozycja(14,23);
+$o[4]->reprodukcja();
 $symulacja->napelnijPojemnik($o);
 $pojemnik = $symulacja->getPojemnik();
 mapuj($mapa,$pojemnik);
 //echo count($pojemnik);
 
-
 for($czas=0;$czas<25;$czas++){
-	$ile=0;
+	
+	
 	for($k=0;$k<count($pojemnik);$k++){
 		if(gettype($pojemnik[$k]) == "object"){
 			$typ = get_class($pojemnik[$k]);
-			$ile++;
 			if($typ == "Roslina"){
 				$poz = $pojemnik[$k]->getPozycja();
 				$teren=$mapa[$poz['x']][$poz['y']];
@@ -46,18 +50,24 @@ for($czas=0;$czas<25;$czas++){
 				$pojemnik[$k]->postarz();
 				}
 			}
+		else
+			continue;
 		}
-	echo $ile;
 	$pojemnik=$symulacja->tworzPojemnik($o);
-	//var_dump($pojemnik);
-	//echo"<br><br>";
+	
 	mapuj($mapa,$pojemnik);
-	//echo $symulacja->getPopulacja()."<br>";
-	echo "-----------------------------------------------------------------------------";
+	//echo "-----------------------------------------------------------------------------";
 
+	}
+//var_dump($pojemnik);
+
+for($i=0;$i<count($pojemnik);$i++){
+	if(gettype($pojemnik[$i]) == "object"){
+		$poz=$pojemnik[$i]->getPozycja();
+		echo "Organizm ".$pojemnik[$i]->getNazwa()." na pozycji ".$poz['x']." ".$poz['y']." w wieku : ".$pojemnik[$i]->getWiek()."<br>";
+		}
 }
 
-//$pojemnik=$symulacja->getPojemnik();
 
 
 function mapuj($mapa, $pojemnik){

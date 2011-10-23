@@ -43,12 +43,12 @@ function init(){
 			addEventHandler(createButton, "click", checkClimate);
 		}
 		
-	/*	if(document.getElementById("logowanie")){
+		/*if(document.getElementById("logowanie")){
 			
 			var createButton = document.getElementById("login");
 			addEventHandler(createButton, "click", checkLogin);
-		}
-	*/	
+		}*/
+		
 		if(document.getElementById("addMapPage")){
 			
 			var steppe = document.getElementById("steppe");
@@ -115,8 +115,14 @@ function init(){
 			
 			var createButton = document.getElementById("addMap");
 				addEventHandler(createButton, "click", checkMap);
-
+		
 		}
+		
+		
+		var startButton = document.getElementById("startSimulate");
+		addEventHandler(startButton, "click", startSimulation);
+
+		
 }
 
 
@@ -176,10 +182,8 @@ function showContent(response){
 				addEventHandler(td[i], "mouseout", function(){ tooltip.style.display="none"; });
 			}
 		}
-	
 		
 		
-
 }
 
 function createProfile(name){
@@ -377,8 +381,14 @@ function sendLogin(){
 	var url = "logowanie.php?akcja=loguj&nazwa_uz="+nazwa_uz+"&haslo="+haslo;
 
 	request.open("GET", url, true);
-	request.onreadystatechange = function() {get("success.php");};
+	request.onreadystatechange = function(){ get("success.php");};
 	request.send(null);
+}
+
+function getInfo(){
+	if(request.readyState == 4 && request.status == 200){
+		alert("hello");
+		}
 }
 
 
@@ -546,58 +556,28 @@ function sendMap(){
 			
 }
 
-/*function getMap(url){
+function startSimulation(){
 
-	request = createRequest();
+	var request = createRequest();
 	if(!request)
 		alert("request error");
-		
+	
+	var roslina = document.getElementById("organismroslinaSelect").value;
+	var roslinozerca = document.getElementById("organismroslinozercaSelect").value;
+	var miesozerca = document.getElementById("organismmiesozercaSelect").value;
+	var padlinozerca = document.getElementById("organismpadlinozercaSelect").value;
+	var mapa = document.getElementById("mapSelect").value;
+	var klimat = document.getElementById("climateSelect").value;	
+	
+	var url = "symulacjaStart.php?roslina="+roslina+"&roslinozerca="+roslinozerca+"&miesozerca="+miesozerca+"&padlinozerca="+padlinozerca+"&mapa="+mapa+"&klimat="+klimat;
+	
 	request.open("GET",url,true);
-	request.onreadystatechange =  drawMap;function() { if(request.readyState == 4 && request.status == 200){
-												var map= request.responseText;
-												
-												
-												
-												
-												
-												}};
+	request.onreadystatechange = function() { if(request.readyState == 4 && request.status == 200)
+																								get("start.php");
+																						};
 	request.send(null);
 
-}
-
-function drawMap(){
-	if(request.readyState == 4 && request.status == 200){
-		var map = request.responseText;
-			for(var i=0; i < 30; i++){
-				for(var j=0; j < 50; j++){
-					switch(map[i][j]){
-					
-						case "0":
-							break;
-							
-						case "1":
-							break;
-							
-						case "2":
-							break;
-							
-						case "3":
-							break;
-							
-						case "4":
-							break;
-							
-						case "5":
-							break;
-							
-						case "6"
-							break;
-						}
-					}
-										
-				}
-			}
-}*/
+	}
 
 function get(url){
 

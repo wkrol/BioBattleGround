@@ -16,14 +16,14 @@ class Stado {
 	public function zamien($a){
 		$ilosc = $this->getId();
 		for($i=$a;$i<$ilosc;$i++){
-			$this->setZagroda($i,$this->zagroda[$i+1]);
+			$this->setZagroda($i,@$this->zagroda[$i+1]);
 			$org = $this->getOrganizm($i);
 			if(isset($org))
 				$org->setNumerZagrody($i);
 		}
-		unset($this->zagroda[$ilosc]);
-		$ilosc--;
-		$this->setId($ilosc);
+		unset($this->zagroda[$i+1]);
+		//$ilosc--;
+		//$this->setId($ilosc);
 		
 	}
 	

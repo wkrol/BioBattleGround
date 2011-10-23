@@ -11,14 +11,14 @@ private function __construct(){
 		$dbuser = "root";
 		$dbpassword = "";
 		$dbname = "biobattleground";
-
+		
 		$connect = mysql_connect($server, $dbuser, $dbpassword) or die (" Blad polaczenia z baza danych - ".mysql_error());
 		if(!mysql_select_db($dbname, $connect)){
 			createBase($dbname);
 			mysql_select_db($dbname, $connect);
 			createTables();
 		}
-		else 
+		else
 			mysql_select_db($dbname, $connect) or die("Blad wyboru bazy: ".mysql_error());
 	}
 	
@@ -128,9 +128,9 @@ function createBase($dbname){
 	}
 //Funkcja tworzenia tablic
 function createTables(){
-		$organismSQL = "CREATE TABLE ORGANIZM(id int auto_increment, nazwa char(20), hp int, instynkt int, odpornosc int, typ char(20), primary key(id) )";
-		$mapSQL = "CREATE TABLE MAPA(id int auto_increment, nazwa char(20), mapString text, primary key(id))";
-		$climateSQL = "CREATE TABLE KLIMAT(id int auto_increment, nazwa char(20), opady int, wiatr int, naslonecznienie int, primary key (id))";
+		$organismSQL = "CREATE TABLE ORGANIZM(id int auto_increment, nazwa char(20), hp int, instynkt int, odpornosc int, typ char(20), id_uzyt VARCHAR(16), primary key(id) )";
+		$mapSQL = "CREATE TABLE MAPA(id int auto_increment, nazwa char(20), mapString text, id_uzyt VARCHAR(16), primary key(id))";
+		$climateSQL = "CREATE TABLE KLIMAT(id int auto_increment, nazwa char(20), opady int, wiatr int, naslonecznienie int, id_uzyt VARCHAR(16), primary key (id))";
 		
 		mysql_query($organismSQL);
 		mysql_query($mapSQL);
