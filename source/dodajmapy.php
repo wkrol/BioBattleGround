@@ -2,7 +2,7 @@
 session_start();
 	
 	/*
-	 * Musi chyba być klasa, żeby nie było tego errora :)
+	 * TODO: Musi chyba być klasa, żeby nie było tego errora :)
 	 */
 	public function Lacz() {
 		try
