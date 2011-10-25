@@ -12,7 +12,11 @@ class Stado {
 		$this->id=0;
 	
 	}
-	
+	/**
+	 * Funkcja przesuwania organizmów w stadzie po usuniêciu jednego z nich
+	 * 
+	 * @param int $a = id organizmu w stadzie od którego bêdzie nastêpowa³o przesuwanie
+	 */
 	public function zamien($a){
 		$ilosc = $this->getId();
 		for($i=$a;$i<$ilosc;$i++){
@@ -22,8 +26,6 @@ class Stado {
 				$org->setNumerZagrody($i);
 		}
 		unset($this->zagroda[$i+1]);
-		//$ilosc--;
-		//$this->setId($ilosc);
 		
 	}
 	
