@@ -32,7 +32,7 @@
 	}
 	
  public function insertClimate($name, $rain, $wind, $sun, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO klimat(nazwa, opady, wiatr, naslonecznienie, id_uzyt) VALUES (:name, :rain, :wind, :sun, :id)");
+		$wynik = $this -> Lacz()->prepare("INSERT INTO climate(nazwa, opady, wiatr, naslonecznienie, id_uzyt) VALUES (:name, :rain, :wind, :sun, :id)");
 		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
 		$wynik->bindParam(':rain', $rain, PDO::PARAM_INT);
 		$wynik->bindParam(':wind', $wind, PDO::PARAM_INT);
@@ -44,7 +44,7 @@
 		}
 	}
  public function insertMap($name, $string, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO mapa(nazwa, mapString, id_uzyt) VALUES (:name, :string, :id)");
+		$wynik = $this -> Lacz()->prepare("INSERT INTO map(nazwa, mapString, id_uzyt) VALUES (:name, :string, :id)");
 		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
 		$wynik->bindParam(':string', $string, PDO::PARAM_STR);
 		$wynik->bindParam(':id', $id, PDO::PARAM_STR);
@@ -55,7 +55,7 @@
 	}
 	
  public function insertOrganism($name, $stat1, $stat2, $stat3, $type, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO organizm(nazwa, hp, instynkt, odpornosc, typ, id_uzyt) VALUES (:name, :stat1, :stat2, :stat3, :type, :id)");
+		$wynik = $this -> Lacz()->prepare("INSERT INTO organism(nazwa, hp, instynkt, odpornosc, typ, id_uzyt) VALUES (:name, :stat1, :stat2, :stat3, :type, :id)");
 		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
 		$wynik->bindParam(':stat1', $stat1, PDO::PARAM_INT);
 		$wynik->bindParam(':stat2', $stat2, PDO::PARAM_INT);
@@ -115,7 +115,7 @@
 	
  public function Klimaty() {
 		$id_uzyt = $_SESSION["zalogowany"];
-		$wynik = $this -> Lacz()->prepare("select * from klimat where id_uzyt = :id");
+		$wynik = $this -> Lacz()->prepare("select * from climate where id_uzyt = :id");
 		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
 		$wynik->execute();
 		if (!$wynik) {
@@ -127,7 +127,7 @@
 	
 	public function Mapy() {
 		$id_uzyt = $_SESSION["zalogowany"];
-		$wynik = $this -> Lacz()->prepare("select * from mapa where id_uzyt = :id");
+		$wynik = $this -> Lacz()->prepare("select * from map where id_uzyt = :id");
 		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
 		$wynik->execute();
 		if (!$wynik) {
@@ -139,7 +139,7 @@
 	
 	public function Organizmy($gatunek) {
 		$id_uzyt = $_SESSION["zalogowany"];
-		$wynik = $this -> Lacz()->prepare("select * from organizm where id_uzyt = :id and typ = :gatunek");
+		$wynik = $this -> Lacz()->prepare("select * from organism where id_uzyt = :id and typ = :gatunek");
 		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
 		$wynik->bindParam(':gatunek', $gatunek, PDO::PARAM_STR);
 		$wynik->execute();
@@ -151,7 +151,7 @@
 	}
 	public function OrganizmyAll() {
 		$id_uzyt = $_SESSION["zalogowany"];
-		$wynik = $this -> Lacz()->prepare("select * from organizm where id_uzyt = :id");
+		$wynik = $this -> Lacz()->prepare("select * from organism where id_uzyt = :id");
 		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
 		$wynik->execute();
 		if (!$wynik) {

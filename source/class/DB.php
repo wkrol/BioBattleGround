@@ -32,15 +32,15 @@ public static function getInstance(){
 	}
 	
 public function insertOrganism($name, $stat1, $stat2, $stat3, $type){
-		$result=mysql_query("INSERT INTO organizm(nazwa, hp, instynkt, odpornosc, typ) VALUES ('$name', '$stat1', '$stat2', '$stat3', '$type')");
+		$result=mysql_query("INSERT INTO organism(nazwa, hp, instynkt, odpornosc, typ) VALUES ('$name', '$stat1', '$stat2', '$stat3', '$type')");
 	}
 	
 public function insertClimate($name, $rain, $wind, $sun){
-		$result=mysql_query("INSERT INTO klimat(nazwa, opady, wiatr, naslonecznienie) VALUES ('$name', '$rain', '$wind', '$sun')");
+		$result=mysql_query("INSERT INTO climate(nazwa, opady, wiatr, naslonecznienie) VALUES ('$name', '$rain', '$wind', '$sun')");
 	}
 
 public function insertMap($name, $string){
-		$result=mysql_query("INSERT INTO mapa(nazwa, mapString) VALUES ('$name', '$string')");
+		$result=mysql_query("INSERT INTO map(nazwa, mapString) VALUES ('$name', '$string')");
 	}
 
 public function select($tablename, $column = "*"){
@@ -117,7 +117,7 @@ public function selectNew($tablename){
 	
 
 public function deleteOrganism($name_id, $name_value ){
-	mysql_query("DELETE FROM organizm WHERE $name_id='$name_value'") or die("Wybrany organizm nie istnieje - ".mysql_error());
+	mysql_query("DELETE FROM organism WHERE $name_id='$name_value'") or die("Wybrany organizm nie istnieje - ".mysql_error());
 	}
 }
 // Funkcja tworzenia bazy
@@ -128,9 +128,9 @@ function createBase($dbname){
 	}
 //Funkcja tworzenia tablic
 function createTables(){
-		$organismSQL = "CREATE TABLE ORGANIZM(id int auto_increment, nazwa char(20), hp int, instynkt int, odpornosc int, typ char(20), id_uzyt VARCHAR(16), primary key(id) )";
-		$mapSQL = "CREATE TABLE MAPA(id int auto_increment, nazwa char(20), mapString text, id_uzyt VARCHAR(16), primary key(id))";
-		$climateSQL = "CREATE TABLE KLIMAT(id int auto_increment, nazwa char(20), opady int, wiatr int, naslonecznienie int, id_uzyt VARCHAR(16), primary key (id))";
+		$organismSQL = "CREATE TABLE organism(id int auto_increment, nazwa char(20), hp int, instynkt int, odpornosc int, typ char(20), id_uzyt VARCHAR(16), primary key(id) )";
+		$mapSQL = "CREATE TABLE map(id int auto_increment, nazwa char(20), mapString text, id_uzyt VARCHAR(16), primary key(id))";
+		$climateSQL = "CREATE TABLE climate(id int auto_increment, nazwa char(20), opady int, wiatr int, naslonecznienie int, id_uzyt VARCHAR(16), primary key (id))";
 		
 		mysql_query($organismSQL);
 		mysql_query($mapSQL);
