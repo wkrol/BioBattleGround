@@ -90,22 +90,22 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`user_privileges` (
   INDEX `id_user` (`id_user` ASC) ,
   INDEX `id_map` (`id_map` ASC) ,
   INDEX `id_climate` (`id_climate` ASC) ,
-  CONSTRAINT `id_organizm`
+  CONSTRAINT `id_up_organism`
     FOREIGN KEY (`id_organism` )
     REFERENCES `biobattleground`.`organism` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_user`
+  CONSTRAINT `id_up_user`
     FOREIGN KEY (`id_user` )
     REFERENCES `biobattleground`.`user` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_map`
+  CONSTRAINT `id_up_map`
     FOREIGN KEY (`id_map` )
     REFERENCES `biobattleground`.`map` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_climate`
+  CONSTRAINT `id_up_climate`
     FOREIGN KEY (`id_climate` )
     REFERENCES `biobattleground`.`climate` (`id` )
     ON DELETE CASCADE
@@ -129,12 +129,12 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`simulation` (
   PRIMARY KEY (`id`) ,
   INDEX `id_map` (`id_map` ASC) ,
   INDEX `id_climate` (`id_climate` ASC) ,
-  CONSTRAINT `id_map`
+  CONSTRAINT `id_sim_map`
     FOREIGN KEY (`id_map` )
     REFERENCES `biobattleground`.`map` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `id_climate`
+  CONSTRAINT `id_sim_climate`
     FOREIGN KEY (`id_climate` )
     REFERENCES `biobattleground`.`climate` (`id` )
     ON DELETE NO ACTION
@@ -162,17 +162,17 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`group` (
   INDEX `id_organism` (`id_organism` ASC) ,
   INDEX `id_simulation` (`id_simulation` ASC) ,
   INDEX `id_user_privileges` (`id_user_privileges` ASC) ,
-  CONSTRAINT `id_organism`
+  CONSTRAINT `id_gp_organism`
     FOREIGN KEY (`id_organism` )
     REFERENCES `biobattleground`.`organism` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_simulation`
+  CONSTRAINT `id_gp_simulation`
     FOREIGN KEY (`id_simulation` )
     REFERENCES `biobattleground`.`simulation` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_user_privileges`
+  CONSTRAINT `id_gp_user_privileges`
     FOREIGN KEY (`id_user_privileges` )
     REFERENCES `biobattleground`.`user_privileges` (`id_user` )
     ON DELETE NO ACTION
@@ -194,7 +194,7 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`simulation_privileges` (
   `join` TINYINT(1)  NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `id_user` (`id_user` ASC) ,
-  CONSTRAINT `id_user`
+  CONSTRAINT `id_sp_user`
     FOREIGN KEY (`id_user` )
     REFERENCES `biobattleground`.`user` (`id` )
     ON DELETE NO ACTION
@@ -221,12 +221,12 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`round` (
   PRIMARY KEY (`id`) ,
   INDEX `id_organism` (`id_organism` ASC) ,
   INDEX `id_simulation` (`id_simulation` ASC) ,
-  CONSTRAINT `id_organism`
+  CONSTRAINT `id_rd_organism`
     FOREIGN KEY (`id_organism` )
     REFERENCES `biobattleground`.`organism` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `id_simulation`
+  CONSTRAINT `id_rd_simulation`
     FOREIGN KEY (`id_simulation` )
     REFERENCES `biobattleground`.`simulation` (`id` )
     ON DELETE CASCADE
