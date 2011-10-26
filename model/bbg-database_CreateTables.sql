@@ -3,6 +3,7 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 
 CREATE SCHEMA IF NOT EXISTS `biobattleground` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci ;
+
 USE `biobattleground` ;
 
 -- -----------------------------------------------------
@@ -80,22 +81,22 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`Uprawnienia gracza` (
   INDEX `id_user` (`id_user` ASC) ,
   INDEX `id_map` (`id_map` ASC) ,
   INDEX `id_climate` (`id_climate` ASC) ,
-  CONSTRAINT `id_organizm`
+  CONSTRAINT `ug_fk_organizm`
     FOREIGN KEY (`id_organism` )
     REFERENCES `biobattleground`.`Organizm` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_user`
+  CONSTRAINT `ug_fk_user`
     FOREIGN KEY (`id_user` )
     REFERENCES `biobattleground`.`Użytkownik` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_map`
+  CONSTRAINT `ug_fk_map`
     FOREIGN KEY (`id_map` )
     REFERENCES `biobattleground`.`Mapa` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_climate`
+  CONSTRAINT `ug_fk_climate`
     FOREIGN KEY (`id_climate` )
     REFERENCES `biobattleground`.`Klimat` (`id` )
     ON DELETE CASCADE
@@ -117,12 +118,12 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`Symulacja` (
   PRIMARY KEY (`id`) ,
   INDEX `id_map` (`id_map` ASC) ,
   INDEX `id_climate` (`id_climate` ASC) ,
-  CONSTRAINT `id_map`
+  CONSTRAINT `sm_fk_map`
     FOREIGN KEY (`id_map` )
     REFERENCES `biobattleground`.`Mapa` (`id` )
     ON DELETE RESTRICT
     ON UPDATE RESTRICT,
-  CONSTRAINT `id_climate`
+  CONSTRAINT `sm_fk_climate`
     FOREIGN KEY (`id_climate` )
     REFERENCES `biobattleground`.`Klimat` (`id` )
     ON DELETE RESTRICT
@@ -148,17 +149,17 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`Stado` (
   INDEX `id_organism` (`id_organism` ASC) ,
   INDEX `id_simulation` (`id_simulation` ASC) ,
   INDEX `id_user_privileges` (`id_user_privileges` ASC) ,
-  CONSTRAINT `id_organism`
+  CONSTRAINT `st_fk_organism`
     FOREIGN KEY (`id_organism` )
     REFERENCES `biobattleground`.`Organizm` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_simulation`
+  CONSTRAINT `st_fk_simulation`
     FOREIGN KEY (`id_simulation` )
     REFERENCES `biobattleground`.`Symulacja` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_user_privileges`
+  CONSTRAINT `st_fk_user_privileges`
     FOREIGN KEY (`id_user_privileges` )
     REFERENCES `biobattleground`.`Uprawnienia gracza` (`id_user` )
     ON DELETE CASCADE
@@ -178,7 +179,7 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`Uprawnienia symulacji` (
   `join` TINYINT(1)  NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `id_user` (`id_user` ASC) ,
-  CONSTRAINT `id_user`
+  CONSTRAINT `us_fk_user`
     FOREIGN KEY (`id_user` )
     REFERENCES `biobattleground`.`Użytkownik` (`id` )
     ON DELETE CASCADE
@@ -203,12 +204,12 @@ CREATE  TABLE IF NOT EXISTS `biobattleground`.`Tura` (
   PRIMARY KEY (`id`) ,
   INDEX `id_organism` (`id_organism` ASC) ,
   INDEX `id_simulation` (`id_simulation` ASC) ,
-  CONSTRAINT `id_organism`
+  CONSTRAINT `tr_fk_organism`
     FOREIGN KEY (`id_organism` )
     REFERENCES `biobattleground`.`Organizm` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `id_simulation`
+  CONSTRAINT `tr_fk_simulation`
     FOREIGN KEY (`id_simulation` )
     REFERENCES `biobattleground`.`Symulacja` (`id` )
     ON DELETE CASCADE
