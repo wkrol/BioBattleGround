@@ -1,19 +1,20 @@
 <?php
 /*
  * INCLUDE BLOCK
- * Dla klas obiekt�w, kt�rych warto�ci pobierane b�d� z bazy
+ * Dla klas obiektów, których wartości pobierane będą z bazy
  */
 include_once 'source/class/climate.php';
 include_once 'source/class/organism.php';
 include_once 'source/class/group.php';
 
-/*
- * Klasa obs�uguj�ca baz� danych
+/**
+ * Klasa obsługująca bazę danych
+ * TODO: byćmoże lepiej będzie oddzielić funkcje dot. user od funkcji symulacji
  */
 class DB {
 	
 	/*
-	 * Ustawienia po��czenia z baz� danych
+	 * Ustawienia połączenia z bazą danych
 	 */
 	private $dbname = 'biobattleground';
 	private $dbuser = 'root';
@@ -23,7 +24,7 @@ class DB {
 	private static $instance;
 	
 	/* TODO:
-	 * funkcje do obs�ugi select - do przedyskutowania ;),
+	 * funkcje do obsługi select - do przedyskutowania ;)
 	 * insert i update
 	 */
 	private function __construct() {
@@ -48,27 +49,39 @@ class DB {
 	public function login($username, $password) {
 		$stmt = $this->db->prepare('select * from uzytkownicy where NAZWA = ? and HASLO = ?');
 		try {
-			$result->execute(array($username, $password));
+			$stmt->execute(array($username, $password));
 		} catch (Exception $e) {
-			throw new Exception('Wyst�pi� problem z baz� danych: '.$e->getMessage());
+			throw new Exception('Wystąpił problem z bazą danych: '.$e->getMessage());
 		}
-		//TODO sprawdzenie czy jest user
-		
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		if (!isset($result[ID])) {
+			throw new Exception('Nie udało się zalogować');
+		} else {
+			return TRUE;
+		}
+	}
+	
+	//TODO: ciało funkcji
+	public function register($username, $password, $description, $master, $admin) {
+	}
+	
+	//TODO: ciało funkcji
+	public function editUser($id) {
 	}
 	
 	/*
-	 * Funkcja pobieraj�ca z bazy odpowiednie dane, zwraca je ju� w postaci potrzebnego obiektu
+	 * Funkcja pobierająca z bazy odpowiednie dane, zwraca je już w postaci potrzebnego obiektu
 	 */
 	public function getObject($type, $id) {
 		$stmt = $this->db->prepare('SELECT * FROM ? WHERE id = ?');
 		$stmt->execute(array($type, $id));			//Tu IF albo TRY po testach
 		
-		$result = $stmt->fetch(PDO::FETCH_ASSOC);	//Zwraca tablic� asocjacyjn�
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);	//Zwraca tablicę asocjacyjną
 		
 		//Tworzenie odpowiedniego obiektu 
 		switch ($type) {
 			case 'group':
-				//GROUP, czyli dawne STADO ma teraz zupe�nie inn� konstrukcj�, wi�c TODO: przedyskutowa� na spotkaniu
+				//GROUP, czyli dawne STADO ma teraz zupełnie inną konstrukcję, więc TODO: przedyskutować na spotkaniu
 				$object = new Group(
 					$result[ID],
 					$result[NAME]
@@ -100,21 +113,104 @@ class DB {
 	}
 	
 	
-	public function insertOrganism($name, $stat1, $stat2, $stat3, $type){
-		$result=mysql_query("INSERT INTO organism(nazwa, hp, instynkt, odpornosc, typ) 
-							 VALUES ('$name', '$stat1', '$stat2', '$stat3', '$type')");
+	public function insertOrganism($name, $stat1, $stat2, $stat3, $type, $id){
+		$wynik = $this -> Lacz()->prepare("INSERT INTO organism(nazwa, hp, instynkt, odpornosc, typ, id_uzyt) VALUES (:name, :stat1, :stat2, :stat3, :type, :id)");
+		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
+		$wynik->bindParam(':stat1', $stat1, PDO::PARAM_INT);
+		$wynik->bindParam(':stat2', $stat2, PDO::PARAM_INT);
+		$wynik->bindParam(':stat3', $stat3, PDO::PARAM_INT);
+		$wynik->bindParam(':type', $type, PDO::PARAM_STR);
+		$wynik->bindParam(':id', $id, PDO::PARAM_STR);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wykonanie zapytania nie powiodło się.');
+		}
 	}
 	
-	public function insertClimate($name, $rain, $wind, $sun){
-		$result=mysql_query("INSERT INTO climate(nazwa, opady, wiatr, naslonecznienie) VALUES ('$name', '$rain', '$wind', '$sun')");
+	public function insertClimate($name, $rain, $wind, $sun, $id){
+		$wynik = $this -> Lacz()->prepare("INSERT INTO climate(nazwa, opady, wiatr, naslonecznienie, id_uzyt) VALUES (:name, :rain, :wind, :sun, :id)");
+		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
+		$wynik->bindParam(':rain', $rain, PDO::PARAM_INT);
+		$wynik->bindParam(':wind', $wind, PDO::PARAM_INT);
+		$wynik->bindParam(':sun', $sun, PDO::PARAM_INT);
+		$wynik->bindParam(':id', $id, PDO::PARAM_INT);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wykonanie zapytania nie powiodło się.');
+		}
 	}
 	
-	public function insertMap($name, $string){
-		$result=mysql_query("INSERT INTO map(nazwa, mapString) VALUES ('$name', '$string')");
+	public function insertMap($name, $string, $id){
+		$wynik = $this -> Lacz()->prepare("INSERT INTO map(nazwa, mapString, id_uzyt) VALUES (:name, :string, :id)");
+		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
+		$wynik->bindParam(':string', $string, PDO::PARAM_STR);
+		$wynik->bindParam(':id', $id, PDO::PARAM_STR);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wykonanie zapytania nie powiodło się.');
+		}
 	}
 	
 	public function deleteOrganism($name_id, $name_value ){
 		mysql_query("DELETE FROM organism WHERE $name_id='$name_value'") or die("Wybrany organizm nie istnieje - ".mysql_error());
+	}
+	
+	public function Klimaty() {
+		$id_uzyt = $_SESSION["zalogowany"];
+		$wynik = $this -> Lacz()->prepare("select * from climate where id_uzyt = :id");
+		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wyświetlenie jest niemożliwe.');
+		}
+	
+		return $wynik;
+	}
+	
+	public function Mapy() {
+		$id_uzyt = $_SESSION["zalogowany"];
+		$wynik = $this -> Lacz()->prepare("select * from map where id_uzyt = :id");
+		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wyświetlenie jest niemożliwe.');
+		}
+	
+		return $wynik;
+	}
+	
+	public function Organizmy($gatunek) {
+		$id_uzyt = $_SESSION["zalogowany"];
+		$wynik = $this -> Lacz()->prepare("select * from organism where id_uzyt = :id and typ = :gatunek");
+		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
+		$wynik->bindParam(':gatunek', $gatunek, PDO::PARAM_STR);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wyświetlenie jest niemożliwe.');
+		}
+	
+		return $wynik;
+	}
+	
+	public function OrganizmyAll() {
+		$id_uzyt = $_SESSION["zalogowany"];
+		$wynik = $this -> Lacz()->prepare("select * from organism where id_uzyt = :id");
+		$wynik->bindParam(':id', $id_uzyt, PDO::PARAM_STR);
+		$wynik->execute();
+		if (!$wynik) {
+			throw new Exception('Wyświetlenie jest niemożliwe.');
+		}
+	
+		return $wynik;
+	}
+	
+	public function Uzytkownicy() {
+		$wynik = $this -> Lacz()->query("select * from uzytkownicy");
+		if (!$wynik) {
+			throw new Exception('Wysiwetlenie newsa jest niemożliwe.');
+		}
+	
+		return $wynik;
 	}
 	
 	
