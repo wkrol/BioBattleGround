@@ -1,17 +1,19 @@
 <?php
 
-class Klimat {
+class Climate {
 
-private $nazwa;
-private $deszcz;
-private $wiatr;
-private $naslonecznienie;
+	private $id;
+	private $nazwa;
+	private $deszcz;
+	private $wiatr;
+	private $naslonecznienie;
 
-public function __construct($nazwa, $deszcz, $wiatr, $naslonecznienie){
+public function __construct($nazwa, $deszcz, $wiatr, $naslonecznienie, $id = NULL){
 		$this->nazwa = $nazwa;
 		$this->deszcz = $deszcz;
 		$this->wiatr = $wiatr;
 		$this->naslonecznienie = $naslonecznienie;
+		$this->id = $id;
 		}
 		
 public function setNazwa($name){

@@ -1,11 +1,14 @@
 <?php
+
+//TODO: jeœli require jest konieczne, to niech to bêdzie require_once, ze œcie¿k¹
 require("stado.php");
 require("wspolrzedne.php");
 /*
  * Base Organism class
  */
-class Organizm {
-
+class Organism {
+	
+	private $id;
 	private $nazwa;
 	private $witalnosc;
 	private $instynkt;
@@ -27,16 +30,17 @@ class Organizm {
 	 * @param $s2 = organism's instinct
 	 * @param $s3 = organism's resistance
 	 */
-	public function __construct($name, $s1, $s2, $s3){
+	public function __construct($name, $vitality, $instinct, $toughness, $id = NULL){
 	        $this->nazwa = $name;
-	        $this->witalnosc = $s1;
-	        $this->instynkt = $s2;
-	        $this->odpornosc = $s3;
+	        $this->witalnosc = $vitality;
+	        $this->instynkt = $instinct;
+	        $this->odpornosc = $immunity;
 					$this->punktyZycia = $this->witalnosc * 2;
 					$this->stado = new Stado($this);
 					$this->stado->setNazwa($name);
 					$this->setNumerZagrody($this->stado->getId());
 					$this->stado->dodajOrganizm($this);
+			$this->id = $id;
 		}
 	/*
 	 * clone Organism function

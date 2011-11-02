@@ -80,6 +80,10 @@
 		if ($count>0) {
 			throw new Exception('Nazwa u¿ytkownika zajêta — proszê wróciæ i wybraæ inn¹.');
 		}
+		
+		/* TODO: hashowanie hase³
+		 * $hash = md5('i_like_salt'.sha256($password.$register_time).'very_long_salt');
+		 */
 
 		$wynik = $this -> Lacz()->prepare("insert into uzytkownicy (nazwa, haslo, opis, mistrz, admin) values
                        (:nazwa, :haslo, :opis, :mistrz, :admin)");

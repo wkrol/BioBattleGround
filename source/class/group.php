@@ -1,16 +1,23 @@
 <?php
 
-class Stado {
+class Group {
 
 	private $id;
 	private $nazwa;
 	private $zagroda=array();
 	
 	
-	public function __construct(){
-	
-		$this->id=0;
-	
+	public function __construct($id = 0, $nazwa, $zagroda){
+		
+		$this->id = $id;
+		$this->nazwa = $nazwa;
+		
+		//TODO: Sprawdziæ, czy to ma sens - nie patrzy³em czym dok³adnie jest zagroda ~Szorstki
+		$count = 0;
+		foreach ($zagrod as $organism) {
+			$this->zagroda[$count] = $organism;
+			$count++;
+		}
 	}
 	/**
 	 * Funkcja przesuwania organizmów w stadzie po usuniêciu jednego z nich

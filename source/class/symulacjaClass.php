@@ -1,8 +1,13 @@
 <?php
+//TODO: wyrzucić wszystkie REQUIRE, klasa DB-Final sama tworzy obiekty + dopasowanie kodu symulacji
 require("DB.php");
 require("organism.php");
-require("klimat.php");
+require("climate.php");
 
+require_once 'source/class/DB-Final.php';
+
+
+//TODO: zmiana nazwy na zgodną z bazą danych? UWAGA, zmieniłem nazwy klas na zgodne z bazą danych
 class Symulacja {
 
 	private $nazwa;
@@ -98,7 +103,7 @@ class Symulacja {
 	}
 	/**
 	 * 
-	 * Funkcja generująca tablicę, której elementami są warunki pogodowe
+	 * Funkcja generujÄ…ca tablicÄ™, ktĂłrej elementami sÄ… warunki pogodowe
 	 * @param Object $klimat
 	 * @param Array $mapa
 	 */
@@ -186,7 +191,7 @@ class Symulacja {
 /**
  * @see Symulacja::stworzPogode($klimat,$mapa){}
  * 
- * Funkcja na potrzeby testów dla mniejszej mapy
+ * Funkcja na potrzeby testĂłw dla mniejszej mapy
  * 
  */
 public function stworzMalaPogode($klimat,$mapa){
@@ -274,8 +279,8 @@ public function stworzMalaPogode($klimat,$mapa){
 	
 	/**
 	 * 
-	 * Podstawowa funkcja "pakująca" organizmy do pojemnika
-	 * @param Array of Objects $organizmy = tablica obiektów  z organizmami do dodania
+	 * Podstawowa funkcja "pakujÄ…ca" organizmy do pojemnika
+	 * @param Array of Objects $organizmy = tablica obiektĂłw  z organizmami do dodania
 	 */
 	public function napelnijPojemnik($organizmy){
 		
@@ -345,9 +350,9 @@ public function stworzMalaPogode($klimat,$mapa){
 		}
 	/**
 	 * 
-	 * Funkcja sprawdzająca po kolei wszystkie referencje do organizmów
+	 * Funkcja sprawdzajÄ…ca po kolei wszystkie referencje do organizmĂłw
 	 * 
-	 * @param Array of Objects $pojemnik = tablica z referencjami do obiektów typu Organizm
+	 * @param Array of Objects $pojemnik = tablica z referencjami do obiektĂłw typu Organizm
 	 */
 	public function uaktualnijPojemnik($pojemnik){
 	
@@ -355,7 +360,7 @@ public function stworzMalaPogode($klimat,$mapa){
 		if(isset($pojemnik[0]) == FALSE)
 			break;
 		/*
-		 * jeśli referencja jest pusta, następuje przesunięcie organizmów w pojemniku :) 
+		 * jeĹ›li referencja jest pusta, nastÄ™puje przesuniÄ™cie organizmĂłw w pojemniku :) 
 		 */
 		if($pojemnik[$i] == NULL){
 			for ($j=$i;$j<count($pojemnik)-1;$j++){
@@ -368,10 +373,10 @@ public function stworzMalaPogode($klimat,$mapa){
 	$this->setPojemnik($pojemnik);
 	}
 	/**
-	 * Funkcja napełniająca pojemnik organizmami a następnie usuwająca puste referencje
-	 * i przesuwająca organizmy w pojemniku
+	 * Funkcja napeĹ‚niajÄ…ca pojemnik organizmami a nastÄ™pnie usuwajÄ…ca puste referencje
+	 * i przesuwajÄ…ca organizmy w pojemniku
 	 * 
-	 * @param Array of Objects $org = tablica z referencjami do obiektów typu Organizm
+	 * @param Array of Objects $org = tablica z referencjami do obiektĂłw typu Organizm
 	 */	
 	public function tworzPojemnik($org){
 	
@@ -381,7 +386,7 @@ public function stworzMalaPogode($klimat,$mapa){
 		
 		return $this->getPojemnik();
 	}
-	//TODO: zaimplementować generowanie pokarmu w trakcie symulacji
+	//TODO: zaimplementowaÄ‡ generowanie pokarmu w trakcie symulacji
 	public function generujPokarm(){
 
 		
@@ -471,12 +476,12 @@ function mapuj($mapa, $pojemnik){
 		echo "</tr>";
 		}
 	echo "</table>";
-	echo "<input type=\"button\" value=\"NastÄ‚â€žĂ˘â€žË�pna Tura\" id=\"nextTurn\"></input>";
-	echo "<div id=\"simTooltip\"><h3>PrzykĂ„Ä…Ă˘â‚¬Ĺˇadowe okno</h3> <img src=\" images/climate/slonce.png \"></img> <p>;<img src=\" images/climate/opady.png \"></img></p> <p><img src=\" images/climate/wiatr.png \"></img></p></div>";
+	echo "<input type=\"button\" value=\"NastĂ„â€šĂ˘â‚¬ĹľÄ‚Ë�Ă˘â‚¬ĹľĂ‹ďż˝pna Tura\" id=\"nextTurn\"></input>";
+	echo "<div id=\"simTooltip\"><h3>PrzykÄ‚â€žĂ„â€¦Ä‚Ë�Ă˘â€šÂ¬ÄąË‡adowe okno</h3> <img src=\" images/climate/slonce.png \"></img> <p>;<img src=\" images/climate/opady.png \"></img></p> <p><img src=\" images/climate/wiatr.png \"></img></p></div>";
 	echo "</div>";
 }
 /**
- * Funkcja generująca mapę gry i zwracająca ją jako string
+ * Funkcja generujÄ…ca mapÄ™ gry i zwracajÄ…ca jÄ… jako string
  * 
  */
 function kreuj($mapa, $pojemnik){
@@ -555,8 +560,8 @@ function kreuj($mapa, $pojemnik){
 		$string.="</tr>";
 		}
 	$string.="</table>";
-	$string.="<input type=\"button\" value=\"NastÄ™pna Tura\"  id=\"0\"></input>";
-	$string.="<div id=\"simTooltip\"><h3>PrzykĹ‚adowe okno</h3> <img src=\" images/climate/slonce.png \"></img> <p><img src=\" images/climate/opady.png \"></img></p> <p><img src=\" images/climate/wiatr.png \"></img></p></div>";
+	$string.="<input type=\"button\" value=\"NastĂ„â„˘pna Tura\"  id=\"0\"></input>";
+	$string.="<div id=\"simTooltip\"><h3>PrzykÄąâ€šadowe okno</h3> <img src=\" images/climate/slonce.png \"></img> <p><img src=\" images/climate/opady.png \"></img></p> <p><img src=\" images/climate/wiatr.png \"></img></p></div>";
 	$string.="</div>";
 	
 	return $string;
