@@ -1,10 +1,11 @@
 <?php
 
-//TODO: jeœli require jest konieczne, to niech to bêdzie require_once, ze œcie¿k¹
+//TODO: jeÅ›li require jest konieczne, to niech to bÄ™dzie require_once, ze Å›cieÅ¼kÄ…
 require("stado.php");
 require("wspolrzedne.php");
 /*
  * Base Organism class
+ * TODO: zmiana nazw funkcji i pÃ³l na angielskie,
  */
 class Organism {
 	
@@ -53,8 +54,8 @@ class Organism {
 			$this->stado->dodajOrganizm($this);
 		}
 	/*
-	 * Funkcja usuniêcia organizmu z zagrody
-	 * i przesuniêcia id w zagrodzie
+	 * Funkcja usuniï¿½cia organizmu z zagrody
+	 * i przesuniï¿½cia id w zagrodzie
 	 */
 	public function anihilate(){
 	
@@ -65,11 +66,11 @@ class Organism {
 	}
 		
 	
-	public function setNazwa($name){
+	public function setName($name){
 	        $this->nazwa = $name;
 	        }
 
-	public function getNazwa(){
+	public function getName(){
 	        return $this->nazwa;
 	        }
 		
@@ -141,12 +142,12 @@ class Organism {
 		return $this->numerZagrody;
 	}
 	/*
-	 * Funkcja postarzania organizmów po ka¿dej turze
+	 * Funkcja postarzania organizmï¿½w po kaï¿½dej turze
 	 * 
-	 * Wartoœæ porównywana w funkcji if okreœla d³ugoœæ ¿ycia organizmów
+	 * Wartoï¿½ï¿½ porï¿½wnywana w funkcji if okreï¿½la dï¿½ugoï¿½ï¿½ ï¿½ycia organizmï¿½w
 	 * 
-	 * TODO balans d³ugoœci ¿ycia wraz z innymi czynnikami symulacji w celu
-	 * TODO generowania przybli¿onych do za³o¿onych wyników symulacji
+	 * TODO balans dï¿½ugoï¿½ci ï¿½ycia wraz z innymi czynnikami symulacji w celu
+	 * TODO generowania przybliï¿½onych do zaï¿½oï¿½onych wynikï¿½w symulacji
 	 */
 	public function postarz(){
 		$this->wiek++;
@@ -154,8 +155,8 @@ class Organism {
 			$this->smierc();
 		}
 	/*
-	 * Funkcja zwiêkszania g³odu ( poprzez zmniejszanie jego wartoœci :) )
-	 * Gdy g³ód spadnie do zera organizm umiera
+	 * Funkcja zwiï¿½kszania gï¿½odu ( poprzez zmniejszanie jego wartoï¿½ci :) )
+	 * Gdy gï¿½ï¿½d spadnie do zera organizm umiera
 	 */
 	public function glod(){
 		$this->glod--;
@@ -163,9 +164,9 @@ class Organism {
 			$this->smierc();
 	}
 	/*
-	 * Funkcja odnoszenia ran przez organizmy na skutek g³odowania lub innych wydarzeñ
-	 * W efekcie punkty ¿ycia danego organizmu s¹ zmniejszane o 1
-	 * jeœli osi¹gn¹ wartoœæ < 1 to organizm umiera
+	 * Funkcja odnoszenia ran przez organizmy na skutek gï¿½odowania lub innych wydarzeï¿½
+	 * W efekcie punkty ï¿½ycia danego organizmu sï¿½ zmniejszane o 1
+	 * jeï¿½li osiï¿½gnï¿½ wartoï¿½ï¿½ < 1 to organizm umiera
 	 */
 	public function ranny(){
 		$this->punktyZycia--;
@@ -173,10 +174,10 @@ class Organism {
 			$this->smierc();
 	}
 	/*
-	 * Funkcja odpowiadaj¹ca za poruszanie siê organizmów
-	 * Na razie w sposób losowy
+	 * Funkcja odpowiadajï¿½ca za poruszanie siï¿½ organizmï¿½w
+	 * Na razie w sposï¿½b losowy
 	 * 
-	 * TODO stworzyæ lepszy algorytm ruchu, szczególnie w przypadku g³odu
+	 * TODO stworzyï¿½ lepszy algorytm ruchu, szczegï¿½lnie w przypadku gï¿½odu
 	 */
 	
 	public function ruch(){
@@ -202,13 +203,13 @@ class Organism {
 		$this->setPozycja(($pozycja['x'])+$a,($pozycja['y'])+$b);
 	}
 	/**
-	 * Funkcja oddzia³ywania organizmu na typ terenu na którym siê znajduje
+	 * Funkcja oddziaï¿½ywania organizmu na typ terenu na ktï¿½rym siï¿½ znajduje
 	 * 
 	 * @param $teren = typ terenu ( VALUES = [0-7] )
 	 * 
-	 * Odnosi siê tylko do dwóch typów terenów, bo wszystkie organizmy w
-	 * ten sam sposób na nie reaguj¹, pozosta³e typy tereny s¹ nadpisane
-	 * w tej funkcji poszczególnych typów organizmów
+	 * Odnosi siï¿½ tylko do dwï¿½ch typï¿½w terenï¿½w, bo wszystkie organizmy w
+	 * ten sam sposï¿½b na nie reagujï¿½, pozostaï¿½e typy tereny sï¿½ nadpisane
+	 * w tej funkcji poszczegï¿½lnych typï¿½w organizmï¿½w
 	 * 
 	 */
 	public function oddzialuj($teren){
@@ -243,9 +244,9 @@ class Organism {
 		}
 	}
 	/*
-	 * Funkcja rozmna¿ania siê organizmów
+	 * Funkcja rozmnaï¿½ania siï¿½ organizmï¿½w
 	 * 
-	 * Organizmy "rodz¹" siê na oœmiu s¹siaduj¹cych polach
+	 * Organizmy "rodzï¿½" siï¿½ na oï¿½miu sï¿½siadujï¿½cych polach
 	 */
 	public function reprodukcja(){
 		
@@ -257,9 +258,9 @@ class Organism {
 			$y = $pozycja['y']+$wsp[1];
 			
 			/*
-			 * Sprawdzanie czy wspó³rzedne mieszcz¹ siê w zakresie mapy
+			 * Sprawdzanie czy wspï¿½rzedne mieszczï¿½ siï¿½ w zakresie mapy
 			 * 
-			 * TODO Ustawiæ granice wspó³rzêdnych ( wstêpnie 0 < $x < 30; 0 < $y < 50 ) 
+			 * TODO Ustawiï¿½ granice wspï¿½rzï¿½dnych ( wstï¿½pnie 0 < $x < 30; 0 < $y < 50 ) 
 			 */
 			if($x >= 10 || $x <= 20 || $y >= 20 || $y <= 30){
 				$org[$i] = clone $this;
@@ -273,28 +274,28 @@ class Organism {
 	public function czekaj() {}
 	
 	/*
-	 * Funkcja œmierci organizmu
+	 * Funkcja ï¿½mierci organizmu
 	 */
 	public function smierc() {
 		$this->anihilate();
 	}
 	/**
-	 * Funkcja œmierci organizmu
+	 * Funkcja ï¿½mierci organizmu
 	 * 
-	 * @param Object $atakuj¹cy = organizm zabijaj¹cy ofiarê
+	 * @param Object $atakujï¿½cy = organizm zabijajï¿½cy ofiarï¿½
 	 * 
 	 */
 	public function smierc2($atakujacy){
 		$this->anihilate();
-		// Drapie¿nik zjada ofiarê i jego nape³nia swój g³ód
+		// Drapieï¿½nik zjada ofiarï¿½ i jego napeï¿½nia swï¿½j gï¿½ï¿½d
 		$atakujacy->setGlod(10);
 	}
 	/**
-	 * Funkcja œmierci organizmu i stworzenia miêsa na jego pozycji
+	 * Funkcja ï¿½mierci organizmu i stworzenia miï¿½sa na jego pozycji
 	 * 
 	 * @param Object $atakujacy
 	 * 
-	 * TODO Aktualnie funkcja nie jest u¿ywana, a miêso nie jest przechowywane - naprawiæ ;)
+	 * TODO Aktualnie funkcja nie jest uï¿½ywana, a miï¿½so nie jest przechowywane - naprawiï¿½ ;)
 	 */
 	public function zamordowany($atakujacy) {
 		$mieso = new Mieso();
@@ -308,19 +309,19 @@ class Organism {
 class Roslina extends Organizm {
 
 	/**
-	 * Funkcja wywo³ywana na pocz¹tku ka¿dej tury dla ka¿dego organizmu.
-	 * Na podstawie parametrów organizmu i pogody okreœlana jest akcja jak¹
+	 * Funkcja wywoï¿½ywana na poczï¿½tku kaï¿½dej tury dla kaï¿½dego organizmu.
+	 * Na podstawie parametrï¿½w organizmu i pogody okreï¿½lana jest akcja jakï¿½
 	 * wykona organizm w danej turze.
 	 * 
-	 * @param Array $pogoda = tablica z pogod¹ na danej mapie w danej turze 
+	 * @param Array $pogoda = tablica z pogodï¿½ na danej mapie w danej turze 
 	 */
 	public function akcja($pogoda){
 		
 		/*
-		 * W ifach ustalane s¹ wartoœci parametrów na podstawie, których
-		 * organizmy wykonuj¹ dane akcje
+		 * W ifach ustalane sï¿½ wartoï¿½ci parametrï¿½w na podstawie, ktï¿½rych
+		 * organizmy wykonujï¿½ dane akcje
 		 * 
-		 * TODO Dodaæ wiêcej zale¿noœci, zabalansowaæ i ew .dodaæ nowe akcje
+		 * TODO Dodaï¿½ wiï¿½cej zaleï¿½noï¿½ci, zabalansowaï¿½ i ew .dodaï¿½ nowe akcje
 		 */
 		if($this->getWiek() > 3 && $this->getGlod() > 8){
 		
@@ -332,7 +333,7 @@ class Roslina extends Organizm {
 			$this->czekaj();		
 	}
 	/*
-	 * Roœliny nie mog¹ siê poruszaæ
+	 * Roï¿½liny nie mogï¿½ siï¿½ poruszaï¿½
 	 */
 	public function ruch(){
 		Organizm::czekaj();
@@ -346,9 +347,9 @@ class Roslina extends Organizm {
 		Organizm::czekaj();
 		}
 	/*
-	 * Funkcja rozmna¿ania Roœlin
+	 * Funkcja rozmnaï¿½ania Roï¿½lin
 	 * 
-	 * Funkcja dodatkowo uwzglêdnia umiejêtnoœc specjaln¹ rozsiew
+	 * Funkcja dodatkowo uwzglï¿½dnia umiejï¿½tnoï¿½c specjalnï¿½ rozsiew
 	 */
 	public function reprodukcja(){
 			
@@ -371,10 +372,10 @@ class Roslina extends Organizm {
 			$this->rozsiew();
 	}
 	/*
-	 * Funkcja rozsiewu roœlin ( um. specjalna )
+	 * Funkcja rozsiewu roï¿½lin ( um. specjalna )
 	 * 
-	 * Rodzi siê dodatkowa roœlina na polu s¹siednim do któregoœ z oœmiu 
-	 * otaczaj¹cych organizm
+	 * Rodzi siï¿½ dodatkowa roï¿½lina na polu sï¿½siednim do ktï¿½regoï¿½ z oï¿½miu 
+	 * otaczajï¿½cych organizm
 	 */
 	public function rozsiew(){
 		$pozycja=$this->getPozycja();
@@ -410,9 +411,9 @@ class Roslina extends Organizm {
 		$new->setPozycja(($pozycja['x'])+$x,($pozycja['y'])+$y);
 	}
 	/**
-	 * Funkcja szukania jedzenia na podstawie nas³onecznienia na danym polu
+	 * Funkcja szukania jedzenia na podstawie nasï¿½onecznienia na danym polu
 	 * 
-	 * @param Array $pogoda = tablica z pogod¹ na danej mapie w danej turze 
+	 * @param Array $pogoda = tablica z pogodï¿½ na danej mapie w danej turze 
 	 */
 	public function szukajJedzenia($pogoda){
 			
@@ -422,10 +423,10 @@ class Roslina extends Organizm {
 			
 		}
 	/**
-	 * Funkcja spo¿ywania s³oñca :) 
+	 * Funkcja spoï¿½ywania sï¿½oï¿½ca :) 
 	 * 
-	 * @param int $slonce = wartoœæ nas³onecznienia na polu na którym znajduje 
-	 * siê organizm
+	 * @param int $slonce = wartoï¿½ï¿½ nasï¿½onecznienia na polu na ktï¿½rym znajduje 
+	 * siï¿½ organizm
 	 */
 	public function jedz($slonce){
 		
@@ -438,7 +439,7 @@ class Roslina extends Organizm {
 	
 	}
 	/**
-	 *  Funkcja oddzia³ywania organizmu na typ terenu na którym siê znajduje
+	 *  Funkcja oddziaï¿½ywania organizmu na typ terenu na ktï¿½rym siï¿½ znajduje
 	 * 
 	 * @param int $teren = typ terenu ( VALUES = [0-7] )
 	 * 
@@ -446,7 +447,7 @@ class Roslina extends Organizm {
 	 */
 	public function oddzialuj($teren){
 		/*
-		 * TODO Stworzyæ zale¿noœci dla roœlin od wszystkich typów terenu
+		 * TODO Stworzyï¿½ zaleï¿½noï¿½ci dla roï¿½lin od wszystkich typï¿½w terenu
 		 */
 		switch($teren){
 		
@@ -482,11 +483,11 @@ class Roslina extends Organizm {
 				break;
 				
 			case "5":
-				//s³aby rozsiew
+				//sï¿½aby rozsiew
 				break;
 				
 			case "6":
-				//s³aby rozsiew
+				//sï¿½aby rozsiew
 				break;
 				
 			case "7":
@@ -500,18 +501,18 @@ class Roslina extends Organizm {
 
 class Roslinozerca extends Organizm {
 	/**
-	* Funkcja wywo³ywana na pocz¹tku ka¿dej tury dla ka¿dego organizmu.
-	* Na podstawie parametrów organizmu i tabeli organizmów okreœlana jest akcja jak¹
+	* Funkcja wywoï¿½ywana na poczï¿½tku kaï¿½dej tury dla kaï¿½dego organizmu.
+	* Na podstawie parametrï¿½w organizmu i tabeli organizmï¿½w okreï¿½lana jest akcja jakï¿½
 	* wykona organizm w danej turze.
 	*
 	* @param Array $pojemnik = tabela z organizmami
 	*/
 	public function akcja($pojemnik){
 		/*
-		* W ifach ustalane s¹ wartoœci parametrów na podstawie, których
-		* organizmy wykonuj¹ dane akcje
+		* W ifach ustalane sï¿½ wartoï¿½ci parametrï¿½w na podstawie, ktï¿½rych
+		* organizmy wykonujï¿½ dane akcje
 		*
-		* TODO Dodaæ wiêcej zale¿noœci, zabalansowaæ i ew .dodaæ nowe akcje
+		* TODO Dodaï¿½ wiï¿½cej zaleï¿½noï¿½ci, zabalansowaï¿½ i ew .dodaï¿½ nowe akcje
 		*/
 		if($this->getWiek() >2 && $this->getGlod() > 7)
 			$this->reprodukcja();
@@ -523,7 +524,7 @@ class Roslinozerca extends Organizm {
 		if(isset($check) == true && $check == 0)
 			$this->ruch();
 	}
-	/** Funkcja uniku organizmu ( um. specjalna roœlino¿erców )
+	/** Funkcja uniku organizmu ( um. specjalna roï¿½linoï¿½ercï¿½w )
 	 * 
 	 * Losuje na podstawie @param int $szansa czy organizm wykona unik
 	 */
@@ -536,7 +537,7 @@ class Roslinozerca extends Organizm {
 			return "fiasko";
 	}
 	/**
-	* Funkcja szukania jedzenia ( roœlin )
+	* Funkcja szukania jedzenia ( roï¿½lin )
 	*
 	* @param Array $pojemnik = tabela z organizmami
 	*/
@@ -559,9 +560,9 @@ class Roslinozerca extends Organizm {
 			}
 	}
 	/**
-	 * Funkcja spo¿ywania jedzenia
+	 * Funkcja spoï¿½ywania jedzenia
 	 * 
-	 * @param Object $roslina = roœlina, która jest zabijania w wyniku zjedzenia
+	 * @param Object $roslina = roï¿½lina, ktï¿½ra jest zabijania w wyniku zjedzenia
 	 */
 	public function jedz($roslina){
 
@@ -569,7 +570,7 @@ class Roslinozerca extends Organizm {
 		$this->setGlod(10);
 	}
 	/**
-	*  Funkcja oddzia³ywania organizmu na typ terenu na którym siê znajduje
+	*  Funkcja oddziaï¿½ywania organizmu na typ terenu na ktï¿½rym siï¿½ znajduje
 	*
 	* @param int $teren = typ terenu ( VALUES = [0-7] )
 	*
@@ -577,7 +578,7 @@ class Roslinozerca extends Organizm {
 	*/
 	public function oddzialuj($teren){
 		/*
-		* TODO Stworzyæ zale¿noœci dla roœlin od wszystkich typów terenu
+		* TODO Stworzyï¿½ zaleï¿½noï¿½ci dla roï¿½lin od wszystkich typï¿½w terenu
 		*/
 		switch($teren){
 		
@@ -632,18 +633,18 @@ class Roslinozerca extends Organizm {
 	
 class Padlinozerca extends Organizm {
 	/**
-	* Funkcja wywo³ywana na pocz¹tku ka¿dej tury dla ka¿dego organizmu.
-	* Na podstawie parametrów organizmu i tabeli organizmów okreœlana jest akcja jak¹
+	* Funkcja wywoï¿½ywana na poczï¿½tku kaï¿½dej tury dla kaï¿½dego organizmu.
+	* Na podstawie parametrï¿½w organizmu i tabeli organizmï¿½w okreï¿½lana jest akcja jakï¿½
 	* wykona organizm w danej turze.
 	*
 	* @param Array $pojemnik = tabela z organizmami
 	*/
 	public function akcja($pojemnik){
 		/*
-		* W ifach ustalane s¹ wartoœci parametrów na podstawie, których
-		* organizmy wykonuj¹ dane akcje
+		* W ifach ustalane sï¿½ wartoï¿½ci parametrï¿½w na podstawie, ktï¿½rych
+		* organizmy wykonujï¿½ dane akcje
 		*
-		* TODO Dodaæ wiêcej zale¿noœci, zabalansowaæ i ew .dodaæ nowe akcje
+		* TODO Dodaï¿½ wiï¿½cej zaleï¿½noï¿½ci, zabalansowaï¿½ i ew .dodaï¿½ nowe akcje
 		*/
 		if($this->getWiek() >2 && $this->getGlod() > 7)
 			$this->reprodukcja();
@@ -657,11 +658,11 @@ class Padlinozerca extends Organizm {
 	
 		}
 	/** 
-	 * Funkcja wêchu padlino¿erców - poszukiwania jedzenia przez drapie¿ników
+	 * Funkcja wï¿½chu padlinoï¿½ercï¿½w - poszukiwania jedzenia przez drapieï¿½nikï¿½w
 	 * 
 	 * @param Array $pojemnik = tabela z organizmami
 	 * 
-	 * TODO Zoptymalizowaæ, stworzyæ lepszy algorytm wyszukiwania, uwzglêdniæ padlinê
+	 * TODO Zoptymalizowaï¿½, stworzyï¿½ lepszy algorytm wyszukiwania, uwzglï¿½dniï¿½ padlinï¿½
 	 */
 	public function wech($pojemnik){
 	
@@ -682,14 +683,14 @@ class Padlinozerca extends Organizm {
 	}
 	
 	/**
-	 * Funkcja sêpienia ( um. specjalna padlino¿erców )
+	 * Funkcja sï¿½pienia ( um. specjalna padlinoï¿½ercï¿½w )
 	 * 
-	 * Umiejêtnoœæ polega na przyspieszaniu œmierci organizmu wybranego 
-	 * jako ofiara stopniowo zmniejszaj¹c jego punkty ¿ycia i zwiêkszaj¹c g³ód
+	 * Umiejï¿½tnoï¿½ï¿½ polega na przyspieszaniu ï¿½mierci organizmu wybranego 
+	 * jako ofiara stopniowo zmniejszajï¿½c jego punkty ï¿½ycia i zwiï¿½kszajï¿½c gï¿½ï¿½d
 	 * 
 	 * @param Object $ofiara = Organizm wybrany jako ofiara 
 	 * 
-	 * TODO Sprawdziæ poprawnoœæ, zabalansowaæ potêgê sêpienia 
+	 * TODO Sprawdziï¿½ poprawnoï¿½ï¿½, zabalansowaï¿½ potï¿½gï¿½ sï¿½pienia 
 	 */
 	
 	public function sepienie($ofiara){
@@ -714,12 +715,12 @@ class Padlinozerca extends Organizm {
 		}
 	}
 	/**
-	 * Funkcja spo¿ywania padliny
+	 * Funkcja spoï¿½ywania padliny
 	 * 
-	 * @param Object $padlina = pokarm dla padlino¿erców, powsta³y w wyniku œmierci
-	 * organizmu na skutek inny ni¿ atak innego organizmu
+	 * @param Object $padlina = pokarm dla padlinoï¿½ercï¿½w, powstaï¿½y w wyniku ï¿½mierci
+	 * organizmu na skutek inny niï¿½ atak innego organizmu
 	 * 
-	 * TODO Aktualnie nieu¿ywana, bo pokarm nie jest przechowywwany na mapie - naprawiæ :)
+	 * TODO Aktualnie nieuï¿½ywana, bo pokarm nie jest przechowywwany na mapie - naprawiï¿½ :)
 	 */
 	public function jedz($padlina){
 		
@@ -731,18 +732,18 @@ class Padlinozerca extends Organizm {
 
 class Miesozerca extends Organizm {
 	/**
-	* Funkcja wywo³ywana na pocz¹tku ka¿dej tury dla ka¿dego organizmu.
-	* Na podstawie parametrów organizmu i tabeli organizmów okreœlana jest akcja jak¹
+	* Funkcja wywoï¿½ywana na poczï¿½tku kaï¿½dej tury dla kaï¿½dego organizmu.
+	* Na podstawie parametrï¿½w organizmu i tabeli organizmï¿½w okreï¿½lana jest akcja jakï¿½
 	* wykona organizm w danej turze.
 	*
 	* @param Array $pojemnik = tablica z organizmami
 	*/
 	public function akcja($pojemnik){
 		/*
-		* W ifach ustalane s¹ wartoœci parametrów na podstawie, których
-		* organizmy wykonuj¹ dane akcje
+		* W ifach ustalane sï¿½ wartoï¿½ci parametrï¿½w na podstawie, ktï¿½rych
+		* organizmy wykonujï¿½ dane akcje
 		*
-		* TODO Dodaæ wiêcej zale¿noœci, zabalansowaæ i ew .dodaæ nowe akcje
+		* TODO Dodaï¿½ wiï¿½cej zaleï¿½noï¿½ci, zabalansowaï¿½ i ew .dodaï¿½ nowe akcje
 		*/
 		if($this->getWiek() >2 && $this->getGlod() > 7)
 			$this->reprodukcja();
@@ -756,11 +757,11 @@ class Miesozerca extends Organizm {
 	
 		}
 	/**
-	* Funkcja wêchu miêso¿erców - poszukiwania jedzenia przez drapie¿ników
+	* Funkcja wï¿½chu miï¿½soï¿½ercï¿½w - poszukiwania jedzenia przez drapieï¿½nikï¿½w
 	*
 	* @param Array $pojemnik = tabela z organizmami
 	*
-	* TODO Zoptymalizowaæ, stworzyæ lepszy algorytm wyszukiwania, uwzglêdniæ miêso
+	* TODO Zoptymalizowaï¿½, stworzyï¿½ lepszy algorytm wyszukiwania, uwzglï¿½dniï¿½ miï¿½so
 	*/
 	public function wech($pojemnik){			
 			
@@ -783,13 +784,13 @@ class Miesozerca extends Organizm {
 	}
 	
 	/**
-	 * Funkcja ataku innego organizmu ( um. specjalna miêso¿erców )
+	 * Funkcja ataku innego organizmu ( um. specjalna miï¿½soï¿½ercï¿½w )
 	 * 
 	 * @param Object $ofiara = organizm wybrany jako ofiara
 	 * 
-	 * Tu ustalana jest si³a obra¿eñ jakie zadaje dany organizm
+	 * Tu ustalana jest siï¿½a obraï¿½eï¿½ jakie zadaje dany organizm
 	 * 
-	 * TODO zbalansowaæ, napisaæ funkcjê tworzenia miêsa na danym polu 
+	 * TODO zbalansowaï¿½, napisaï¿½ funkcjï¿½ tworzenia miï¿½sa na danym polu 
 	 */
 	public function atak($ofiara){
 	
@@ -807,12 +808,12 @@ class Miesozerca extends Organizm {
 				$ofiara->ruch();
 	}
 	/**
-	* Funkcja spo¿ywania miêsa
+	* Funkcja spoï¿½ywania miï¿½sa
 	*
-	* @param Object $mieso = pokarm dla miêso¿erców, powsta³y w wyniku œmierci
+	* @param Object $mieso = pokarm dla miï¿½soï¿½ercï¿½w, powstaï¿½y w wyniku ï¿½mierci
 	* organizmu na skutek ataku innego organizmu
 	*
-	* TODO Aktualnie nieu¿ywana, bo pokarm nie jest przechowywwany na mapie - naprawiæ :)
+	* TODO Aktualnie nieuï¿½ywana, bo pokarm nie jest przechowywwany na mapie - naprawiï¿½ :)
 	*/
 	public function jedz($mieso){
 		$ilosc = $mieso->getIlosc();
@@ -825,9 +826,9 @@ class Miesozerca extends Organizm {
 
 
 /*
- * Klasa Padlina definiuje pokarm dla padlino¿erców
+ * Klasa Padlina definiuje pokarm dla padlinoï¿½ercï¿½w
  * 
- * TODO Niewykorzystywana w symulacji - naprawiæ
+ * TODO Niewykorzystywana w symulacji - naprawiï¿½
  */
 class Padlina {
 	
@@ -848,9 +849,9 @@ class Padlina {
 	
 }
 /*
- * Klasa Miêso definiuje pokarm dla miêso¿erców
+ * Klasa Miï¿½so definiuje pokarm dla miï¿½soï¿½ercï¿½w
  * 
- * TODO Niewykorzystywana w symulacji - naprawiæ
+ * TODO Niewykorzystywana w symulacji - naprawiï¿½
  */
 class Mieso {
 

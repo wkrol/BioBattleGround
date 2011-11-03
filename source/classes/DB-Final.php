@@ -3,9 +3,9 @@
  * INCLUDE BLOCK
  * Dla klas obiektów, których wartości pobierane będą z bazy
  */
-include_once 'source/class/climate.php';
-include_once 'source/class/organism.php';
-include_once 'source/class/group.php';
+include_once 'source/classes/climate.php';
+include_once 'source/classes/organism.php';
+include_once 'source/classes/group.php';
 
 /**
  * Klasa obsługująca bazę danych
@@ -113,15 +113,11 @@ class DB {
 	}
 	
 	
-	public function insertOrganism($name, $stat1, $stat2, $stat3, $type, $id){
-		$wynik = $this -> Lacz()->prepare("INSERT INTO organism(nazwa, hp, instynkt, odpornosc, typ, id_uzyt) VALUES (:name, :stat1, :stat2, :stat3, :type, :id)");
-		$wynik->bindParam(':name', $name, PDO::PARAM_STR);
-		$wynik->bindParam(':stat1', $stat1, PDO::PARAM_INT);
-		$wynik->bindParam(':stat2', $stat2, PDO::PARAM_INT);
-		$wynik->bindParam(':stat3', $stat3, PDO::PARAM_INT);
-		$wynik->bindParam(':type', $type, PDO::PARAM_STR);
-		$wynik->bindParam(':id', $id, PDO::PARAM_STR);
-		$wynik->execute();
+	public function insertOrganism($organism, $userid){
+		$stmt = $this->db->prepare('INSERT INTO organism(name, instinct, toughness, vitality, type)
+									VALUES (:name, :stat1, :stat2, :stat3, :type, :id)');
+		$wynik->execute(array($organism->getNazwa,
+							  $organism->getNazwa));
 		if (!$wynik) {
 			throw new Exception('Wykonanie zapytania nie powiodło się.');
 		}
