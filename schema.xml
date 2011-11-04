@@ -6,7 +6,7 @@
     <column name="instinct" type="INTEGER" default="NULL"/>
     <column name="toughness" type="INTEGER" default="NULL"/>
     <column name="vitality" type="INTEGER" default="NULL"/>
-    <column name="type" type="ENUM" default="NULL"/>
+    <column name="type" type="CHAR" default="NULL"/>
   </table>
   <table name="map">
     <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>

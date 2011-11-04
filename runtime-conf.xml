@@ -5,7 +5,7 @@
       <datasource id="biobattleground">
         <adapter>mysql</adapter>
           <connection>
-            <phptype>mysqli</phptype>
+            <phptype>mysql</phptype>
             <hostspec>localhost</hostspec>
             <database>biobattleground</database>
             <username>root</username>
