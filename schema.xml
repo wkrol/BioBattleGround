@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database defaultIdMethod="native" name="biobattleground">
+  <table name="organism">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="name" type="VARCHAR" size="45" default="NULL"/>
+    <column name="instinct" type="INTEGER" default="NULL"/>
+    <column name="toughness" type="INTEGER" default="NULL"/>
+    <column name="vitality" type="INTEGER" default="NULL"/>
+    <column name="type" type="ENUM" default="NULL"/>
+  </table>
+  <table name="map">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="name" type="VARCHAR" size="45" required="true"/>
+    <column name="map_string" type="LONGVARCHAR" required="true"/>
+  </table>
+  <table name="climate">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="name" type="VARCHAR" size="45" default="NULL"/>
+    <column name="sun" type="INTEGER" default="NULL"/>
+    <column name="rain" type="INTEGER" default="NULL"/>
+    <column name="wind" type="INTEGER" default="NULL"/>
+  </table>
+  <table name="user">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="login" type="VARCHAR" size="45" required="true"/>
+    <column name="password" type="VARCHAR" size="45" required="true"/>
+    <column name="name" type="VARCHAR" size="45" required="true"/>
+    <unique>
+      <unique-column name="login" size="45"/>
+    </unique>
+  </table>
+  <table name="user_privileges">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="id_user" type="INTEGER" default="NULL"/>
+    <column name="id_organism" type="INTEGER" default="NULL"/>
+    <column name="id_map" type="INTEGER" default="NULL"/>
+    <column name="id_climate" type="INTEGER" default="NULL"/>
+    <column name="play" type="TINYINT" default="NULL"/>
+    <column name="use" type="TINYINT" default="NULL"/>
+    <column name="edit" type="TINYINT" default="NULL"/>
+    <column name="show_stats" type="TINYINT" default="NULL"/>
+    <foreign-key name="id_organizm" foreignTable="organism" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_organism" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_user" foreignTable="user" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_user" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_map" foreignTable="map" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_map" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_climate" foreignTable="climate" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_climate" foreign="id"/>
+    </foreign-key>
+    <index>
+      <index-column name="id_organism"/>
+    </index>
+    <index>
+      <index-column name="id_user"/>
+    </index>
+    <index>
+      <index-column name="id_map"/>
+    </index>
+    <index>
+      <index-column name="id_climate"/>
+    </index>
+  </table>
+  <table name="simulation">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="id_climate" type="INTEGER" default="NULL"/>
+    <column name="id_map" type="INTEGER" default="NULL"/>
+    <column name="simulation_length" type="INTEGER" default="NULL"/>
+    <column name="date" type="DATE" default="NULL"/>
+    <foreign-key name="id_map" foreignTable="map">
+      <reference local="id_map" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_climate" foreignTable="climate">
+      <reference local="id_climate" foreign="id"/>
+    </foreign-key>
+    <index>
+      <index-column name="id_map"/>
+    </index>
+    <index>
+      <index-column name="id_climate"/>
+    </index>
+  </table>
+  <table name="group">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="id_user_privileges" type="INTEGER" default="NULL"/>
+    <column name="id_organism" type="INTEGER" default="NULL"/>
+    <column name="id_simulation" type="INTEGER" default="NULL"/>
+    <column name="survive" type="TINYINT" default="NULL"/>
+    <column name="average_life_length" type="INTEGER" default="NULL"/>
+    <column name="quantity" type="INTEGER" default="NULL"/>
+    <column name="deaths" type="INTEGER" default="NULL"/>
+    <foreign-key name="id_organism" foreignTable="organism" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_organism" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_simulation" foreignTable="simulation" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_simulation" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_user_privileges" foreignTable="user_privileges">
+      <reference local="id_user_privileges" foreign="id_user"/>
+    </foreign-key>
+    <index>
+      <index-column name="id_organism"/>
+    </index>
+    <index>
+      <index-column name="id_simulation"/>
+    </index>
+    <index>
+      <index-column name="id_user_privileges"/>
+    </index>
+  </table>
+  <table name="simulation_privileges">
+    <column name="id" type="INTEGER" primaryKey="true" required="true" autoIncrement="true"/>
+    <column name="id_user" type="INTEGER" default="NULL"/>
+    <column name="create" type="TINYINT" default="NULL"/>
+    <column name="join" type="TINYINT" default="NULL"/>
+    <foreign-key name="id_user" foreignTable="user">
+      <reference local="id_user" foreign="id"/>
+    </foreign-key>
+    <index>
+      <index-column name="id_user"/>
+    </index>
+  </table>
+  <table name="round">
+    <column name="id" type="INTEGER" primaryKey="true" required="true"/>
+    <column name="id_organism" type="INTEGER" default="NULL"/>
+    <column name="id_simulation" type="INTEGER" default="NULL"/>
+    <column name="day" type="INTEGER" default="NULL"/>
+    <column name="quantity" type="INTEGER" default="NULL"/>
+    <column name="avg_hunger" type="INTEGER" default="NULL"/>
+    <column name="avg_hitPoints" type="INTEGER" default="NULL"/>
+    <column name="number_of_newborn" type="INTEGER" default="NULL"/>
+    <foreign-key name="id_organism" foreignTable="organism">
+      <reference local="id_organism" foreign="id"/>
+    </foreign-key>
+    <foreign-key name="id_simulation" foreignTable="simulation" onDelete="cascade" onUpdate="cascade">
+      <reference local="id_simulation" foreign="id"/>
+    </foreign-key>
+    <index>
+      <index-column name="id_organism"/>
+    </index>
+    <index>
+      <index-column name="id_simulation"/>
+    </index>
+  </table>
+</database>
