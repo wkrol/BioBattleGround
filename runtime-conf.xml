@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<config>
+  <propel>
+    <datasources default="biobattleground">
+      <datasource id="biobattleground">
+        <adapter>mysql</adapter>
+          <connection>
+            <phptype>mysqli</phptype>
+            <hostspec>localhost</hostspec>
+            <database>biobattleground</database>
+            <username>root</username>
+            <password></password>
+          </connection>
+        </datasource>
+      </datasources>
+  </propel>
+</config>
