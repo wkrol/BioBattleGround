@@ -36,7 +36,7 @@
     <column name="id_map" type="INTEGER" default="NULL"/>
     <column name="id_climate" type="INTEGER" default="NULL"/>
     <column name="play" type="TINYINT" default="NULL"/>
-    <column name="use" type="TINYINT" default="NULL"/>
+    <column name="fight" type="TINYINT" default="NULL"/>
     <column name="edit" type="TINYINT" default="NULL"/>
     <column name="show_stats" type="TINYINT" default="NULL"/>
     <foreign-key name="id_organizm" foreignTable="organism" onDelete="cascade" onUpdate="cascade">
