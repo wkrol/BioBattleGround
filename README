@@ -1,3 +1,16 @@
 BioBattleGround README
 
+Instalacja Propel w XAMPP (PEAR global installation):
+ - Dodajemy lokalizację (dysk:)/xampp/php do zmiennej środowiskowej Path (dla naszego konta, po średniku)
+ - Wykonujemy polecenia instalacyjne dot. samego Propela i zależności z:
+   http://www.propelorm.org/documentation/01-installation.html
+ - Dodajemy ścieżkę "(dysk):\xampp\php\PEAR\data" do include_apth w xampp/php/php.ini, u mnie wygląda to tak:
+   include_path = ".;D:\xampp\php\PEAR;D:\xampp\php\PEAR\data"
+
+Następnie
+ - W katalogu projektu (htdocs/BioBattleGround) wywołujemy:
+   vendor/propel/generator/bin/propel-gen
+Powinien pokazać się komunikat "Build finished"
+
+
 Database connection options: DB-Final.php (database, user, password, host)
