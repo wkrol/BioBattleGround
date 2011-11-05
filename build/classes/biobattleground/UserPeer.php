@@ -1,7 +1,6 @@
 <?php
 
-require 'biobattleground/om/BaseUserPeer.php';
-
+require 'om/BaseUserPeer.php';
 
 /**
  * Skeleton subclass for performing query and update operations on the 'user' table.
@@ -15,5 +14,15 @@ require 'biobattleground/om/BaseUserPeer.php';
  * @package    biobattleground
  */
 class UserPeer extends BaseUserPeer {
-
+	public static function loguj($nazwa_uz, $haslo) {
+		$tmp = new Criteria();
+		$tmp->add(UserPeer::LOGIN, $nazwa_uz);
+		$tmp->add(UserPeer::PASSWORD, $haslo);
+		$login = UserPeer::doSelect($tmp);
+		if (count($login) == 0) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 } // UserPeer
