@@ -1,5 +1,5 @@
 BioBattleGround README
-
+-------------------------------------------------------------------------
 Instalacja Propel w XAMPP (PEAR global installation):
  - Dodajemy lokalizację (dysk:)/xampp/php do zmiennej środowiskowej Path (dla naszego konta, po średniku)
  - Instalujemy Phing przez PEAR:
@@ -12,6 +12,9 @@ Następnie, Propela mamy już w katalogu projektu, więc:
  - W katalogu htdocs\BioBattleGround\vendor\propel\generator (ważne!) wywołujemy polecenie:
    'bin\propel-gen sciezka:\do\projektu om'  - gdzie 'sciezka:\do\projektu' musi wskazywać na katalog główny projektu xampp\htdocs\Projekt,
    czyli tam, gdzie zapisane są pliki konfiguracyjne Propela (zgodnie z repo)
+-------------------------------------------------------------------------
+Pliki w build/conf służą do konfiguracji podczas inicjalizacji runtime Propela. (uzyskuje się przez "propel-gen convert-conf")
+Dołączanie do projektu jest opisane tutaj http://www.propelorm.org/documentation/02-buildtime.html#setting_up_propel
 
-
+-------------------------------------------------------------------------
 Database connection options: DB-Final.php (database, user, password, host)
