@@ -61,12 +61,12 @@ class Strona
 
   public function WyswietlStyle()
   {
-	echo "<link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\" />";
+	echo "<link href=\"../../css/style.css\" rel=\"stylesheet\" type=\"text/css\" />";
   }
   
   public function WyswietlSkrypty()
   {
-	echo "<script type=\"text/javascript\" src=\"scripts/script.js\"></script>";
+	echo "<script type=\"text/javascript\" src=\"../../scripts/script.js\"></script>";
   }
 
 public function WyswietlNaglowek()
