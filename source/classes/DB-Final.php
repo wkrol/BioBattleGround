@@ -32,11 +32,11 @@ class DB {
 		try {
 			// host, dbname, user, pass
 			$this->db = new PDO($connectionParams, $this->dbuser, $this->dbpass);
-			//return $db;
 		} catch (PDOException $e) {
 			print "Error!: " . $e->getMessage() . "<br/>";
 			die();
 		}
+		return $this->db;
 	}
 	
 	public static function getInstance(){
