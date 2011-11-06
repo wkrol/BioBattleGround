@@ -84,7 +84,8 @@ public function WyswietlNaglowek()
 	</div>
 	
 	<div id="menu">
-		<img id="menuleft" src="../../images/menubgleft.png" alt=""/><img  id="menulogo" src="../../images/logo.png" alt=""/>
+
+		<img id="menuleft" src="../../images/menubgleft.png" alt=""/><img  id="menulogo"src="../../images/logo.png" alt=""/>
 		<img id="menuright" src="../../images/menubgright.png" alt=""/>
 		
 		<ul>

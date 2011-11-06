@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 
 /**
@@ -10,4 +11,10 @@
 
 class DonothingBehavior extends Behavior
 {
+=======
+<?php 
+
+class DonothingBehavior extends Behavior
+{
+>>>>>>> branch 'master' of git@github.com:Szorstki/BioBattleGround.git
 }

@@ -9,9 +9,8 @@ Propel::init("../../build/conf/biobattleground-conf.php");
 // Add the generated 'classes' directory to the include path
 set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 
-//require_once 'propel/Propel.php';
-
 	require_once 'strona.php';
+
 	//require("db2.php");
 	class Logowanie extends Strona {
 	public function Wyswietl()
@@ -40,7 +39,7 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		if ($nazwa_uz && $haslo) {
 
 			try {
-				User::loguj($nazwa_uz, $haslo);
+				UserPeer::loguj($nazwa_uz, $haslo);
     
 				$_SESSION['zalogowany'] = $nazwa_uz;
 				$wyswietl= 'Witaj '.$_SESSION['zalogowany'].'.<a href="index.php">Idź do strony głównej.</a>';
