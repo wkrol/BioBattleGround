@@ -1,17 +1,24 @@
 BioBattleGround README
 -------------------------------------------------------------------------
-Instalacja Propel w XAMPP:
- - Dodajemy lokalizację (dysk:)/xampp/php do zmiennej środowiskowej Path (dla naszego konta, po średniku)
- - Instalujemy Phing przez PEAR:
+Ustawienie PEAR:
+ - Dodajemy lokalizację (dysk:)/xampp/php do zmiennej środowiskowej Path
+   (dla naszego konta, po średniku). Teraz możemy używać polecenia PEAR w każdym miejscu
+Instalujemy Phing przez PEAR:
    http://www.phing.info/trac/wiki/Users/Download
- - Instalację Propela przez PEAR możemy sobie odpuścić, mamy go w katalogu 'vendor' projektu
- - Dodajemy ścieżkę "(dysk):\xampp\php\PEAR\data" do include_apth w xampp/php/php.ini, u mnie wygląda to tak:
-   include_path = ".;D:\xampp\php\PEAR;D:\xampp\php\PEAR\data"
+Instalację Propela przez PEAR możemy sobie odpuścić, mamy go w katalogu 'vendor' projektu
 
-Następnie, Propela mamy już w katalogu projektu, więc:
- - W katalogu htdocs\BioBattleGround\vendor\propel\generator (ważne!) wywołujemy polecenie:
-   'bin\propel-gen sciezka:\do\projektu om'  - gdzie 'sciezka:\do\projektu' musi wskazywać na katalog główny projektu xampp\htdocs\Projekt,
-   czyli tam, gdzie zapisane są pliki konfiguracyjne Propela (zgodnie z repo)
+-----to chyba już nie jest potrzebne-------------------------------------
+Dodajemy ścieżkę "(dysk):\xampp\php\PEAR\data" do include_apth w xampp/php/php.ini,
+   u mnie wygląda to tak:
+   include_path = ".;D:\xampp\php\PEAR;D:\xampp\php\PEAR\data"
+-------------------------------------------------------------------------
+
+Uruchamiamy generowanie klas Propela
+ - Dodajemy lokazlizację propel-gen do zmiennej systemowej Path
+   (dla wygody, można to pominąć)
+ - Wchodzimy do katalogu projektu, odpalamy polecenie 'propel-gen om'
+   lub, jeśli nie mamy dowiązania w Path 'vendor\propel\generator\bin\propel-gen om'
+ 
 -------------------------------------------------------------------------
 Pliki w build/conf służą do konfiguracji podczas inicjalizacji runtime Propela. (uzyskuje się przez "propel-gen convert-conf")
 Dołączanie do projektu jest opisane tutaj http://www.propelorm.org/documentation/02-buildtime.html#setting_up_propel
