@@ -1,14 +1,20 @@
 <?php
 
+
 /**
  * Base class that represents a row from the 'organism' table.
  *
  * 
  *
- * @package    biobattleground.om
+ * @package    propel.generator.biobattleground.om
  */
-abstract class BaseOrganism extends BaseObject  implements Persistent {
+abstract class BaseOrganism extends BaseObject  implements Persistent
+{
 
+	/**
+	 * Peer class name
+	 */
+	const PEER = 'OrganismPeer';
 
 	/**
 	 * The Peer class.
@@ -60,29 +66,14 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	protected $collUserPrivilegess;
 
 	/**
-	 * @var        Criteria The criteria used to select the current contents of collUserPrivilegess.
-	 */
-	private $lastUserPrivilegesCriteria = null;
-
-	/**
 	 * @var        array Group[] Collection to store aggregation of Group objects.
 	 */
 	protected $collGroups;
 
 	/**
-	 * @var        Criteria The criteria used to select the current contents of collGroups.
-	 */
-	private $lastGroupCriteria = null;
-
-	/**
 	 * @var        array Round[] Collection to store aggregation of Round objects.
 	 */
 	protected $collRounds;
-
-	/**
-	 * @var        Criteria The criteria used to select the current contents of collRounds.
-	 */
-	private $lastRoundCriteria = null;
 
 	/**
 	 * Flag to prevent endless save loop, if this object is referenced
@@ -97,6 +88,24 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $userPrivilegessScheduledForDeletion = null;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $groupsScheduledForDeletion = null;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $roundsScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -324,8 +333,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 				$this->ensureConsistency();
 			}
 
-			// FIXME - using NUM_COLUMNS may be clearer.
-			return $startcol + 6; // 6 = OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS).
+			return $startcol + 6; // 6 = OrganismPeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating Organism object", $e);
@@ -388,13 +396,10 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 		if ($deep) {  // also de-associate any related objects?
 
 			$this->collUserPrivilegess = null;
-			$this->lastUserPrivilegesCriteria = null;
 
 			$this->collGroups = null;
-			$this->lastGroupCriteria = null;
 
 			$this->collRounds = null;
-			$this->lastRoundCriteria = null;
 
 		} // if (deep)
 	}
@@ -417,19 +422,21 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 		if ($con === null) {
 			$con = Propel::getConnection(OrganismPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		try {
+			$deleteQuery = OrganismQuery::create()
+				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				OrganismPeer::doDelete($this, $con);
+				$deleteQuery->delete($con);
 				$this->postDelete($con);
-				$this->setDeleted(true);
 				$con->commit();
+				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -457,7 +464,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 		if ($con === null) {
 			$con = Propel::getConnection(OrganismPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -481,7 +488,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -504,26 +511,24 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 		if (!$this->alreadyInSave) {
 			$this->alreadyInSave = true;
 
-			if ($this->isNew() ) {
-				$this->modifiedColumns[] = OrganismPeer::ID;
+			if ($this->isNew() || $this->isModified()) {
+				// persist changes
+				if ($this->isNew()) {
+					$this->doInsert($con);
+				} else {
+					$this->doUpdate($con);
+				}
+				$affectedRows += 1;
+				$this->resetModified();
 			}
 
-			// If this object has been modified, then save it to the database.
-			if ($this->isModified()) {
-				if ($this->isNew()) {
-					$pk = OrganismPeer::doInsert($this, $con);
-					$affectedRows += 1; // we are assuming that there is only 1 row per doInsert() which
-										 // should always be true here (even though technically
-										 // BasePeer::doInsert() can insert multiple rows).
-
-					$this->setId($pk);  //[IMV] update autoincrement primary key
-
-					$this->setNew(false);
-				} else {
-					$affectedRows += OrganismPeer::doUpdate($this, $con);
+			if ($this->userPrivilegessScheduledForDeletion !== null) {
+				if (!$this->userPrivilegessScheduledForDeletion->isEmpty()) {
+					UserPrivilegesQuery::create()
+						->filterByPrimaryKeys($this->userPrivilegessScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->userPrivilegessScheduledForDeletion = null;
 				}
-
-				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collUserPrivilegess !== null) {
@@ -534,11 +539,29 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 				}
 			}
 
+			if ($this->groupsScheduledForDeletion !== null) {
+				if (!$this->groupsScheduledForDeletion->isEmpty()) {
+					GroupQuery::create()
+						->filterByPrimaryKeys($this->groupsScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->groupsScheduledForDeletion = null;
+				}
+			}
+
 			if ($this->collGroups !== null) {
 				foreach ($this->collGroups as $referrerFK) {
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
+				}
+			}
+
+			if ($this->roundsScheduledForDeletion !== null) {
+				if (!$this->roundsScheduledForDeletion->isEmpty()) {
+					RoundQuery::create()
+						->filterByPrimaryKeys($this->roundsScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->roundsScheduledForDeletion = null;
 				}
 			}
 
@@ -555,6 +578,104 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 		}
 		return $affectedRows;
 	} // doSave()
+
+	/**
+	 * Insert the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @throws     PropelException
+	 * @see        doSave()
+	 */
+	protected function doInsert(PropelPDO $con)
+	{
+		$modifiedColumns = array();
+		$index = 0;
+
+		$this->modifiedColumns[] = OrganismPeer::ID;
+		if (null !== $this->id) {
+			throw new PropelException('Cannot insert a value for auto-increment primary key (' . OrganismPeer::ID . ')');
+		}
+
+		 // check the columns in natural order for more readable SQL queries
+		if ($this->isColumnModified(OrganismPeer::ID)) {
+			$modifiedColumns[':p' . $index++]  = '`ID`';
+		}
+		if ($this->isColumnModified(OrganismPeer::NAME)) {
+			$modifiedColumns[':p' . $index++]  = '`NAME`';
+		}
+		if ($this->isColumnModified(OrganismPeer::INSTINCT)) {
+			$modifiedColumns[':p' . $index++]  = '`INSTINCT`';
+		}
+		if ($this->isColumnModified(OrganismPeer::TOUGHNESS)) {
+			$modifiedColumns[':p' . $index++]  = '`TOUGHNESS`';
+		}
+		if ($this->isColumnModified(OrganismPeer::VITALITY)) {
+			$modifiedColumns[':p' . $index++]  = '`VITALITY`';
+		}
+		if ($this->isColumnModified(OrganismPeer::TYPE)) {
+			$modifiedColumns[':p' . $index++]  = '`TYPE`';
+		}
+
+		$sql = sprintf(
+			'INSERT INTO `organism` (%s) VALUES (%s)',
+			implode(', ', $modifiedColumns),
+			implode(', ', array_keys($modifiedColumns))
+		);
+
+		try {
+			$stmt = $con->prepare($sql);
+			foreach ($modifiedColumns as $identifier => $columnName) {
+				switch ($columnName) {
+					case '`ID`':
+						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+						break;
+					case '`NAME`':
+						$stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
+						break;
+					case '`INSTINCT`':
+						$stmt->bindValue($identifier, $this->instinct, PDO::PARAM_INT);
+						break;
+					case '`TOUGHNESS`':
+						$stmt->bindValue($identifier, $this->toughness, PDO::PARAM_INT);
+						break;
+					case '`VITALITY`':
+						$stmt->bindValue($identifier, $this->vitality, PDO::PARAM_INT);
+						break;
+					case '`TYPE`':
+						$stmt->bindValue($identifier, $this->type, PDO::PARAM_STR);
+						break;
+				}
+			}
+			$stmt->execute();
+		} catch (Exception $e) {
+			Propel::log($e->getMessage(), Propel::LOG_ERR);
+			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+		}
+
+		try {
+			$pk = $con->lastInsertId();
+		} catch (Exception $e) {
+			throw new PropelException('Unable to get autoincrement id.', $e);
+		}
+		$this->setId($pk);
+
+		$this->setNew(false);
+	}
+
+	/**
+	 * Update the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @see        doSave()
+	 */
+	protected function doUpdate(PropelPDO $con)
+	{
+		$selectCriteria = $this->buildPkeyCriteria();
+		$valuesCriteria = $this->buildCriteria();
+		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -653,6 +774,177 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	}
 
 	/**
+	 * Retrieves a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name name
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     mixed Value of field.
+	 */
+	public function getByName($name, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = OrganismPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		$field = $this->getByPosition($pos);
+		return $field;
+	}
+
+	/**
+	 * Retrieves a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @return     mixed Value of field at $pos
+	 */
+	public function getByPosition($pos)
+	{
+		switch($pos) {
+			case 0:
+				return $this->getId();
+				break;
+			case 1:
+				return $this->getName();
+				break;
+			case 2:
+				return $this->getInstinct();
+				break;
+			case 3:
+				return $this->getToughness();
+				break;
+			case 4:
+				return $this->getVitality();
+				break;
+			case 5:
+				return $this->getType();
+				break;
+			default:
+				return null;
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Exports the object as an array.
+	 *
+	 * You can specify the key type of the array by passing one of the class
+	 * type constants.
+	 *
+	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    Defaults to BasePeer::TYPE_PHPNAME.
+	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
+	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
+	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
+	 *
+	 * @return    array an associative array containing the field names (as keys) and field values
+	 */
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	{
+		if (isset($alreadyDumpedObjects['Organism'][$this->getPrimaryKey()])) {
+			return '*RECURSION*';
+		}
+		$alreadyDumpedObjects['Organism'][$this->getPrimaryKey()] = true;
+		$keys = OrganismPeer::getFieldNames($keyType);
+		$result = array(
+			$keys[0] => $this->getId(),
+			$keys[1] => $this->getName(),
+			$keys[2] => $this->getInstinct(),
+			$keys[3] => $this->getToughness(),
+			$keys[4] => $this->getVitality(),
+			$keys[5] => $this->getType(),
+		);
+		if ($includeForeignObjects) {
+			if (null !== $this->collUserPrivilegess) {
+				$result['UserPrivilegess'] = $this->collUserPrivilegess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+			}
+			if (null !== $this->collGroups) {
+				$result['Groups'] = $this->collGroups->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+			}
+			if (null !== $this->collRounds) {
+				$result['Rounds'] = $this->collRounds->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Sets a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name peer name
+	 * @param      mixed $value field value
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     void
+	 */
+	public function setByName($name, $value, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = OrganismPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		return $this->setByPosition($pos, $value);
+	}
+
+	/**
+	 * Sets a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @param      mixed $value field value
+	 * @return     void
+	 */
+	public function setByPosition($pos, $value)
+	{
+		switch($pos) {
+			case 0:
+				$this->setId($value);
+				break;
+			case 1:
+				$this->setName($value);
+				break;
+			case 2:
+				$this->setInstinct($value);
+				break;
+			case 3:
+				$this->setToughness($value);
+				break;
+			case 4:
+				$this->setVitality($value);
+				break;
+			case 5:
+				$this->setType($value);
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Populates the object using an array.
+	 *
+	 * This is particularly useful when populating an object from one of the
+	 * request arrays (e.g. $_POST).  This method goes through the column
+	 * names, checking to see whether a matching key exists in populated
+	 * array. If so the setByName() method is called for that column.
+	 *
+	 * You can specify the key type of the array by additionally passing one
+	 * of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 * BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 * The default key type is the column's phpname (e.g. 'AuthorId')
+	 *
+	 * @param      array  $arr     An array to populate the object from.
+	 * @param      string $keyType The type of keys the array uses.
+	 * @return     void
+	 */
+	public function fromArray($arr, $keyType = BasePeer::TYPE_PHPNAME)
+	{
+		$keys = OrganismPeer::getFieldNames($keyType);
+
+		if (array_key_exists($keys[0], $arr)) $this->setId($arr[$keys[0]]);
+		if (array_key_exists($keys[1], $arr)) $this->setName($arr[$keys[1]]);
+		if (array_key_exists($keys[2], $arr)) $this->setInstinct($arr[$keys[2]]);
+		if (array_key_exists($keys[3], $arr)) $this->setToughness($arr[$keys[3]]);
+		if (array_key_exists($keys[4], $arr)) $this->setVitality($arr[$keys[4]]);
+		if (array_key_exists($keys[5], $arr)) $this->setType($arr[$keys[5]]);
+	}
+
+	/**
 	 * Build a Criteria object containing the values of all modified columns in this object.
 	 *
 	 * @return     Criteria The Criteria object containing all modified values.
@@ -682,7 +974,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	public function buildPkeyCriteria()
 	{
 		$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-
 		$criteria->add(OrganismPeer::ID, $this->id);
 
 		return $criteria;
@@ -709,6 +1000,15 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	}
 
 	/**
+	 * Returns true if the primary key for this object is null.
+	 * @return     boolean
+	 */
+	public function isPrimaryKeyNull()
+	{
+		return null === $this->getId();
+	}
+
+	/**
 	 * Sets contents of passed object to values from current object.
 	 *
 	 * If desired, this method can also make copies of all associated (fkey referrers)
@@ -716,21 +1016,16 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 *
 	 * @param      object $copyObj An object of Organism (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false)
+	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
 	{
-
-		$copyObj->setName($this->name);
-
-		$copyObj->setInstinct($this->instinct);
-
-		$copyObj->setToughness($this->toughness);
-
-		$copyObj->setVitality($this->vitality);
-
-		$copyObj->setType($this->type);
-
+		$copyObj->setName($this->getName());
+		$copyObj->setInstinct($this->getInstinct());
+		$copyObj->setToughness($this->getToughness());
+		$copyObj->setVitality($this->getVitality());
+		$copyObj->setType($this->getType());
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -757,11 +1052,10 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 
 		} // if ($deepCopy)
 
-
-		$copyObj->setNew(true);
-
-		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-
+		if ($makeNew) {
+			$copyObj->setNew(true);
+			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
+		}
 	}
 
 	/**
@@ -802,8 +1096,30 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 		return self::$peer;
 	}
 
+
 	/**
-	 * Clears out the collUserPrivilegess collection (array).
+	 * Initializes a collection based on the name of a relation.
+	 * Avoids crafting an 'init[$relationName]s' method name
+	 * that wouldn't work when StandardEnglishPluralizer is used.
+	 *
+	 * @param      string $relationName The name of the relation to initialize
+	 * @return     void
+	 */
+	public function initRelation($relationName)
+	{
+		if ('UserPrivileges' == $relationName) {
+			return $this->initUserPrivilegess();
+		}
+		if ('Group' == $relationName) {
+			return $this->initGroups();
+		}
+		if ('Round' == $relationName) {
+			return $this->initRounds();
+		}
+	}
+
+	/**
+	 * Clears out the collUserPrivilegess collection
 	 *
 	 * This does not modify the database; however, it will remove any associated objects, causing
 	 * them to be refetched by subsequent calls to accessor method.
@@ -817,70 +1133,81 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	}
 
 	/**
-	 * Initializes the collUserPrivilegess collection (array).
+	 * Initializes the collUserPrivilegess collection.
 	 *
 	 * By default this just sets the collUserPrivilegess collection to an empty array (like clearcollUserPrivilegess());
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
+	 * @param      boolean $overrideExisting If set to true, the method call initializes
+	 *                                        the collection even if it is not empty
+	 *
 	 * @return     void
 	 */
-	public function initUserPrivilegess()
+	public function initUserPrivilegess($overrideExisting = true)
 	{
-		$this->collUserPrivilegess = array();
+		if (null !== $this->collUserPrivilegess && !$overrideExisting) {
+			return;
+		}
+		$this->collUserPrivilegess = new PropelObjectCollection();
+		$this->collUserPrivilegess->setModel('UserPrivileges');
 	}
 
 	/**
 	 * Gets an array of UserPrivileges objects which contain a foreign key that references this object.
 	 *
-	 * If this collection has already been initialized with an identical Criteria, it returns the collection.
-	 * Otherwise if this Organism has previously been saved, it will retrieve
-	 * related UserPrivilegess from storage. If this Organism is new, it will return
-	 * an empty collection or the current collection, the criteria is ignored on a new object.
+	 * If the $criteria is not null, it is used to always fetch the results from the database.
+	 * Otherwise the results are fetched from the database the first time, then cached.
+	 * Next time the same method is called without $criteria, the cached collection is returned.
+	 * If this Organism is new, it will return
+	 * an empty collection or the current collection; the criteria is ignored on a new object.
 	 *
-	 * @param      PropelPDO $con
-	 * @param      Criteria $criteria
-	 * @return     array UserPrivileges[]
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 * @throws     PropelException
 	 */
 	public function getUserPrivilegess($criteria = null, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
-
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-			   $this->collUserPrivilegess = array();
+		if(null === $this->collUserPrivilegess || null !== $criteria) {
+			if ($this->isNew() && null === $this->collUserPrivilegess) {
+				// return empty collection
+				$this->initUserPrivilegess();
 			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				UserPrivilegesPeer::addSelectColumns($criteria);
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelect($criteria, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return the collection.
-
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				UserPrivilegesPeer::addSelectColumns($criteria);
-				if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-					$this->collUserPrivilegess = UserPrivilegesPeer::doSelect($criteria, $con);
+				$collUserPrivilegess = UserPrivilegesQuery::create(null, $criteria)
+					->filterByOrganism($this)
+					->find($con);
+				if (null !== $criteria) {
+					return $collUserPrivilegess;
 				}
+				$this->collUserPrivilegess = $collUserPrivilegess;
 			}
 		}
-		$this->lastUserPrivilegesCriteria = $criteria;
 		return $this->collUserPrivilegess;
+	}
+
+	/**
+	 * Sets a collection of UserPrivileges objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $userPrivilegess A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setUserPrivilegess(PropelCollection $userPrivilegess, PropelPDO $con = null)
+	{
+		$this->userPrivilegessScheduledForDeletion = $this->getUserPrivilegess(new Criteria(), $con)->diff($userPrivilegess);
+
+		foreach ($userPrivilegess as $userPrivileges) {
+			// Fix issue with collection modified by reference
+			if ($userPrivileges->isNew()) {
+				$userPrivileges->setOrganism($this);
+			}
+			$this->addUserPrivileges($userPrivileges);
+		}
+
+		$this->collUserPrivilegess = $userPrivilegess;
 	}
 
 	/**
@@ -894,47 +1221,21 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 */
 	public function countUserPrivilegess(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		} else {
-			$criteria = clone $criteria;
-		}
-
-		if ($distinct) {
-			$criteria->setDistinct();
-		}
-
-		$count = null;
-
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$count = 0;
+		if(null === $this->collUserPrivilegess || null !== $criteria) {
+			if ($this->isNew() && null === $this->collUserPrivilegess) {
+				return 0;
 			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				$count = UserPrivilegesPeer::doCount($criteria, false, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return count of the collection.
-
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-					$count = UserPrivilegesPeer::doCount($criteria, false, $con);
-				} else {
-					$count = count($this->collUserPrivilegess);
+				$query = UserPrivilegesQuery::create(null, $criteria);
+				if($distinct) {
+					$query->distinct();
 				}
-			} else {
-				$count = count($this->collUserPrivilegess);
+				return $query
+					->filterByOrganism($this)
+					->count($con);
 			}
+		} else {
+			return count($this->collUserPrivilegess);
 		}
-		return $count;
 	}
 
 	/**
@@ -942,18 +1243,27 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * through the UserPrivileges foreign key attribute.
 	 *
 	 * @param      UserPrivileges $l UserPrivileges
-	 * @return     void
-	 * @throws     PropelException
+	 * @return     Organism The current object (for fluent API support)
 	 */
 	public function addUserPrivileges(UserPrivileges $l)
 	{
 		if ($this->collUserPrivilegess === null) {
 			$this->initUserPrivilegess();
 		}
-		if (!in_array($l, $this->collUserPrivilegess, true)) { // only add it if the **same** object is not already associated
-			array_push($this->collUserPrivilegess, $l);
-			$l->setOrganism($this);
+		if (!$this->collUserPrivilegess->contains($l)) { // only add it if the **same** object is not already associated
+			$this->doAddUserPrivileges($l);
 		}
+
+		return $this;
+	}
+
+	/**
+	 * @param	UserPrivileges $userPrivileges The userPrivileges object to add.
+	 */
+	protected function doAddUserPrivileges($userPrivileges)
+	{
+		$this->collUserPrivilegess[]= $userPrivileges;
+		$userPrivileges->setOrganism($this);
 	}
 
 
@@ -967,40 +1277,18 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Organism.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 */
 	public function getUserPrivilegessJoinUser($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = UserPrivilegesQuery::create(null, $criteria);
+		$query->joinWith('User', $join_behavior);
 
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$this->collUserPrivilegess = array();
-			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinUser($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-			if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinUser($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastUserPrivilegesCriteria = $criteria;
-
-		return $this->collUserPrivilegess;
+		return $this->getUserPrivilegess($query, $con);
 	}
 
 
@@ -1014,40 +1302,18 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Organism.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 */
 	public function getUserPrivilegessJoinMap($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = UserPrivilegesQuery::create(null, $criteria);
+		$query->joinWith('Map', $join_behavior);
 
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$this->collUserPrivilegess = array();
-			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinMap($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-			if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinMap($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastUserPrivilegesCriteria = $criteria;
-
-		return $this->collUserPrivilegess;
+		return $this->getUserPrivilegess($query, $con);
 	}
 
 
@@ -1061,44 +1327,22 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Organism.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 */
 	public function getUserPrivilegessJoinClimate($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = UserPrivilegesQuery::create(null, $criteria);
+		$query->joinWith('Climate', $join_behavior);
 
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$this->collUserPrivilegess = array();
-			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinClimate($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(UserPrivilegesPeer::ID_ORGANISM, $this->id);
-
-			if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinClimate($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastUserPrivilegesCriteria = $criteria;
-
-		return $this->collUserPrivilegess;
+		return $this->getUserPrivilegess($query, $con);
 	}
 
 	/**
-	 * Clears out the collGroups collection (array).
+	 * Clears out the collGroups collection
 	 *
 	 * This does not modify the database; however, it will remove any associated objects, causing
 	 * them to be refetched by subsequent calls to accessor method.
@@ -1112,70 +1356,81 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	}
 
 	/**
-	 * Initializes the collGroups collection (array).
+	 * Initializes the collGroups collection.
 	 *
 	 * By default this just sets the collGroups collection to an empty array (like clearcollGroups());
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
+	 * @param      boolean $overrideExisting If set to true, the method call initializes
+	 *                                        the collection even if it is not empty
+	 *
 	 * @return     void
 	 */
-	public function initGroups()
+	public function initGroups($overrideExisting = true)
 	{
-		$this->collGroups = array();
+		if (null !== $this->collGroups && !$overrideExisting) {
+			return;
+		}
+		$this->collGroups = new PropelObjectCollection();
+		$this->collGroups->setModel('Group');
 	}
 
 	/**
 	 * Gets an array of Group objects which contain a foreign key that references this object.
 	 *
-	 * If this collection has already been initialized with an identical Criteria, it returns the collection.
-	 * Otherwise if this Organism has previously been saved, it will retrieve
-	 * related Groups from storage. If this Organism is new, it will return
-	 * an empty collection or the current collection, the criteria is ignored on a new object.
+	 * If the $criteria is not null, it is used to always fetch the results from the database.
+	 * Otherwise the results are fetched from the database the first time, then cached.
+	 * Next time the same method is called without $criteria, the cached collection is returned.
+	 * If this Organism is new, it will return
+	 * an empty collection or the current collection; the criteria is ignored on a new object.
 	 *
-	 * @param      PropelPDO $con
-	 * @param      Criteria $criteria
-	 * @return     array Group[]
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @return     PropelCollection|array Group[] List of Group objects
 	 * @throws     PropelException
 	 */
 	public function getGroups($criteria = null, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
-
-		if ($this->collGroups === null) {
-			if ($this->isNew()) {
-			   $this->collGroups = array();
+		if(null === $this->collGroups || null !== $criteria) {
+			if ($this->isNew() && null === $this->collGroups) {
+				// return empty collection
+				$this->initGroups();
 			} else {
-
-				$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-				GroupPeer::addSelectColumns($criteria);
-				$this->collGroups = GroupPeer::doSelect($criteria, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return the collection.
-
-
-				$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-				GroupPeer::addSelectColumns($criteria);
-				if (!isset($this->lastGroupCriteria) || !$this->lastGroupCriteria->equals($criteria)) {
-					$this->collGroups = GroupPeer::doSelect($criteria, $con);
+				$collGroups = GroupQuery::create(null, $criteria)
+					->filterByOrganism($this)
+					->find($con);
+				if (null !== $criteria) {
+					return $collGroups;
 				}
+				$this->collGroups = $collGroups;
 			}
 		}
-		$this->lastGroupCriteria = $criteria;
 		return $this->collGroups;
+	}
+
+	/**
+	 * Sets a collection of Group objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $groups A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setGroups(PropelCollection $groups, PropelPDO $con = null)
+	{
+		$this->groupsScheduledForDeletion = $this->getGroups(new Criteria(), $con)->diff($groups);
+
+		foreach ($groups as $group) {
+			// Fix issue with collection modified by reference
+			if ($group->isNew()) {
+				$group->setOrganism($this);
+			}
+			$this->addGroup($group);
+		}
+
+		$this->collGroups = $groups;
 	}
 
 	/**
@@ -1189,47 +1444,21 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 */
 	public function countGroups(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		} else {
-			$criteria = clone $criteria;
-		}
-
-		if ($distinct) {
-			$criteria->setDistinct();
-		}
-
-		$count = null;
-
-		if ($this->collGroups === null) {
-			if ($this->isNew()) {
-				$count = 0;
+		if(null === $this->collGroups || null !== $criteria) {
+			if ($this->isNew() && null === $this->collGroups) {
+				return 0;
 			} else {
-
-				$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-				$count = GroupPeer::doCount($criteria, false, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return count of the collection.
-
-
-				$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-				if (!isset($this->lastGroupCriteria) || !$this->lastGroupCriteria->equals($criteria)) {
-					$count = GroupPeer::doCount($criteria, false, $con);
-				} else {
-					$count = count($this->collGroups);
+				$query = GroupQuery::create(null, $criteria);
+				if($distinct) {
+					$query->distinct();
 				}
-			} else {
-				$count = count($this->collGroups);
+				return $query
+					->filterByOrganism($this)
+					->count($con);
 			}
+		} else {
+			return count($this->collGroups);
 		}
-		return $count;
 	}
 
 	/**
@@ -1237,18 +1466,27 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * through the Group foreign key attribute.
 	 *
 	 * @param      Group $l Group
-	 * @return     void
-	 * @throws     PropelException
+	 * @return     Organism The current object (for fluent API support)
 	 */
 	public function addGroup(Group $l)
 	{
 		if ($this->collGroups === null) {
 			$this->initGroups();
 		}
-		if (!in_array($l, $this->collGroups, true)) { // only add it if the **same** object is not already associated
-			array_push($this->collGroups, $l);
-			$l->setOrganism($this);
+		if (!$this->collGroups->contains($l)) { // only add it if the **same** object is not already associated
+			$this->doAddGroup($l);
 		}
+
+		return $this;
+	}
+
+	/**
+	 * @param	Group $group The group object to add.
+	 */
+	protected function doAddGroup($group)
+	{
+		$this->collGroups[]= $group;
+		$group->setOrganism($this);
 	}
 
 
@@ -1262,40 +1500,18 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Organism.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array Group[] List of Group objects
 	 */
 	public function getGroupsJoinSimulation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = GroupQuery::create(null, $criteria);
+		$query->joinWith('Simulation', $join_behavior);
 
-		if ($this->collGroups === null) {
-			if ($this->isNew()) {
-				$this->collGroups = array();
-			} else {
-
-				$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-				$this->collGroups = GroupPeer::doSelectJoinSimulation($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-			if (!isset($this->lastGroupCriteria) || !$this->lastGroupCriteria->equals($criteria)) {
-				$this->collGroups = GroupPeer::doSelectJoinSimulation($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastGroupCriteria = $criteria;
-
-		return $this->collGroups;
+		return $this->getGroups($query, $con);
 	}
 
 
@@ -1309,44 +1525,22 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Organism.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array Group[] List of Group objects
 	 */
 	public function getGroupsJoinUserPrivileges($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = GroupQuery::create(null, $criteria);
+		$query->joinWith('UserPrivileges', $join_behavior);
 
-		if ($this->collGroups === null) {
-			if ($this->isNew()) {
-				$this->collGroups = array();
-			} else {
-
-				$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-				$this->collGroups = GroupPeer::doSelectJoinUserPrivileges($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(GroupPeer::ID_ORGANISM, $this->id);
-
-			if (!isset($this->lastGroupCriteria) || !$this->lastGroupCriteria->equals($criteria)) {
-				$this->collGroups = GroupPeer::doSelectJoinUserPrivileges($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastGroupCriteria = $criteria;
-
-		return $this->collGroups;
+		return $this->getGroups($query, $con);
 	}
 
 	/**
-	 * Clears out the collRounds collection (array).
+	 * Clears out the collRounds collection
 	 *
 	 * This does not modify the database; however, it will remove any associated objects, causing
 	 * them to be refetched by subsequent calls to accessor method.
@@ -1360,70 +1554,81 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	}
 
 	/**
-	 * Initializes the collRounds collection (array).
+	 * Initializes the collRounds collection.
 	 *
 	 * By default this just sets the collRounds collection to an empty array (like clearcollRounds());
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
+	 * @param      boolean $overrideExisting If set to true, the method call initializes
+	 *                                        the collection even if it is not empty
+	 *
 	 * @return     void
 	 */
-	public function initRounds()
+	public function initRounds($overrideExisting = true)
 	{
-		$this->collRounds = array();
+		if (null !== $this->collRounds && !$overrideExisting) {
+			return;
+		}
+		$this->collRounds = new PropelObjectCollection();
+		$this->collRounds->setModel('Round');
 	}
 
 	/**
 	 * Gets an array of Round objects which contain a foreign key that references this object.
 	 *
-	 * If this collection has already been initialized with an identical Criteria, it returns the collection.
-	 * Otherwise if this Organism has previously been saved, it will retrieve
-	 * related Rounds from storage. If this Organism is new, it will return
-	 * an empty collection or the current collection, the criteria is ignored on a new object.
+	 * If the $criteria is not null, it is used to always fetch the results from the database.
+	 * Otherwise the results are fetched from the database the first time, then cached.
+	 * Next time the same method is called without $criteria, the cached collection is returned.
+	 * If this Organism is new, it will return
+	 * an empty collection or the current collection; the criteria is ignored on a new object.
 	 *
-	 * @param      PropelPDO $con
-	 * @param      Criteria $criteria
-	 * @return     array Round[]
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @return     PropelCollection|array Round[] List of Round objects
 	 * @throws     PropelException
 	 */
 	public function getRounds($criteria = null, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
-
-		if ($this->collRounds === null) {
-			if ($this->isNew()) {
-			   $this->collRounds = array();
+		if(null === $this->collRounds || null !== $criteria) {
+			if ($this->isNew() && null === $this->collRounds) {
+				// return empty collection
+				$this->initRounds();
 			} else {
-
-				$criteria->add(RoundPeer::ID_ORGANISM, $this->id);
-
-				RoundPeer::addSelectColumns($criteria);
-				$this->collRounds = RoundPeer::doSelect($criteria, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return the collection.
-
-
-				$criteria->add(RoundPeer::ID_ORGANISM, $this->id);
-
-				RoundPeer::addSelectColumns($criteria);
-				if (!isset($this->lastRoundCriteria) || !$this->lastRoundCriteria->equals($criteria)) {
-					$this->collRounds = RoundPeer::doSelect($criteria, $con);
+				$collRounds = RoundQuery::create(null, $criteria)
+					->filterByOrganism($this)
+					->find($con);
+				if (null !== $criteria) {
+					return $collRounds;
 				}
+				$this->collRounds = $collRounds;
 			}
 		}
-		$this->lastRoundCriteria = $criteria;
 		return $this->collRounds;
+	}
+
+	/**
+	 * Sets a collection of Round objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $rounds A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setRounds(PropelCollection $rounds, PropelPDO $con = null)
+	{
+		$this->roundsScheduledForDeletion = $this->getRounds(new Criteria(), $con)->diff($rounds);
+
+		foreach ($rounds as $round) {
+			// Fix issue with collection modified by reference
+			if ($round->isNew()) {
+				$round->setOrganism($this);
+			}
+			$this->addRound($round);
+		}
+
+		$this->collRounds = $rounds;
 	}
 
 	/**
@@ -1437,47 +1642,21 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 */
 	public function countRounds(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		} else {
-			$criteria = clone $criteria;
-		}
-
-		if ($distinct) {
-			$criteria->setDistinct();
-		}
-
-		$count = null;
-
-		if ($this->collRounds === null) {
-			if ($this->isNew()) {
-				$count = 0;
+		if(null === $this->collRounds || null !== $criteria) {
+			if ($this->isNew() && null === $this->collRounds) {
+				return 0;
 			} else {
-
-				$criteria->add(RoundPeer::ID_ORGANISM, $this->id);
-
-				$count = RoundPeer::doCount($criteria, false, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return count of the collection.
-
-
-				$criteria->add(RoundPeer::ID_ORGANISM, $this->id);
-
-				if (!isset($this->lastRoundCriteria) || !$this->lastRoundCriteria->equals($criteria)) {
-					$count = RoundPeer::doCount($criteria, false, $con);
-				} else {
-					$count = count($this->collRounds);
+				$query = RoundQuery::create(null, $criteria);
+				if($distinct) {
+					$query->distinct();
 				}
-			} else {
-				$count = count($this->collRounds);
+				return $query
+					->filterByOrganism($this)
+					->count($con);
 			}
+		} else {
+			return count($this->collRounds);
 		}
-		return $count;
 	}
 
 	/**
@@ -1485,18 +1664,27 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * through the Round foreign key attribute.
 	 *
 	 * @param      Round $l Round
-	 * @return     void
-	 * @throws     PropelException
+	 * @return     Organism The current object (for fluent API support)
 	 */
 	public function addRound(Round $l)
 	{
 		if ($this->collRounds === null) {
 			$this->initRounds();
 		}
-		if (!in_array($l, $this->collRounds, true)) { // only add it if the **same** object is not already associated
-			array_push($this->collRounds, $l);
-			$l->setOrganism($this);
+		if (!$this->collRounds->contains($l)) { // only add it if the **same** object is not already associated
+			$this->doAddRound($l);
 		}
+
+		return $this;
+	}
+
+	/**
+	 * @param	Round $round The round object to add.
+	 */
+	protected function doAddRound($round)
+	{
+		$this->collRounds[]= $round;
+		$round->setOrganism($this);
 	}
 
 
@@ -1510,74 +1698,90 @@ abstract class BaseOrganism extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Organism.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array Round[] List of Round objects
 	 */
 	public function getRoundsJoinSimulation($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(OrganismPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = RoundQuery::create(null, $criteria);
+		$query->joinWith('Simulation', $join_behavior);
 
-		if ($this->collRounds === null) {
-			if ($this->isNew()) {
-				$this->collRounds = array();
-			} else {
-
-				$criteria->add(RoundPeer::ID_ORGANISM, $this->id);
-
-				$this->collRounds = RoundPeer::doSelectJoinSimulation($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(RoundPeer::ID_ORGANISM, $this->id);
-
-			if (!isset($this->lastRoundCriteria) || !$this->lastRoundCriteria->equals($criteria)) {
-				$this->collRounds = RoundPeer::doSelectJoinSimulation($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastRoundCriteria = $criteria;
-
-		return $this->collRounds;
+		return $this->getRounds($query, $con);
 	}
 
 	/**
-	 * Resets all collections of referencing foreign keys.
+	 * Clears the current object and sets all attributes to their default values
+	 */
+	public function clear()
+	{
+		$this->id = null;
+		$this->name = null;
+		$this->instinct = null;
+		$this->toughness = null;
+		$this->vitality = null;
+		$this->type = null;
+		$this->alreadyInSave = false;
+		$this->alreadyInValidation = false;
+		$this->clearAllReferences();
+		$this->resetModified();
+		$this->setNew(true);
+		$this->setDeleted(false);
+	}
+
+	/**
+	 * Resets all references to other model objects or collections of model objects.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect objects
-	 * with circular references.  This is currently necessary when using Propel in certain
-	 * daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect
+	 * objects with circular references (even in PHP 5.3). This is currently necessary
+	 * when using Propel in certain daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all associated objects.
+	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collUserPrivilegess) {
-				foreach ((array) $this->collUserPrivilegess as $o) {
+				foreach ($this->collUserPrivilegess as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collGroups) {
-				foreach ((array) $this->collGroups as $o) {
+				foreach ($this->collGroups as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collRounds) {
-				foreach ((array) $this->collRounds as $o) {
+				foreach ($this->collRounds as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
+		if ($this->collUserPrivilegess instanceof PropelCollection) {
+			$this->collUserPrivilegess->clearIterator();
+		}
 		$this->collUserPrivilegess = null;
+		if ($this->collGroups instanceof PropelCollection) {
+			$this->collGroups->clearIterator();
+		}
 		$this->collGroups = null;
+		if ($this->collRounds instanceof PropelCollection) {
+			$this->collRounds->clearIterator();
+		}
 		$this->collRounds = null;
+	}
+
+	/**
+	 * Return the string representation of this object
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return (string) $this->exportTo(OrganismPeer::DEFAULT_STRING_FORMAT);
 	}
 
 } // BaseOrganism

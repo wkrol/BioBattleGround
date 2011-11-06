@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * This class defines the structure of the 'user' table.
  *
@@ -11,9 +12,10 @@
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
  *
- * @package    biobattleground.map
+ * @package    propel.generator.biobattleground.map
  */
-class UserTableMap extends TableMap {
+class UserTableMap extends TableMap
+{
 
 	/**
 	 * The (dot-path) name of this class
@@ -29,7 +31,7 @@ class UserTableMap extends TableMap {
 	 */
 	public function initialize()
 	{
-	  // attributes
+		// attributes
 		$this->setName('user');
 		$this->setPhpName('User');
 		$this->setClassname('User');
@@ -48,8 +50,8 @@ class UserTableMap extends TableMap {
 	 */
 	public function buildRelations()
 	{
-    $this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), 'CASCADE', 'CASCADE');
-    $this->addRelation('SimulationPrivileges', 'SimulationPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), null, null);
+		$this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), 'CASCADE', 'CASCADE', 'UserPrivilegess');
+		$this->addRelation('SimulationPrivileges', 'SimulationPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), null, null, 'SimulationPrivilegess');
 	} // buildRelations()
 
 } // UserTableMap

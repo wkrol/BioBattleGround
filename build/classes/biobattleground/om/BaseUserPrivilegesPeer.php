@@ -1,11 +1,12 @@
 <?php
 
+
 /**
  * Base static class for performing query and update operations on the 'user_privileges' table.
  *
  * 
  *
- * @package    biobattleground.om
+ * @package    propel.generator.biobattleground.om
  */
 abstract class BaseUserPrivilegesPeer {
 
@@ -23,12 +24,15 @@ abstract class BaseUserPrivilegesPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'UserPrivilegesTableMap';
-	
+
 	/** The total number of columns. */
 	const NUM_COLUMNS = 9;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
+
+	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
+	const NUM_HYDRATE_COLUMNS = 9;
 
 	/** the column name for the ID field */
 	const ID = 'user_privileges.ID';
@@ -57,6 +61,9 @@ abstract class BaseUserPrivilegesPeer {
 	/** the column name for the SHOW_STATS field */
 	const SHOW_STATS = 'user_privileges.SHOW_STATS';
 
+	/** The default string format for model objects of the related table **/
+	const DEFAULT_STRING_FORMAT = 'YAML';
+
 	/**
 	 * An identiy map to hold any loaded instances of UserPrivileges objects.
 	 * This must be public so that other peer classes can access this when hydrating from JOIN
@@ -72,10 +79,11 @@ abstract class BaseUserPrivilegesPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	private static $fieldNames = array (
+	protected static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'IdUser', 'IdOrganism', 'IdMap', 'IdClimate', 'Play', 'Fight', 'Edit', 'ShowStats', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'idUser', 'idOrganism', 'idMap', 'idClimate', 'play', 'fight', 'edit', 'showStats', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::ID_USER, self::ID_ORGANISM, self::ID_MAP, self::ID_CLIMATE, self::PLAY, self::FIGHT, self::EDIT, self::SHOW_STATS, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID', 'ID_USER', 'ID_ORGANISM', 'ID_MAP', 'ID_CLIMATE', 'PLAY', 'FIGHT', 'EDIT', 'SHOW_STATS', ),
 		BasePeer::TYPE_FIELDNAME => array ('id', 'id_user', 'id_organism', 'id_map', 'id_climate', 'play', 'fight', 'edit', 'show_stats', ),
 		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, )
 	);
@@ -86,10 +94,11 @@ abstract class BaseUserPrivilegesPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	private static $fieldKeys = array (
+	protected static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'IdUser' => 1, 'IdOrganism' => 2, 'IdMap' => 3, 'IdClimate' => 4, 'Play' => 5, 'Fight' => 6, 'Edit' => 7, 'ShowStats' => 8, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'idUser' => 1, 'idOrganism' => 2, 'idMap' => 3, 'idClimate' => 4, 'play' => 5, 'fight' => 6, 'edit' => 7, 'showStats' => 8, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::ID_USER => 1, self::ID_ORGANISM => 2, self::ID_MAP => 3, self::ID_CLIMATE => 4, self::PLAY => 5, self::FIGHT => 6, self::EDIT => 7, self::SHOW_STATS => 8, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'ID_USER' => 1, 'ID_ORGANISM' => 2, 'ID_MAP' => 3, 'ID_CLIMATE' => 4, 'PLAY' => 5, 'FIGHT' => 6, 'EDIT' => 7, 'SHOW_STATS' => 8, ),
 		BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'id_user' => 1, 'id_organism' => 2, 'id_map' => 3, 'id_climate' => 4, 'play' => 5, 'fight' => 6, 'edit' => 7, 'show_stats' => 8, ),
 		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, 8, )
 	);
@@ -155,21 +164,34 @@ abstract class BaseUserPrivilegesPeer {
 	 * XML schema will not be added to the select list and only loaded
 	 * on demand.
 	 *
-	 * @param      criteria object containing the columns to add.
+	 * @param      Criteria $criteria object containing the columns to add.
+	 * @param      string   $alias    optional table alias
 	 * @throws     PropelException Any exceptions caught during processing will be
 	 *		 rethrown wrapped into a PropelException.
 	 */
-	public static function addSelectColumns(Criteria $criteria)
+	public static function addSelectColumns(Criteria $criteria, $alias = null)
 	{
-		$criteria->addSelectColumn(UserPrivilegesPeer::ID);
-		$criteria->addSelectColumn(UserPrivilegesPeer::ID_USER);
-		$criteria->addSelectColumn(UserPrivilegesPeer::ID_ORGANISM);
-		$criteria->addSelectColumn(UserPrivilegesPeer::ID_MAP);
-		$criteria->addSelectColumn(UserPrivilegesPeer::ID_CLIMATE);
-		$criteria->addSelectColumn(UserPrivilegesPeer::PLAY);
-		$criteria->addSelectColumn(UserPrivilegesPeer::FIGHT);
-		$criteria->addSelectColumn(UserPrivilegesPeer::EDIT);
-		$criteria->addSelectColumn(UserPrivilegesPeer::SHOW_STATS);
+		if (null === $alias) {
+			$criteria->addSelectColumn(UserPrivilegesPeer::ID);
+			$criteria->addSelectColumn(UserPrivilegesPeer::ID_USER);
+			$criteria->addSelectColumn(UserPrivilegesPeer::ID_ORGANISM);
+			$criteria->addSelectColumn(UserPrivilegesPeer::ID_MAP);
+			$criteria->addSelectColumn(UserPrivilegesPeer::ID_CLIMATE);
+			$criteria->addSelectColumn(UserPrivilegesPeer::PLAY);
+			$criteria->addSelectColumn(UserPrivilegesPeer::FIGHT);
+			$criteria->addSelectColumn(UserPrivilegesPeer::EDIT);
+			$criteria->addSelectColumn(UserPrivilegesPeer::SHOW_STATS);
+		} else {
+			$criteria->addSelectColumn($alias . '.ID');
+			$criteria->addSelectColumn($alias . '.ID_USER');
+			$criteria->addSelectColumn($alias . '.ID_ORGANISM');
+			$criteria->addSelectColumn($alias . '.ID_MAP');
+			$criteria->addSelectColumn($alias . '.ID_CLIMATE');
+			$criteria->addSelectColumn($alias . '.PLAY');
+			$criteria->addSelectColumn($alias . '.FIGHT');
+			$criteria->addSelectColumn($alias . '.EDIT');
+			$criteria->addSelectColumn($alias . '.SHOW_STATS');
+		}
 	}
 
 	/**
@@ -216,7 +238,7 @@ abstract class BaseUserPrivilegesPeer {
 		return $count;
 	}
 	/**
-	 * Method to select one object from the DB.
+	 * Selects one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -235,7 +257,7 @@ abstract class BaseUserPrivilegesPeer {
 		return null;
 	}
 	/**
-	 * Method to do selects.
+	 * Selects several row from the DB.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -289,7 +311,7 @@ abstract class BaseUserPrivilegesPeer {
 	 * @param      UserPrivileges $value A UserPrivileges object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool(UserPrivileges $obj, $key = null)
+	public static function addInstanceToPool($obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -384,6 +406,20 @@ abstract class BaseUserPrivilegesPeer {
 	}
 
 	/**
+	 * Retrieves the primary key from the DB resultset row
+	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
+	 * a multi-column primary key, an array of the primary key columns will be returned.
+	 *
+	 * @param      array $row PropelPDO resultset row.
+	 * @param      int $startcol The 0-based offset for reading from the resultset row.
+	 * @return     mixed The primary key of the row
+	 */
+	public static function getPrimaryKeyFromRow($row, $startcol = 0)
+	{
+		return (int) $row[$startcol];
+	}
+	
+	/**
 	 * The returned array will contain objects of the default type or
 	 * objects that inherit from the default.
 	 *
@@ -401,7 +437,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj = UserPrivilegesPeer::getInstanceFromPool($key))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj->hydrate($row, 0, true); // rehydrate
 				$results[] = $obj;
 			} else {
@@ -414,6 +450,32 @@ abstract class BaseUserPrivilegesPeer {
 		$stmt->closeCursor();
 		return $results;
 	}
+	/**
+	 * Populates an object of the default type or an object that inherit from the default.
+	 *
+	 * @param      array $row PropelPDO resultset row.
+	 * @param      int $startcol The 0-based offset for reading from the resultset row.
+	 * @throws     PropelException Any exceptions caught during processing will be
+	 *		 rethrown wrapped into a PropelException.
+	 * @return     array (UserPrivileges object, last column rank)
+	 */
+	public static function populateObject($row, $startcol = 0)
+	{
+		$key = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, $startcol);
+		if (null !== ($obj = UserPrivilegesPeer::getInstanceFromPool($key))) {
+			// We no longer rehydrate the object, since this can cause data loss.
+			// See http://www.propelorm.org/ticket/509
+			// $obj->hydrate($row, $startcol, true); // rehydrate
+			$col = $startcol + UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
+		} else {
+			$cls = UserPrivilegesPeer::OM_CLASS;
+			$obj = new $cls();
+			$col = $obj->hydrate($row, $startcol);
+			UserPrivilegesPeer::addInstanceToPool($obj, $key);
+		}
+		return array($obj, $col);
+	}
+
 
 	/**
 	 * Returns the number of rows matching criteria, joining the related Organism table
@@ -441,9 +503,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -491,9 +553,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -541,9 +603,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -591,9 +653,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -634,7 +696,7 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 		OrganismPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
@@ -646,7 +708,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -668,7 +730,7 @@ abstract class BaseUserPrivilegesPeer {
 					$obj2->hydrate($row, $startcol);
 					OrganismPeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (UserPrivileges) to $obj2 (Organism)
 				$obj2->addUserPrivileges($obj1);
 
@@ -700,7 +762,7 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 		UserPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_USER, UserPeer::ID, $join_behavior);
@@ -712,7 +774,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -734,7 +796,7 @@ abstract class BaseUserPrivilegesPeer {
 					$obj2->hydrate($row, $startcol);
 					UserPeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (UserPrivileges) to $obj2 (User)
 				$obj2->addUserPrivileges($obj1);
 
@@ -766,7 +828,7 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 		MapPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_MAP, MapPeer::ID, $join_behavior);
@@ -778,7 +840,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -800,7 +862,7 @@ abstract class BaseUserPrivilegesPeer {
 					$obj2->hydrate($row, $startcol);
 					MapPeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (UserPrivileges) to $obj2 (Map)
 				$obj2->addUserPrivileges($obj1);
 
@@ -832,7 +894,7 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 		ClimatePeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_CLIMATE, ClimatePeer::ID, $join_behavior);
@@ -844,7 +906,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -866,7 +928,7 @@ abstract class BaseUserPrivilegesPeer {
 					$obj2->hydrate($row, $startcol);
 					ClimatePeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (UserPrivileges) to $obj2 (Climate)
 				$obj2->addUserPrivileges($obj1);
 
@@ -905,9 +967,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -954,19 +1016,19 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol2 = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		MapPeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + MapPeer::NUM_HYDRATE_COLUMNS;
 
 		ClimatePeer::addSelectColumns($criteria);
-		$startcol6 = $startcol5 + (ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol6 = $startcol5 + ClimatePeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -983,7 +1045,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = UserPrivilegesPeer::getOMClass(false);
@@ -1090,7 +1152,7 @@ abstract class BaseUserPrivilegesPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(UserPrivilegesPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1098,9 +1160,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1144,7 +1206,7 @@ abstract class BaseUserPrivilegesPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(UserPrivilegesPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1152,9 +1214,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1198,7 +1260,7 @@ abstract class BaseUserPrivilegesPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(UserPrivilegesPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1206,9 +1268,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1252,7 +1314,7 @@ abstract class BaseUserPrivilegesPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(UserPrivilegesPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1260,9 +1322,9 @@ abstract class BaseUserPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			UserPrivilegesPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1310,16 +1372,16 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol2 = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		MapPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + MapPeer::NUM_HYDRATE_COLUMNS;
 
 		ClimatePeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + ClimatePeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_USER, UserPeer::ID, $join_behavior);
 
@@ -1335,7 +1397,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = UserPrivilegesPeer::getOMClass(false);
@@ -1431,16 +1493,16 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol2 = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		MapPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + MapPeer::NUM_HYDRATE_COLUMNS;
 
 		ClimatePeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + ClimatePeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -1456,7 +1518,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = UserPrivilegesPeer::getOMClass(false);
@@ -1552,16 +1614,16 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol2 = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		ClimatePeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + ClimatePeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -1577,7 +1639,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = UserPrivilegesPeer::getOMClass(false);
@@ -1673,16 +1735,16 @@ abstract class BaseUserPrivilegesPeer {
 		}
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol2 = (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPeer::NUM_HYDRATE_COLUMNS;
 
 		MapPeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + MapPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(UserPrivilegesPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -1698,7 +1760,7 @@ abstract class BaseUserPrivilegesPeer {
 			$key1 = UserPrivilegesPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = UserPrivilegesPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = UserPrivilegesPeer::getOMClass(false);
@@ -1803,7 +1865,7 @@ abstract class BaseUserPrivilegesPeer {
 	 * relative to a location on the PHP include_path.
 	 * (e.g. path.to.MyClass -> 'path/to/MyClass.php')
 	 *
-	 * @param      boolean  Whether or not to return the path wit hthe class name 
+	 * @param      boolean $withPrefix Whether or not to return the path with the class name
 	 * @return     string path.to.ClassName
 	 */
 	public static function getOMClass($withPrefix = true)
@@ -1812,7 +1874,7 @@ abstract class BaseUserPrivilegesPeer {
 	}
 
 	/**
-	 * Method perform an INSERT on the database, given a UserPrivileges or Criteria object.
+	 * Performs an INSERT on the database, given a UserPrivileges or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or UserPrivileges object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -1855,7 +1917,7 @@ abstract class BaseUserPrivilegesPeer {
 	}
 
 	/**
-	 * Method perform an UPDATE on the database, given a UserPrivileges or Criteria object.
+	 * Performs an UPDATE on the database, given a UserPrivileges or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or UserPrivileges object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -1875,7 +1937,12 @@ abstract class BaseUserPrivilegesPeer {
 			$criteria = clone $values; // rename for clarity
 
 			$comparison = $criteria->getComparison(UserPrivilegesPeer::ID);
-			$selectCriteria->add(UserPrivilegesPeer::ID, $criteria->remove(UserPrivilegesPeer::ID), $comparison);
+			$value = $criteria->remove(UserPrivilegesPeer::ID);
+			if ($value) {
+				$selectCriteria->add(UserPrivilegesPeer::ID, $value, $comparison);
+			} else {
+				$selectCriteria->setPrimaryTableName(UserPrivilegesPeer::TABLE_NAME);
+			}
 
 		} else { // $values is UserPrivileges object
 			$criteria = $values->buildCriteria(); // gets full criteria
@@ -1889,11 +1956,12 @@ abstract class BaseUserPrivilegesPeer {
 	}
 
 	/**
-	 * Method to DELETE all rows from the user_privileges table.
+	 * Deletes all rows from the user_privileges table.
 	 *
+	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll($con = null)
+	public static function doDeleteAll(PropelPDO $con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(UserPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -1903,7 +1971,7 @@ abstract class BaseUserPrivilegesPeer {
 			// use transaction because $criteria could contain info
 			// for more than one table or we could emulating ON DELETE CASCADE, etc.
 			$con->beginTransaction();
-			$affectedRows += BasePeer::doDeleteAll(UserPrivilegesPeer::TABLE_NAME, $con);
+			$affectedRows += BasePeer::doDeleteAll(UserPrivilegesPeer::TABLE_NAME, $con, UserPrivilegesPeer::DATABASE_NAME);
 			// Because this db requires some delete cascade/set null emulation, we have to
 			// clear the cached instance *after* the emulation has happened (since
 			// instances get re-added by the select statement contained therein).
@@ -1918,7 +1986,7 @@ abstract class BaseUserPrivilegesPeer {
 	}
 
 	/**
-	 * Method perform a DELETE on the database, given a UserPrivileges or Criteria object OR a primary key value.
+	 * Performs a DELETE on the database, given a UserPrivileges or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or UserPrivileges object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -1987,7 +2055,7 @@ abstract class BaseUserPrivilegesPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate(UserPrivileges $obj, $cols = null)
+	public static function doValidate($obj, $cols = null)
 	{
 		$columns = array();
 

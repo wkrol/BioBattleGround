@@ -1,11 +1,12 @@
 <?php
 
+
 /**
  * Base static class for performing query and update operations on the 'group' table.
  *
  * 
  *
- * @package    biobattleground.om
+ * @package    propel.generator.biobattleground.om
  */
 abstract class BaseGroupPeer {
 
@@ -23,12 +24,15 @@ abstract class BaseGroupPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'GroupTableMap';
-	
+
 	/** The total number of columns. */
 	const NUM_COLUMNS = 8;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
+
+	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
+	const NUM_HYDRATE_COLUMNS = 8;
 
 	/** the column name for the ID field */
 	const ID = 'group.ID';
@@ -54,6 +58,9 @@ abstract class BaseGroupPeer {
 	/** the column name for the DEATHS field */
 	const DEATHS = 'group.DEATHS';
 
+	/** The default string format for model objects of the related table **/
+	const DEFAULT_STRING_FORMAT = 'YAML';
+
 	/**
 	 * An identiy map to hold any loaded instances of Group objects.
 	 * This must be public so that other peer classes can access this when hydrating from JOIN
@@ -69,10 +76,11 @@ abstract class BaseGroupPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	private static $fieldNames = array (
+	protected static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'IdUserPrivileges', 'IdOrganism', 'IdSimulation', 'Survive', 'AverageLifeLength', 'Quantity', 'Deaths', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'idUserPrivileges', 'idOrganism', 'idSimulation', 'survive', 'averageLifeLength', 'quantity', 'deaths', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::ID_USER_PRIVILEGES, self::ID_ORGANISM, self::ID_SIMULATION, self::SURVIVE, self::AVERAGE_LIFE_LENGTH, self::QUANTITY, self::DEATHS, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID', 'ID_USER_PRIVILEGES', 'ID_ORGANISM', 'ID_SIMULATION', 'SURVIVE', 'AVERAGE_LIFE_LENGTH', 'QUANTITY', 'DEATHS', ),
 		BasePeer::TYPE_FIELDNAME => array ('id', 'id_user_privileges', 'id_organism', 'id_simulation', 'survive', 'average_life_length', 'quantity', 'deaths', ),
 		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
 	);
@@ -83,10 +91,11 @@ abstract class BaseGroupPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	private static $fieldKeys = array (
+	protected static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'IdUserPrivileges' => 1, 'IdOrganism' => 2, 'IdSimulation' => 3, 'Survive' => 4, 'AverageLifeLength' => 5, 'Quantity' => 6, 'Deaths' => 7, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'idUserPrivileges' => 1, 'idOrganism' => 2, 'idSimulation' => 3, 'survive' => 4, 'averageLifeLength' => 5, 'quantity' => 6, 'deaths' => 7, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::ID_USER_PRIVILEGES => 1, self::ID_ORGANISM => 2, self::ID_SIMULATION => 3, self::SURVIVE => 4, self::AVERAGE_LIFE_LENGTH => 5, self::QUANTITY => 6, self::DEATHS => 7, ),
+		BasePeer::TYPE_RAW_COLNAME => array ('ID' => 0, 'ID_USER_PRIVILEGES' => 1, 'ID_ORGANISM' => 2, 'ID_SIMULATION' => 3, 'SURVIVE' => 4, 'AVERAGE_LIFE_LENGTH' => 5, 'QUANTITY' => 6, 'DEATHS' => 7, ),
 		BasePeer::TYPE_FIELDNAME => array ('id' => 0, 'id_user_privileges' => 1, 'id_organism' => 2, 'id_simulation' => 3, 'survive' => 4, 'average_life_length' => 5, 'quantity' => 6, 'deaths' => 7, ),
 		BasePeer::TYPE_NUM => array (0, 1, 2, 3, 4, 5, 6, 7, )
 	);
@@ -152,20 +161,32 @@ abstract class BaseGroupPeer {
 	 * XML schema will not be added to the select list and only loaded
 	 * on demand.
 	 *
-	 * @param      criteria object containing the columns to add.
+	 * @param      Criteria $criteria object containing the columns to add.
+	 * @param      string   $alias    optional table alias
 	 * @throws     PropelException Any exceptions caught during processing will be
 	 *		 rethrown wrapped into a PropelException.
 	 */
-	public static function addSelectColumns(Criteria $criteria)
+	public static function addSelectColumns(Criteria $criteria, $alias = null)
 	{
-		$criteria->addSelectColumn(GroupPeer::ID);
-		$criteria->addSelectColumn(GroupPeer::ID_USER_PRIVILEGES);
-		$criteria->addSelectColumn(GroupPeer::ID_ORGANISM);
-		$criteria->addSelectColumn(GroupPeer::ID_SIMULATION);
-		$criteria->addSelectColumn(GroupPeer::SURVIVE);
-		$criteria->addSelectColumn(GroupPeer::AVERAGE_LIFE_LENGTH);
-		$criteria->addSelectColumn(GroupPeer::QUANTITY);
-		$criteria->addSelectColumn(GroupPeer::DEATHS);
+		if (null === $alias) {
+			$criteria->addSelectColumn(GroupPeer::ID);
+			$criteria->addSelectColumn(GroupPeer::ID_USER_PRIVILEGES);
+			$criteria->addSelectColumn(GroupPeer::ID_ORGANISM);
+			$criteria->addSelectColumn(GroupPeer::ID_SIMULATION);
+			$criteria->addSelectColumn(GroupPeer::SURVIVE);
+			$criteria->addSelectColumn(GroupPeer::AVERAGE_LIFE_LENGTH);
+			$criteria->addSelectColumn(GroupPeer::QUANTITY);
+			$criteria->addSelectColumn(GroupPeer::DEATHS);
+		} else {
+			$criteria->addSelectColumn($alias . '.ID');
+			$criteria->addSelectColumn($alias . '.ID_USER_PRIVILEGES');
+			$criteria->addSelectColumn($alias . '.ID_ORGANISM');
+			$criteria->addSelectColumn($alias . '.ID_SIMULATION');
+			$criteria->addSelectColumn($alias . '.SURVIVE');
+			$criteria->addSelectColumn($alias . '.AVERAGE_LIFE_LENGTH');
+			$criteria->addSelectColumn($alias . '.QUANTITY');
+			$criteria->addSelectColumn($alias . '.DEATHS');
+		}
 	}
 
 	/**
@@ -212,7 +233,7 @@ abstract class BaseGroupPeer {
 		return $count;
 	}
 	/**
-	 * Method to select one object from the DB.
+	 * Selects one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -231,7 +252,7 @@ abstract class BaseGroupPeer {
 		return null;
 	}
 	/**
-	 * Method to do selects.
+	 * Selects several row from the DB.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -285,7 +306,7 @@ abstract class BaseGroupPeer {
 	 * @param      Group $value A Group object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool(Group $obj, $key = null)
+	public static function addInstanceToPool($obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -380,6 +401,20 @@ abstract class BaseGroupPeer {
 	}
 
 	/**
+	 * Retrieves the primary key from the DB resultset row
+	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
+	 * a multi-column primary key, an array of the primary key columns will be returned.
+	 *
+	 * @param      array $row PropelPDO resultset row.
+	 * @param      int $startcol The 0-based offset for reading from the resultset row.
+	 * @return     mixed The primary key of the row
+	 */
+	public static function getPrimaryKeyFromRow($row, $startcol = 0)
+	{
+		return (int) $row[$startcol];
+	}
+	
+	/**
 	 * The returned array will contain objects of the default type or
 	 * objects that inherit from the default.
 	 *
@@ -397,7 +432,7 @@ abstract class BaseGroupPeer {
 			$key = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj = GroupPeer::getInstanceFromPool($key))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj->hydrate($row, 0, true); // rehydrate
 				$results[] = $obj;
 			} else {
@@ -410,6 +445,32 @@ abstract class BaseGroupPeer {
 		$stmt->closeCursor();
 		return $results;
 	}
+	/**
+	 * Populates an object of the default type or an object that inherit from the default.
+	 *
+	 * @param      array $row PropelPDO resultset row.
+	 * @param      int $startcol The 0-based offset for reading from the resultset row.
+	 * @throws     PropelException Any exceptions caught during processing will be
+	 *		 rethrown wrapped into a PropelException.
+	 * @return     array (Group object, last column rank)
+	 */
+	public static function populateObject($row, $startcol = 0)
+	{
+		$key = GroupPeer::getPrimaryKeyHashFromRow($row, $startcol);
+		if (null !== ($obj = GroupPeer::getInstanceFromPool($key))) {
+			// We no longer rehydrate the object, since this can cause data loss.
+			// See http://www.propelorm.org/ticket/509
+			// $obj->hydrate($row, $startcol, true); // rehydrate
+			$col = $startcol + GroupPeer::NUM_HYDRATE_COLUMNS;
+		} else {
+			$cls = GroupPeer::OM_CLASS;
+			$obj = new $cls();
+			$col = $obj->hydrate($row, $startcol);
+			GroupPeer::addInstanceToPool($obj, $key);
+		}
+		return array($obj, $col);
+	}
+
 
 	/**
 	 * Returns the number of rows matching criteria, joining the related Organism table
@@ -437,9 +498,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -487,9 +548,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -537,9 +598,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -580,7 +641,7 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = GroupPeer::NUM_HYDRATE_COLUMNS;
 		OrganismPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(GroupPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
@@ -592,7 +653,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -614,7 +675,7 @@ abstract class BaseGroupPeer {
 					$obj2->hydrate($row, $startcol);
 					OrganismPeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (Group) to $obj2 (Organism)
 				$obj2->addGroup($obj1);
 
@@ -646,7 +707,7 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = GroupPeer::NUM_HYDRATE_COLUMNS;
 		SimulationPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(GroupPeer::ID_SIMULATION, SimulationPeer::ID, $join_behavior);
@@ -658,7 +719,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -680,7 +741,7 @@ abstract class BaseGroupPeer {
 					$obj2->hydrate($row, $startcol);
 					SimulationPeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (Group) to $obj2 (Simulation)
 				$obj2->addGroup($obj1);
 
@@ -712,7 +773,7 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol = GroupPeer::NUM_HYDRATE_COLUMNS;
 		UserPrivilegesPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(GroupPeer::ID_USER_PRIVILEGES, UserPrivilegesPeer::ID_USER, $join_behavior);
@@ -724,7 +785,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 
@@ -746,7 +807,7 @@ abstract class BaseGroupPeer {
 					$obj2->hydrate($row, $startcol);
 					UserPrivilegesPeer::addInstanceToPool($obj2, $key2);
 				} // if obj2 already loaded
-				
+
 				// Add the $obj1 (Group) to $obj2 (UserPrivileges)
 				$obj2->addGroup($obj1);
 
@@ -785,9 +846,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -832,16 +893,16 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol2 = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = GroupPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + SimulationPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol5 = $startcol4 + (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol5 = $startcol4 + UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(GroupPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -856,7 +917,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = GroupPeer::getOMClass(false);
@@ -945,7 +1006,7 @@ abstract class BaseGroupPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(GroupPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -953,9 +1014,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -997,7 +1058,7 @@ abstract class BaseGroupPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(GroupPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1005,9 +1066,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1049,7 +1110,7 @@ abstract class BaseGroupPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(GroupPeer::TABLE_NAME);
-		
+
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -1057,9 +1118,9 @@ abstract class BaseGroupPeer {
 		if (!$criteria->hasSelectClause()) {
 			GroupPeer::addSelectColumns($criteria);
 		}
-		
+
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-		
+
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -1105,13 +1166,13 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol2 = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = GroupPeer::NUM_HYDRATE_COLUMNS;
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + SimulationPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(GroupPeer::ID_SIMULATION, SimulationPeer::ID, $join_behavior);
 
@@ -1125,7 +1186,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = GroupPeer::getOMClass(false);
@@ -1202,13 +1263,13 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol2 = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = GroupPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		UserPrivilegesPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + UserPrivilegesPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(GroupPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -1222,7 +1283,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = GroupPeer::getOMClass(false);
@@ -1299,13 +1360,13 @@ abstract class BaseGroupPeer {
 		}
 
 		GroupPeer::addSelectColumns($criteria);
-		$startcol2 = (GroupPeer::NUM_COLUMNS - GroupPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol2 = GroupPeer::NUM_HYDRATE_COLUMNS;
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
+		$startcol4 = $startcol3 + SimulationPeer::NUM_HYDRATE_COLUMNS;
 
 		$criteria->addJoin(GroupPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -1319,7 +1380,7 @@ abstract class BaseGroupPeer {
 			$key1 = GroupPeer::getPrimaryKeyHashFromRow($row, 0);
 			if (null !== ($obj1 = GroupPeer::getInstanceFromPool($key1))) {
 				// We no longer rehydrate the object, since this can cause data loss.
-				// See http://propel.phpdb.org/trac/ticket/509
+				// See http://www.propelorm.org/ticket/509
 				// $obj1->hydrate($row, 0, true); // rehydrate
 			} else {
 				$cls = GroupPeer::getOMClass(false);
@@ -1405,7 +1466,7 @@ abstract class BaseGroupPeer {
 	 * relative to a location on the PHP include_path.
 	 * (e.g. path.to.MyClass -> 'path/to/MyClass.php')
 	 *
-	 * @param      boolean  Whether or not to return the path wit hthe class name 
+	 * @param      boolean $withPrefix Whether or not to return the path with the class name
 	 * @return     string path.to.ClassName
 	 */
 	public static function getOMClass($withPrefix = true)
@@ -1414,7 +1475,7 @@ abstract class BaseGroupPeer {
 	}
 
 	/**
-	 * Method perform an INSERT on the database, given a Group or Criteria object.
+	 * Performs an INSERT on the database, given a Group or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Group object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -1457,7 +1518,7 @@ abstract class BaseGroupPeer {
 	}
 
 	/**
-	 * Method perform an UPDATE on the database, given a Group or Criteria object.
+	 * Performs an UPDATE on the database, given a Group or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Group object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -1477,7 +1538,12 @@ abstract class BaseGroupPeer {
 			$criteria = clone $values; // rename for clarity
 
 			$comparison = $criteria->getComparison(GroupPeer::ID);
-			$selectCriteria->add(GroupPeer::ID, $criteria->remove(GroupPeer::ID), $comparison);
+			$value = $criteria->remove(GroupPeer::ID);
+			if ($value) {
+				$selectCriteria->add(GroupPeer::ID, $value, $comparison);
+			} else {
+				$selectCriteria->setPrimaryTableName(GroupPeer::TABLE_NAME);
+			}
 
 		} else { // $values is Group object
 			$criteria = $values->buildCriteria(); // gets full criteria
@@ -1491,11 +1557,12 @@ abstract class BaseGroupPeer {
 	}
 
 	/**
-	 * Method to DELETE all rows from the group table.
+	 * Deletes all rows from the group table.
 	 *
+	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll($con = null)
+	public static function doDeleteAll(PropelPDO $con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(GroupPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -1505,7 +1572,7 @@ abstract class BaseGroupPeer {
 			// use transaction because $criteria could contain info
 			// for more than one table or we could emulating ON DELETE CASCADE, etc.
 			$con->beginTransaction();
-			$affectedRows += BasePeer::doDeleteAll(GroupPeer::TABLE_NAME, $con);
+			$affectedRows += BasePeer::doDeleteAll(GroupPeer::TABLE_NAME, $con, GroupPeer::DATABASE_NAME);
 			// Because this db requires some delete cascade/set null emulation, we have to
 			// clear the cached instance *after* the emulation has happened (since
 			// instances get re-added by the select statement contained therein).
@@ -1520,7 +1587,7 @@ abstract class BaseGroupPeer {
 	}
 
 	/**
-	 * Method perform a DELETE on the database, given a Group or Criteria object OR a primary key value.
+	 * Performs a DELETE on the database, given a Group or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or Group object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -1589,7 +1656,7 @@ abstract class BaseGroupPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate(Group $obj, $cols = null)
+	public static function doValidate($obj, $cols = null)
 	{
 		$columns = array();
 

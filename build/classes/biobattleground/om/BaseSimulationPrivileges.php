@@ -1,14 +1,20 @@
 <?php
 
+
 /**
  * Base class that represents a row from the 'simulation_privileges' table.
  *
  * 
  *
- * @package    biobattleground.om
+ * @package    propel.generator.biobattleground.om
  */
-abstract class BaseSimulationPrivileges extends BaseObject  implements Persistent {
+abstract class BaseSimulationPrivileges extends BaseObject  implements Persistent
+{
 
+	/**
+	 * Peer class name
+	 */
+	const PEER = 'SimulationPrivilegesPeer';
 
 	/**
 	 * The Peer class.
@@ -229,8 +235,7 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 				$this->ensureConsistency();
 			}
 
-			// FIXME - using NUM_COLUMNS may be clearer.
-			return $startcol + 4; // 4 = SimulationPrivilegesPeer::NUM_COLUMNS - SimulationPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS).
+			return $startcol + 4; // 4 = SimulationPrivilegesPeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating SimulationPrivileges object", $e);
@@ -317,19 +322,21 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 		if ($con === null) {
 			$con = Propel::getConnection(SimulationPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		try {
+			$deleteQuery = SimulationPrivilegesQuery::create()
+				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				SimulationPrivilegesPeer::doDelete($this, $con);
+				$deleteQuery->delete($con);
 				$this->postDelete($con);
-				$this->setDeleted(true);
 				$con->commit();
+				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -357,7 +364,7 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 		if ($con === null) {
 			$con = Propel::getConnection(SimulationPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -381,7 +388,7 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -416,26 +423,15 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 				$this->setUser($this->aUser);
 			}
 
-			if ($this->isNew() ) {
-				$this->modifiedColumns[] = SimulationPrivilegesPeer::ID;
-			}
-
-			// If this object has been modified, then save it to the database.
-			if ($this->isModified()) {
+			if ($this->isNew() || $this->isModified()) {
+				// persist changes
 				if ($this->isNew()) {
-					$pk = SimulationPrivilegesPeer::doInsert($this, $con);
-					$affectedRows += 1; // we are assuming that there is only 1 row per doInsert() which
-										 // should always be true here (even though technically
-										 // BasePeer::doInsert() can insert multiple rows).
-
-					$this->setId($pk);  //[IMV] update autoincrement primary key
-
-					$this->setNew(false);
+					$this->doInsert($con);
 				} else {
-					$affectedRows += SimulationPrivilegesPeer::doUpdate($this, $con);
+					$this->doUpdate($con);
 				}
-
-				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
+				$affectedRows += 1;
+				$this->resetModified();
 			}
 
 			$this->alreadyInSave = false;
@@ -443,6 +439,92 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 		}
 		return $affectedRows;
 	} // doSave()
+
+	/**
+	 * Insert the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @throws     PropelException
+	 * @see        doSave()
+	 */
+	protected function doInsert(PropelPDO $con)
+	{
+		$modifiedColumns = array();
+		$index = 0;
+
+		$this->modifiedColumns[] = SimulationPrivilegesPeer::ID;
+		if (null !== $this->id) {
+			throw new PropelException('Cannot insert a value for auto-increment primary key (' . SimulationPrivilegesPeer::ID . ')');
+		}
+
+		 // check the columns in natural order for more readable SQL queries
+		if ($this->isColumnModified(SimulationPrivilegesPeer::ID)) {
+			$modifiedColumns[':p' . $index++]  = '`ID`';
+		}
+		if ($this->isColumnModified(SimulationPrivilegesPeer::ID_USER)) {
+			$modifiedColumns[':p' . $index++]  = '`ID_USER`';
+		}
+		if ($this->isColumnModified(SimulationPrivilegesPeer::CREATE)) {
+			$modifiedColumns[':p' . $index++]  = '`CREATE`';
+		}
+		if ($this->isColumnModified(SimulationPrivilegesPeer::JOIN)) {
+			$modifiedColumns[':p' . $index++]  = '`JOIN`';
+		}
+
+		$sql = sprintf(
+			'INSERT INTO `simulation_privileges` (%s) VALUES (%s)',
+			implode(', ', $modifiedColumns),
+			implode(', ', array_keys($modifiedColumns))
+		);
+
+		try {
+			$stmt = $con->prepare($sql);
+			foreach ($modifiedColumns as $identifier => $columnName) {
+				switch ($columnName) {
+					case '`ID`':
+						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+						break;
+					case '`ID_USER`':
+						$stmt->bindValue($identifier, $this->id_user, PDO::PARAM_INT);
+						break;
+					case '`CREATE`':
+						$stmt->bindValue($identifier, $this->create, PDO::PARAM_INT);
+						break;
+					case '`JOIN`':
+						$stmt->bindValue($identifier, $this->join, PDO::PARAM_INT);
+						break;
+				}
+			}
+			$stmt->execute();
+		} catch (Exception $e) {
+			Propel::log($e->getMessage(), Propel::LOG_ERR);
+			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+		}
+
+		try {
+			$pk = $con->lastInsertId();
+		} catch (Exception $e) {
+			throw new PropelException('Unable to get autoincrement id.', $e);
+		}
+		$this->setId($pk);
+
+		$this->setNew(false);
+	}
+
+	/**
+	 * Update the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @see        doSave()
+	 */
+	protected function doUpdate(PropelPDO $con)
+	{
+		$selectCriteria = $this->buildPkeyCriteria();
+		$valuesCriteria = $this->buildCriteria();
+		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -529,6 +611,155 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 	}
 
 	/**
+	 * Retrieves a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name name
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     mixed Value of field.
+	 */
+	public function getByName($name, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = SimulationPrivilegesPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		$field = $this->getByPosition($pos);
+		return $field;
+	}
+
+	/**
+	 * Retrieves a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @return     mixed Value of field at $pos
+	 */
+	public function getByPosition($pos)
+	{
+		switch($pos) {
+			case 0:
+				return $this->getId();
+				break;
+			case 1:
+				return $this->getIdUser();
+				break;
+			case 2:
+				return $this->getCreate();
+				break;
+			case 3:
+				return $this->getJoin();
+				break;
+			default:
+				return null;
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Exports the object as an array.
+	 *
+	 * You can specify the key type of the array by passing one of the class
+	 * type constants.
+	 *
+	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    Defaults to BasePeer::TYPE_PHPNAME.
+	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
+	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
+	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
+	 *
+	 * @return    array an associative array containing the field names (as keys) and field values
+	 */
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	{
+		if (isset($alreadyDumpedObjects['SimulationPrivileges'][$this->getPrimaryKey()])) {
+			return '*RECURSION*';
+		}
+		$alreadyDumpedObjects['SimulationPrivileges'][$this->getPrimaryKey()] = true;
+		$keys = SimulationPrivilegesPeer::getFieldNames($keyType);
+		$result = array(
+			$keys[0] => $this->getId(),
+			$keys[1] => $this->getIdUser(),
+			$keys[2] => $this->getCreate(),
+			$keys[3] => $this->getJoin(),
+		);
+		if ($includeForeignObjects) {
+			if (null !== $this->aUser) {
+				$result['User'] = $this->aUser->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Sets a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name peer name
+	 * @param      mixed $value field value
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     void
+	 */
+	public function setByName($name, $value, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = SimulationPrivilegesPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		return $this->setByPosition($pos, $value);
+	}
+
+	/**
+	 * Sets a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @param      mixed $value field value
+	 * @return     void
+	 */
+	public function setByPosition($pos, $value)
+	{
+		switch($pos) {
+			case 0:
+				$this->setId($value);
+				break;
+			case 1:
+				$this->setIdUser($value);
+				break;
+			case 2:
+				$this->setCreate($value);
+				break;
+			case 3:
+				$this->setJoin($value);
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Populates the object using an array.
+	 *
+	 * This is particularly useful when populating an object from one of the
+	 * request arrays (e.g. $_POST).  This method goes through the column
+	 * names, checking to see whether a matching key exists in populated
+	 * array. If so the setByName() method is called for that column.
+	 *
+	 * You can specify the key type of the array by additionally passing one
+	 * of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 * BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 * The default key type is the column's phpname (e.g. 'AuthorId')
+	 *
+	 * @param      array  $arr     An array to populate the object from.
+	 * @param      string $keyType The type of keys the array uses.
+	 * @return     void
+	 */
+	public function fromArray($arr, $keyType = BasePeer::TYPE_PHPNAME)
+	{
+		$keys = SimulationPrivilegesPeer::getFieldNames($keyType);
+
+		if (array_key_exists($keys[0], $arr)) $this->setId($arr[$keys[0]]);
+		if (array_key_exists($keys[1], $arr)) $this->setIdUser($arr[$keys[1]]);
+		if (array_key_exists($keys[2], $arr)) $this->setCreate($arr[$keys[2]]);
+		if (array_key_exists($keys[3], $arr)) $this->setJoin($arr[$keys[3]]);
+	}
+
+	/**
 	 * Build a Criteria object containing the values of all modified columns in this object.
 	 *
 	 * @return     Criteria The Criteria object containing all modified values.
@@ -556,7 +787,6 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 	public function buildPkeyCriteria()
 	{
 		$criteria = new Criteria(SimulationPrivilegesPeer::DATABASE_NAME);
-
 		$criteria->add(SimulationPrivilegesPeer::ID, $this->id);
 
 		return $criteria;
@@ -583,6 +813,15 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 	}
 
 	/**
+	 * Returns true if the primary key for this object is null.
+	 * @return     boolean
+	 */
+	public function isPrimaryKeyNull()
+	{
+		return null === $this->getId();
+	}
+
+	/**
 	 * Sets contents of passed object to values from current object.
 	 *
 	 * If desired, this method can also make copies of all associated (fkey referrers)
@@ -590,22 +829,18 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 	 *
 	 * @param      object $copyObj An object of SimulationPrivileges (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false)
+	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
 	{
-
-		$copyObj->setIdUser($this->id_user);
-
-		$copyObj->setCreate($this->create);
-
-		$copyObj->setJoin($this->join);
-
-
-		$copyObj->setNew(true);
-
-		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-
+		$copyObj->setIdUser($this->getIdUser());
+		$copyObj->setCreate($this->getCreate());
+		$copyObj->setJoin($this->getJoin());
+		if ($makeNew) {
+			$copyObj->setNew(true);
+			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
+		}
 	}
 
 	/**
@@ -683,33 +918,60 @@ abstract class BaseSimulationPrivileges extends BaseObject  implements Persisten
 	public function getUser(PropelPDO $con = null)
 	{
 		if ($this->aUser === null && ($this->id_user !== null)) {
-			$this->aUser = UserPeer::retrieveByPk($this->id_user);
+			$this->aUser = UserQuery::create()->findPk($this->id_user, $con);
 			/* The following can be used additionally to
-			   guarantee the related object contains a reference
-			   to this object.  This level of coupling may, however, be
-			   undesirable since it could result in an only partially populated collection
-			   in the referenced object.
-			   $this->aUser->addSimulationPrivilegess($this);
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aUser->addSimulationPrivilegess($this);
 			 */
 		}
 		return $this->aUser;
 	}
 
 	/**
-	 * Resets all collections of referencing foreign keys.
+	 * Clears the current object and sets all attributes to their default values
+	 */
+	public function clear()
+	{
+		$this->id = null;
+		$this->id_user = null;
+		$this->create = null;
+		$this->join = null;
+		$this->alreadyInSave = false;
+		$this->alreadyInValidation = false;
+		$this->clearAllReferences();
+		$this->resetModified();
+		$this->setNew(true);
+		$this->setDeleted(false);
+	}
+
+	/**
+	 * Resets all references to other model objects or collections of model objects.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect objects
-	 * with circular references.  This is currently necessary when using Propel in certain
-	 * daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect
+	 * objects with circular references (even in PHP 5.3). This is currently necessary
+	 * when using Propel in certain daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all associated objects.
+	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 		} // if ($deep)
 
-			$this->aUser = null;
+		$this->aUser = null;
+	}
+
+	/**
+	 * Return the string representation of this object
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return (string) $this->exportTo(SimulationPrivilegesPeer::DEFAULT_STRING_FORMAT);
 	}
 
 } // BaseSimulationPrivileges

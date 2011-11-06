@@ -1,14 +1,20 @@
 <?php
 
+
 /**
  * Base class that represents a row from the 'map' table.
  *
  * 
  *
- * @package    biobattleground.om
+ * @package    propel.generator.biobattleground.om
  */
-abstract class BaseMap extends BaseObject  implements Persistent {
+abstract class BaseMap extends BaseObject  implements Persistent
+{
 
+	/**
+	 * Peer class name
+	 */
+	const PEER = 'MapPeer';
 
 	/**
 	 * The Peer class.
@@ -42,19 +48,9 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	protected $collUserPrivilegess;
 
 	/**
-	 * @var        Criteria The criteria used to select the current contents of collUserPrivilegess.
-	 */
-	private $lastUserPrivilegesCriteria = null;
-
-	/**
 	 * @var        array Simulation[] Collection to store aggregation of Simulation objects.
 	 */
 	protected $collSimulations;
-
-	/**
-	 * @var        Criteria The criteria used to select the current contents of collSimulations.
-	 */
-	private $lastSimulationCriteria = null;
 
 	/**
 	 * Flag to prevent endless save loop, if this object is referenced
@@ -69,6 +65,18 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $userPrivilegessScheduledForDeletion = null;
+
+	/**
+	 * An array of objects scheduled for deletion.
+	 * @var		array
+	 */
+	protected $simulationsScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -203,8 +211,7 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 				$this->ensureConsistency();
 			}
 
-			// FIXME - using NUM_COLUMNS may be clearer.
-			return $startcol + 3; // 3 = MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS).
+			return $startcol + 3; // 3 = MapPeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating Map object", $e);
@@ -267,10 +274,8 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 		if ($deep) {  // also de-associate any related objects?
 
 			$this->collUserPrivilegess = null;
-			$this->lastUserPrivilegesCriteria = null;
 
 			$this->collSimulations = null;
-			$this->lastSimulationCriteria = null;
 
 		} // if (deep)
 	}
@@ -293,19 +298,21 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 		if ($con === null) {
 			$con = Propel::getConnection(MapPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		try {
+			$deleteQuery = MapQuery::create()
+				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				MapPeer::doDelete($this, $con);
+				$deleteQuery->delete($con);
 				$this->postDelete($con);
-				$this->setDeleted(true);
 				$con->commit();
+				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -333,7 +340,7 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 		if ($con === null) {
 			$con = Propel::getConnection(MapPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -357,7 +364,7 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -380,26 +387,24 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 		if (!$this->alreadyInSave) {
 			$this->alreadyInSave = true;
 
-			if ($this->isNew() ) {
-				$this->modifiedColumns[] = MapPeer::ID;
+			if ($this->isNew() || $this->isModified()) {
+				// persist changes
+				if ($this->isNew()) {
+					$this->doInsert($con);
+				} else {
+					$this->doUpdate($con);
+				}
+				$affectedRows += 1;
+				$this->resetModified();
 			}
 
-			// If this object has been modified, then save it to the database.
-			if ($this->isModified()) {
-				if ($this->isNew()) {
-					$pk = MapPeer::doInsert($this, $con);
-					$affectedRows += 1; // we are assuming that there is only 1 row per doInsert() which
-										 // should always be true here (even though technically
-										 // BasePeer::doInsert() can insert multiple rows).
-
-					$this->setId($pk);  //[IMV] update autoincrement primary key
-
-					$this->setNew(false);
-				} else {
-					$affectedRows += MapPeer::doUpdate($this, $con);
+			if ($this->userPrivilegessScheduledForDeletion !== null) {
+				if (!$this->userPrivilegessScheduledForDeletion->isEmpty()) {
+					UserPrivilegesQuery::create()
+						->filterByPrimaryKeys($this->userPrivilegessScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->userPrivilegessScheduledForDeletion = null;
 				}
-
-				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collUserPrivilegess !== null) {
@@ -407,6 +412,15 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
+				}
+			}
+
+			if ($this->simulationsScheduledForDeletion !== null) {
+				if (!$this->simulationsScheduledForDeletion->isEmpty()) {
+					SimulationQuery::create()
+						->filterByPrimaryKeys($this->simulationsScheduledForDeletion->getPrimaryKeys(false))
+						->delete($con);
+					$this->simulationsScheduledForDeletion = null;
 				}
 			}
 
@@ -423,6 +437,86 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 		}
 		return $affectedRows;
 	} // doSave()
+
+	/**
+	 * Insert the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @throws     PropelException
+	 * @see        doSave()
+	 */
+	protected function doInsert(PropelPDO $con)
+	{
+		$modifiedColumns = array();
+		$index = 0;
+
+		$this->modifiedColumns[] = MapPeer::ID;
+		if (null !== $this->id) {
+			throw new PropelException('Cannot insert a value for auto-increment primary key (' . MapPeer::ID . ')');
+		}
+
+		 // check the columns in natural order for more readable SQL queries
+		if ($this->isColumnModified(MapPeer::ID)) {
+			$modifiedColumns[':p' . $index++]  = '`ID`';
+		}
+		if ($this->isColumnModified(MapPeer::NAME)) {
+			$modifiedColumns[':p' . $index++]  = '`NAME`';
+		}
+		if ($this->isColumnModified(MapPeer::MAP_STRING)) {
+			$modifiedColumns[':p' . $index++]  = '`MAP_STRING`';
+		}
+
+		$sql = sprintf(
+			'INSERT INTO `map` (%s) VALUES (%s)',
+			implode(', ', $modifiedColumns),
+			implode(', ', array_keys($modifiedColumns))
+		);
+
+		try {
+			$stmt = $con->prepare($sql);
+			foreach ($modifiedColumns as $identifier => $columnName) {
+				switch ($columnName) {
+					case '`ID`':
+						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+						break;
+					case '`NAME`':
+						$stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
+						break;
+					case '`MAP_STRING`':
+						$stmt->bindValue($identifier, $this->map_string, PDO::PARAM_STR);
+						break;
+				}
+			}
+			$stmt->execute();
+		} catch (Exception $e) {
+			Propel::log($e->getMessage(), Propel::LOG_ERR);
+			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+		}
+
+		try {
+			$pk = $con->lastInsertId();
+		} catch (Exception $e) {
+			throw new PropelException('Unable to get autoincrement id.', $e);
+		}
+		$this->setId($pk);
+
+		$this->setNew(false);
+	}
+
+	/**
+	 * Update the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @see        doSave()
+	 */
+	protected function doUpdate(PropelPDO $con)
+	{
+		$selectCriteria = $this->buildPkeyCriteria();
+		$valuesCriteria = $this->buildCriteria();
+		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -513,6 +607,150 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	}
 
 	/**
+	 * Retrieves a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name name
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     mixed Value of field.
+	 */
+	public function getByName($name, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = MapPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		$field = $this->getByPosition($pos);
+		return $field;
+	}
+
+	/**
+	 * Retrieves a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @return     mixed Value of field at $pos
+	 */
+	public function getByPosition($pos)
+	{
+		switch($pos) {
+			case 0:
+				return $this->getId();
+				break;
+			case 1:
+				return $this->getName();
+				break;
+			case 2:
+				return $this->getMapString();
+				break;
+			default:
+				return null;
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Exports the object as an array.
+	 *
+	 * You can specify the key type of the array by passing one of the class
+	 * type constants.
+	 *
+	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    Defaults to BasePeer::TYPE_PHPNAME.
+	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
+	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
+	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
+	 *
+	 * @return    array an associative array containing the field names (as keys) and field values
+	 */
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	{
+		if (isset($alreadyDumpedObjects['Map'][$this->getPrimaryKey()])) {
+			return '*RECURSION*';
+		}
+		$alreadyDumpedObjects['Map'][$this->getPrimaryKey()] = true;
+		$keys = MapPeer::getFieldNames($keyType);
+		$result = array(
+			$keys[0] => $this->getId(),
+			$keys[1] => $this->getName(),
+			$keys[2] => $this->getMapString(),
+		);
+		if ($includeForeignObjects) {
+			if (null !== $this->collUserPrivilegess) {
+				$result['UserPrivilegess'] = $this->collUserPrivilegess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+			}
+			if (null !== $this->collSimulations) {
+				$result['Simulations'] = $this->collSimulations->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Sets a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name peer name
+	 * @param      mixed $value field value
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     void
+	 */
+	public function setByName($name, $value, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = MapPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		return $this->setByPosition($pos, $value);
+	}
+
+	/**
+	 * Sets a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @param      mixed $value field value
+	 * @return     void
+	 */
+	public function setByPosition($pos, $value)
+	{
+		switch($pos) {
+			case 0:
+				$this->setId($value);
+				break;
+			case 1:
+				$this->setName($value);
+				break;
+			case 2:
+				$this->setMapString($value);
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Populates the object using an array.
+	 *
+	 * This is particularly useful when populating an object from one of the
+	 * request arrays (e.g. $_POST).  This method goes through the column
+	 * names, checking to see whether a matching key exists in populated
+	 * array. If so the setByName() method is called for that column.
+	 *
+	 * You can specify the key type of the array by additionally passing one
+	 * of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 * BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 * The default key type is the column's phpname (e.g. 'AuthorId')
+	 *
+	 * @param      array  $arr     An array to populate the object from.
+	 * @param      string $keyType The type of keys the array uses.
+	 * @return     void
+	 */
+	public function fromArray($arr, $keyType = BasePeer::TYPE_PHPNAME)
+	{
+		$keys = MapPeer::getFieldNames($keyType);
+
+		if (array_key_exists($keys[0], $arr)) $this->setId($arr[$keys[0]]);
+		if (array_key_exists($keys[1], $arr)) $this->setName($arr[$keys[1]]);
+		if (array_key_exists($keys[2], $arr)) $this->setMapString($arr[$keys[2]]);
+	}
+
+	/**
 	 * Build a Criteria object containing the values of all modified columns in this object.
 	 *
 	 * @return     Criteria The Criteria object containing all modified values.
@@ -539,7 +777,6 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	public function buildPkeyCriteria()
 	{
 		$criteria = new Criteria(MapPeer::DATABASE_NAME);
-
 		$criteria->add(MapPeer::ID, $this->id);
 
 		return $criteria;
@@ -566,6 +803,15 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	}
 
 	/**
+	 * Returns true if the primary key for this object is null.
+	 * @return     boolean
+	 */
+	public function isPrimaryKeyNull()
+	{
+		return null === $this->getId();
+	}
+
+	/**
 	 * Sets contents of passed object to values from current object.
 	 *
 	 * If desired, this method can also make copies of all associated (fkey referrers)
@@ -573,15 +819,13 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 *
 	 * @param      object $copyObj An object of Map (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false)
+	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
 	{
-
-		$copyObj->setName($this->name);
-
-		$copyObj->setMapString($this->map_string);
-
+		$copyObj->setName($this->getName());
+		$copyObj->setMapString($this->getMapString());
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -602,11 +846,10 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 
 		} // if ($deepCopy)
 
-
-		$copyObj->setNew(true);
-
-		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-
+		if ($makeNew) {
+			$copyObj->setNew(true);
+			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
+		}
 	}
 
 	/**
@@ -647,8 +890,27 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 		return self::$peer;
 	}
 
+
 	/**
-	 * Clears out the collUserPrivilegess collection (array).
+	 * Initializes a collection based on the name of a relation.
+	 * Avoids crafting an 'init[$relationName]s' method name
+	 * that wouldn't work when StandardEnglishPluralizer is used.
+	 *
+	 * @param      string $relationName The name of the relation to initialize
+	 * @return     void
+	 */
+	public function initRelation($relationName)
+	{
+		if ('UserPrivileges' == $relationName) {
+			return $this->initUserPrivilegess();
+		}
+		if ('Simulation' == $relationName) {
+			return $this->initSimulations();
+		}
+	}
+
+	/**
+	 * Clears out the collUserPrivilegess collection
 	 *
 	 * This does not modify the database; however, it will remove any associated objects, causing
 	 * them to be refetched by subsequent calls to accessor method.
@@ -662,70 +924,81 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	}
 
 	/**
-	 * Initializes the collUserPrivilegess collection (array).
+	 * Initializes the collUserPrivilegess collection.
 	 *
 	 * By default this just sets the collUserPrivilegess collection to an empty array (like clearcollUserPrivilegess());
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
+	 * @param      boolean $overrideExisting If set to true, the method call initializes
+	 *                                        the collection even if it is not empty
+	 *
 	 * @return     void
 	 */
-	public function initUserPrivilegess()
+	public function initUserPrivilegess($overrideExisting = true)
 	{
-		$this->collUserPrivilegess = array();
+		if (null !== $this->collUserPrivilegess && !$overrideExisting) {
+			return;
+		}
+		$this->collUserPrivilegess = new PropelObjectCollection();
+		$this->collUserPrivilegess->setModel('UserPrivileges');
 	}
 
 	/**
 	 * Gets an array of UserPrivileges objects which contain a foreign key that references this object.
 	 *
-	 * If this collection has already been initialized with an identical Criteria, it returns the collection.
-	 * Otherwise if this Map has previously been saved, it will retrieve
-	 * related UserPrivilegess from storage. If this Map is new, it will return
-	 * an empty collection or the current collection, the criteria is ignored on a new object.
+	 * If the $criteria is not null, it is used to always fetch the results from the database.
+	 * Otherwise the results are fetched from the database the first time, then cached.
+	 * Next time the same method is called without $criteria, the cached collection is returned.
+	 * If this Map is new, it will return
+	 * an empty collection or the current collection; the criteria is ignored on a new object.
 	 *
-	 * @param      PropelPDO $con
-	 * @param      Criteria $criteria
-	 * @return     array UserPrivileges[]
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 * @throws     PropelException
 	 */
 	public function getUserPrivilegess($criteria = null, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
-
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-			   $this->collUserPrivilegess = array();
+		if(null === $this->collUserPrivilegess || null !== $criteria) {
+			if ($this->isNew() && null === $this->collUserPrivilegess) {
+				// return empty collection
+				$this->initUserPrivilegess();
 			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				UserPrivilegesPeer::addSelectColumns($criteria);
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelect($criteria, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return the collection.
-
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				UserPrivilegesPeer::addSelectColumns($criteria);
-				if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-					$this->collUserPrivilegess = UserPrivilegesPeer::doSelect($criteria, $con);
+				$collUserPrivilegess = UserPrivilegesQuery::create(null, $criteria)
+					->filterByMap($this)
+					->find($con);
+				if (null !== $criteria) {
+					return $collUserPrivilegess;
 				}
+				$this->collUserPrivilegess = $collUserPrivilegess;
 			}
 		}
-		$this->lastUserPrivilegesCriteria = $criteria;
 		return $this->collUserPrivilegess;
+	}
+
+	/**
+	 * Sets a collection of UserPrivileges objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $userPrivilegess A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setUserPrivilegess(PropelCollection $userPrivilegess, PropelPDO $con = null)
+	{
+		$this->userPrivilegessScheduledForDeletion = $this->getUserPrivilegess(new Criteria(), $con)->diff($userPrivilegess);
+
+		foreach ($userPrivilegess as $userPrivileges) {
+			// Fix issue with collection modified by reference
+			if ($userPrivileges->isNew()) {
+				$userPrivileges->setMap($this);
+			}
+			$this->addUserPrivileges($userPrivileges);
+		}
+
+		$this->collUserPrivilegess = $userPrivilegess;
 	}
 
 	/**
@@ -739,47 +1012,21 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 */
 	public function countUserPrivilegess(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		} else {
-			$criteria = clone $criteria;
-		}
-
-		if ($distinct) {
-			$criteria->setDistinct();
-		}
-
-		$count = null;
-
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$count = 0;
+		if(null === $this->collUserPrivilegess || null !== $criteria) {
+			if ($this->isNew() && null === $this->collUserPrivilegess) {
+				return 0;
 			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				$count = UserPrivilegesPeer::doCount($criteria, false, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return count of the collection.
-
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-					$count = UserPrivilegesPeer::doCount($criteria, false, $con);
-				} else {
-					$count = count($this->collUserPrivilegess);
+				$query = UserPrivilegesQuery::create(null, $criteria);
+				if($distinct) {
+					$query->distinct();
 				}
-			} else {
-				$count = count($this->collUserPrivilegess);
+				return $query
+					->filterByMap($this)
+					->count($con);
 			}
+		} else {
+			return count($this->collUserPrivilegess);
 		}
-		return $count;
 	}
 
 	/**
@@ -787,18 +1034,27 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * through the UserPrivileges foreign key attribute.
 	 *
 	 * @param      UserPrivileges $l UserPrivileges
-	 * @return     void
-	 * @throws     PropelException
+	 * @return     Map The current object (for fluent API support)
 	 */
 	public function addUserPrivileges(UserPrivileges $l)
 	{
 		if ($this->collUserPrivilegess === null) {
 			$this->initUserPrivilegess();
 		}
-		if (!in_array($l, $this->collUserPrivilegess, true)) { // only add it if the **same** object is not already associated
-			array_push($this->collUserPrivilegess, $l);
-			$l->setMap($this);
+		if (!$this->collUserPrivilegess->contains($l)) { // only add it if the **same** object is not already associated
+			$this->doAddUserPrivileges($l);
 		}
+
+		return $this;
+	}
+
+	/**
+	 * @param	UserPrivileges $userPrivileges The userPrivileges object to add.
+	 */
+	protected function doAddUserPrivileges($userPrivileges)
+	{
+		$this->collUserPrivilegess[]= $userPrivileges;
+		$userPrivileges->setMap($this);
 	}
 
 
@@ -812,40 +1068,18 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Map.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 */
 	public function getUserPrivilegessJoinOrganism($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = UserPrivilegesQuery::create(null, $criteria);
+		$query->joinWith('Organism', $join_behavior);
 
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$this->collUserPrivilegess = array();
-			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinOrganism($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-			if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinOrganism($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastUserPrivilegesCriteria = $criteria;
-
-		return $this->collUserPrivilegess;
+		return $this->getUserPrivilegess($query, $con);
 	}
 
 
@@ -859,40 +1093,18 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Map.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 */
 	public function getUserPrivilegessJoinUser($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = UserPrivilegesQuery::create(null, $criteria);
+		$query->joinWith('User', $join_behavior);
 
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$this->collUserPrivilegess = array();
-			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinUser($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-			if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinUser($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastUserPrivilegesCriteria = $criteria;
-
-		return $this->collUserPrivilegess;
+		return $this->getUserPrivilegess($query, $con);
 	}
 
 
@@ -906,44 +1118,22 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Map.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array UserPrivileges[] List of UserPrivileges objects
 	 */
 	public function getUserPrivilegessJoinClimate($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = UserPrivilegesQuery::create(null, $criteria);
+		$query->joinWith('Climate', $join_behavior);
 
-		if ($this->collUserPrivilegess === null) {
-			if ($this->isNew()) {
-				$this->collUserPrivilegess = array();
-			} else {
-
-				$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinClimate($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(UserPrivilegesPeer::ID_MAP, $this->id);
-
-			if (!isset($this->lastUserPrivilegesCriteria) || !$this->lastUserPrivilegesCriteria->equals($criteria)) {
-				$this->collUserPrivilegess = UserPrivilegesPeer::doSelectJoinClimate($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastUserPrivilegesCriteria = $criteria;
-
-		return $this->collUserPrivilegess;
+		return $this->getUserPrivilegess($query, $con);
 	}
 
 	/**
-	 * Clears out the collSimulations collection (array).
+	 * Clears out the collSimulations collection
 	 *
 	 * This does not modify the database; however, it will remove any associated objects, causing
 	 * them to be refetched by subsequent calls to accessor method.
@@ -957,70 +1147,81 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	}
 
 	/**
-	 * Initializes the collSimulations collection (array).
+	 * Initializes the collSimulations collection.
 	 *
 	 * By default this just sets the collSimulations collection to an empty array (like clearcollSimulations());
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
+	 * @param      boolean $overrideExisting If set to true, the method call initializes
+	 *                                        the collection even if it is not empty
+	 *
 	 * @return     void
 	 */
-	public function initSimulations()
+	public function initSimulations($overrideExisting = true)
 	{
-		$this->collSimulations = array();
+		if (null !== $this->collSimulations && !$overrideExisting) {
+			return;
+		}
+		$this->collSimulations = new PropelObjectCollection();
+		$this->collSimulations->setModel('Simulation');
 	}
 
 	/**
 	 * Gets an array of Simulation objects which contain a foreign key that references this object.
 	 *
-	 * If this collection has already been initialized with an identical Criteria, it returns the collection.
-	 * Otherwise if this Map has previously been saved, it will retrieve
-	 * related Simulations from storage. If this Map is new, it will return
-	 * an empty collection or the current collection, the criteria is ignored on a new object.
+	 * If the $criteria is not null, it is used to always fetch the results from the database.
+	 * Otherwise the results are fetched from the database the first time, then cached.
+	 * Next time the same method is called without $criteria, the cached collection is returned.
+	 * If this Map is new, it will return
+	 * an empty collection or the current collection; the criteria is ignored on a new object.
 	 *
-	 * @param      PropelPDO $con
-	 * @param      Criteria $criteria
-	 * @return     array Simulation[]
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @return     PropelCollection|array Simulation[] List of Simulation objects
 	 * @throws     PropelException
 	 */
 	public function getSimulations($criteria = null, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
-
-		if ($this->collSimulations === null) {
-			if ($this->isNew()) {
-			   $this->collSimulations = array();
+		if(null === $this->collSimulations || null !== $criteria) {
+			if ($this->isNew() && null === $this->collSimulations) {
+				// return empty collection
+				$this->initSimulations();
 			} else {
-
-				$criteria->add(SimulationPeer::ID_MAP, $this->id);
-
-				SimulationPeer::addSelectColumns($criteria);
-				$this->collSimulations = SimulationPeer::doSelect($criteria, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return the collection.
-
-
-				$criteria->add(SimulationPeer::ID_MAP, $this->id);
-
-				SimulationPeer::addSelectColumns($criteria);
-				if (!isset($this->lastSimulationCriteria) || !$this->lastSimulationCriteria->equals($criteria)) {
-					$this->collSimulations = SimulationPeer::doSelect($criteria, $con);
+				$collSimulations = SimulationQuery::create(null, $criteria)
+					->filterByMap($this)
+					->find($con);
+				if (null !== $criteria) {
+					return $collSimulations;
 				}
+				$this->collSimulations = $collSimulations;
 			}
 		}
-		$this->lastSimulationCriteria = $criteria;
 		return $this->collSimulations;
+	}
+
+	/**
+	 * Sets a collection of Simulation objects related by a one-to-many relationship
+	 * to the current object.
+	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+	 * and new objects from the given Propel collection.
+	 *
+	 * @param      PropelCollection $simulations A Propel collection.
+	 * @param      PropelPDO $con Optional connection object
+	 */
+	public function setSimulations(PropelCollection $simulations, PropelPDO $con = null)
+	{
+		$this->simulationsScheduledForDeletion = $this->getSimulations(new Criteria(), $con)->diff($simulations);
+
+		foreach ($simulations as $simulation) {
+			// Fix issue with collection modified by reference
+			if ($simulation->isNew()) {
+				$simulation->setMap($this);
+			}
+			$this->addSimulation($simulation);
+		}
+
+		$this->collSimulations = $simulations;
 	}
 
 	/**
@@ -1034,47 +1235,21 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 */
 	public function countSimulations(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		} else {
-			$criteria = clone $criteria;
-		}
-
-		if ($distinct) {
-			$criteria->setDistinct();
-		}
-
-		$count = null;
-
-		if ($this->collSimulations === null) {
-			if ($this->isNew()) {
-				$count = 0;
+		if(null === $this->collSimulations || null !== $criteria) {
+			if ($this->isNew() && null === $this->collSimulations) {
+				return 0;
 			} else {
-
-				$criteria->add(SimulationPeer::ID_MAP, $this->id);
-
-				$count = SimulationPeer::doCount($criteria, false, $con);
-			}
-		} else {
-			// criteria has no effect for a new object
-			if (!$this->isNew()) {
-				// the following code is to determine if a new query is
-				// called for.  If the criteria is the same as the last
-				// one, just return count of the collection.
-
-
-				$criteria->add(SimulationPeer::ID_MAP, $this->id);
-
-				if (!isset($this->lastSimulationCriteria) || !$this->lastSimulationCriteria->equals($criteria)) {
-					$count = SimulationPeer::doCount($criteria, false, $con);
-				} else {
-					$count = count($this->collSimulations);
+				$query = SimulationQuery::create(null, $criteria);
+				if($distinct) {
+					$query->distinct();
 				}
-			} else {
-				$count = count($this->collSimulations);
+				return $query
+					->filterByMap($this)
+					->count($con);
 			}
+		} else {
+			return count($this->collSimulations);
 		}
-		return $count;
 	}
 
 	/**
@@ -1082,18 +1257,27 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * through the Simulation foreign key attribute.
 	 *
 	 * @param      Simulation $l Simulation
-	 * @return     void
-	 * @throws     PropelException
+	 * @return     Map The current object (for fluent API support)
 	 */
 	public function addSimulation(Simulation $l)
 	{
 		if ($this->collSimulations === null) {
 			$this->initSimulations();
 		}
-		if (!in_array($l, $this->collSimulations, true)) { // only add it if the **same** object is not already associated
-			array_push($this->collSimulations, $l);
-			$l->setMap($this);
+		if (!$this->collSimulations->contains($l)) { // only add it if the **same** object is not already associated
+			$this->doAddSimulation($l);
 		}
+
+		return $this;
+	}
+
+	/**
+	 * @param	Simulation $simulation The simulation object to add.
+	 */
+	protected function doAddSimulation($simulation)
+	{
+		$this->collSimulations[]= $simulation;
+		$simulation->setMap($this);
 	}
 
 
@@ -1107,68 +1291,78 @@ abstract class BaseMap extends BaseObject  implements Persistent {
 	 * This method is protected by default in order to keep the public
 	 * api reasonable.  You can provide public methods for those you
 	 * actually need in Map.
+	 *
+	 * @param      Criteria $criteria optional Criteria object to narrow the query
+	 * @param      PropelPDO $con optional connection object
+	 * @param      string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+	 * @return     PropelCollection|array Simulation[] List of Simulation objects
 	 */
 	public function getSimulationsJoinClimate($criteria = null, $con = null, $join_behavior = Criteria::LEFT_JOIN)
 	{
-		if ($criteria === null) {
-			$criteria = new Criteria(MapPeer::DATABASE_NAME);
-		}
-		elseif ($criteria instanceof Criteria)
-		{
-			$criteria = clone $criteria;
-		}
+		$query = SimulationQuery::create(null, $criteria);
+		$query->joinWith('Climate', $join_behavior);
 
-		if ($this->collSimulations === null) {
-			if ($this->isNew()) {
-				$this->collSimulations = array();
-			} else {
-
-				$criteria->add(SimulationPeer::ID_MAP, $this->id);
-
-				$this->collSimulations = SimulationPeer::doSelectJoinClimate($criteria, $con, $join_behavior);
-			}
-		} else {
-			// the following code is to determine if a new query is
-			// called for.  If the criteria is the same as the last
-			// one, just return the collection.
-
-			$criteria->add(SimulationPeer::ID_MAP, $this->id);
-
-			if (!isset($this->lastSimulationCriteria) || !$this->lastSimulationCriteria->equals($criteria)) {
-				$this->collSimulations = SimulationPeer::doSelectJoinClimate($criteria, $con, $join_behavior);
-			}
-		}
-		$this->lastSimulationCriteria = $criteria;
-
-		return $this->collSimulations;
+		return $this->getSimulations($query, $con);
 	}
 
 	/**
-	 * Resets all collections of referencing foreign keys.
+	 * Clears the current object and sets all attributes to their default values
+	 */
+	public function clear()
+	{
+		$this->id = null;
+		$this->name = null;
+		$this->map_string = null;
+		$this->alreadyInSave = false;
+		$this->alreadyInValidation = false;
+		$this->clearAllReferences();
+		$this->resetModified();
+		$this->setNew(true);
+		$this->setDeleted(false);
+	}
+
+	/**
+	 * Resets all references to other model objects or collections of model objects.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect objects
-	 * with circular references.  This is currently necessary when using Propel in certain
-	 * daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect
+	 * objects with circular references (even in PHP 5.3). This is currently necessary
+	 * when using Propel in certain daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all associated objects.
+	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collUserPrivilegess) {
-				foreach ((array) $this->collUserPrivilegess as $o) {
+				foreach ($this->collUserPrivilegess as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collSimulations) {
-				foreach ((array) $this->collSimulations as $o) {
+				foreach ($this->collSimulations as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
+		if ($this->collUserPrivilegess instanceof PropelCollection) {
+			$this->collUserPrivilegess->clearIterator();
+		}
 		$this->collUserPrivilegess = null;
+		if ($this->collSimulations instanceof PropelCollection) {
+			$this->collSimulations->clearIterator();
+		}
 		$this->collSimulations = null;
+	}
+
+	/**
+	 * Return the string representation of this object
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return (string) $this->exportTo(MapPeer::DEFAULT_STRING_FORMAT);
 	}
 
 } // BaseMap

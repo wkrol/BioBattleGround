@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * This class defines the structure of the 'simulation_privileges' table.
  *
@@ -11,9 +12,10 @@
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
  *
- * @package    biobattleground.map
+ * @package    propel.generator.biobattleground.map
  */
-class SimulationPrivilegesTableMap extends TableMap {
+class SimulationPrivilegesTableMap extends TableMap
+{
 
 	/**
 	 * The (dot-path) name of this class
@@ -29,7 +31,7 @@ class SimulationPrivilegesTableMap extends TableMap {
 	 */
 	public function initialize()
 	{
-	  // attributes
+		// attributes
 		$this->setName('simulation_privileges');
 		$this->setPhpName('SimulationPrivileges');
 		$this->setClassname('SimulationPrivileges');
@@ -48,7 +50,7 @@ class SimulationPrivilegesTableMap extends TableMap {
 	 */
 	public function buildRelations()
 	{
-    $this->addRelation('User', 'User', RelationMap::MANY_TO_ONE, array('id_user' => 'id', ), null, null);
+		$this->addRelation('User', 'User', RelationMap::MANY_TO_ONE, array('id_user' => 'id', ), null, null);
 	} // buildRelations()
 
 } // SimulationPrivilegesTableMap

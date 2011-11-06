@@ -1,6 +1,6 @@
 BioBattleGround README
 -------------------------------------------------------------------------
-Instalacja Propel w XAMPP (PEAR global installation):
+Instalacja Propel w XAMPP:
  - Dodajemy lokalizację (dysk:)/xampp/php do zmiennej środowiskowej Path (dla naszego konta, po średniku)
  - Instalujemy Phing przez PEAR:
    http://www.phing.info/trac/wiki/Users/Download

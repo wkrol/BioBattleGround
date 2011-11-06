@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * This class defines the structure of the 'user_privileges' table.
  *
@@ -11,9 +12,10 @@
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
  *
- * @package    biobattleground.map
+ * @package    propel.generator.biobattleground.map
  */
-class UserPrivilegesTableMap extends TableMap {
+class UserPrivilegesTableMap extends TableMap
+{
 
 	/**
 	 * The (dot-path) name of this class
@@ -29,7 +31,7 @@ class UserPrivilegesTableMap extends TableMap {
 	 */
 	public function initialize()
 	{
-	  // attributes
+		// attributes
 		$this->setName('user_privileges');
 		$this->setPhpName('UserPrivileges');
 		$this->setClassname('UserPrivileges');
@@ -53,11 +55,11 @@ class UserPrivilegesTableMap extends TableMap {
 	 */
 	public function buildRelations()
 	{
-    $this->addRelation('Organism', 'Organism', RelationMap::MANY_TO_ONE, array('id_organism' => 'id', ), 'CASCADE', 'CASCADE');
-    $this->addRelation('User', 'User', RelationMap::MANY_TO_ONE, array('id_user' => 'id', ), 'CASCADE', 'CASCADE');
-    $this->addRelation('Map', 'Map', RelationMap::MANY_TO_ONE, array('id_map' => 'id', ), 'CASCADE', 'CASCADE');
-    $this->addRelation('Climate', 'Climate', RelationMap::MANY_TO_ONE, array('id_climate' => 'id', ), 'CASCADE', 'CASCADE');
-    $this->addRelation('Group', 'Group', RelationMap::ONE_TO_MANY, array('id_user' => 'id_user_privileges', ), null, null);
+		$this->addRelation('Organism', 'Organism', RelationMap::MANY_TO_ONE, array('id_organism' => 'id', ), 'CASCADE', 'CASCADE');
+		$this->addRelation('User', 'User', RelationMap::MANY_TO_ONE, array('id_user' => 'id', ), 'CASCADE', 'CASCADE');
+		$this->addRelation('Map', 'Map', RelationMap::MANY_TO_ONE, array('id_map' => 'id', ), 'CASCADE', 'CASCADE');
+		$this->addRelation('Climate', 'Climate', RelationMap::MANY_TO_ONE, array('id_climate' => 'id', ), 'CASCADE', 'CASCADE');
+		$this->addRelation('Group', 'Group', RelationMap::ONE_TO_MANY, array('id_user' => 'id_user_privileges', ), null, null, 'Groups');
 	} // buildRelations()
 
 } // UserPrivilegesTableMap

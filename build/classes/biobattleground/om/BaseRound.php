@@ -1,14 +1,20 @@
 <?php
 
+
 /**
  * Base class that represents a row from the 'round' table.
  *
  * 
  *
- * @package    biobattleground.om
+ * @package    propel.generator.biobattleground.om
  */
-abstract class BaseRound extends BaseObject  implements Persistent {
+abstract class BaseRound extends BaseObject  implements Persistent
+{
 
+	/**
+	 * Peer class name
+	 */
+	const PEER = 'RoundPeer';
 
 	/**
 	 * The Peer class.
@@ -386,8 +392,7 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 				$this->ensureConsistency();
 			}
 
-			// FIXME - using NUM_COLUMNS may be clearer.
-			return $startcol + 8; // 8 = RoundPeer::NUM_COLUMNS - RoundPeer::NUM_LAZY_LOAD_COLUMNS).
+			return $startcol + 8; // 8 = RoundPeer::NUM_HYDRATE_COLUMNS.
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating Round object", $e);
@@ -478,19 +483,21 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 		if ($con === null) {
 			$con = Propel::getConnection(RoundPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		try {
+			$deleteQuery = RoundQuery::create()
+				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				RoundPeer::doDelete($this, $con);
+				$deleteQuery->delete($con);
 				$this->postDelete($con);
-				$this->setDeleted(true);
 				$con->commit();
+				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -518,7 +525,7 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 		if ($con === null) {
 			$con = Propel::getConnection(RoundPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-		
+
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -542,7 +549,7 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (PropelException $e) {
+		} catch (Exception $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -584,21 +591,15 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 				$this->setSimulation($this->aSimulation);
 			}
 
-
-			// If this object has been modified, then save it to the database.
-			if ($this->isModified()) {
+			if ($this->isNew() || $this->isModified()) {
+				// persist changes
 				if ($this->isNew()) {
-					$pk = RoundPeer::doInsert($this, $con);
-					$affectedRows += 1; // we are assuming that there is only 1 row per doInsert() which
-										 // should always be true here (even though technically
-										 // BasePeer::doInsert() can insert multiple rows).
-
-					$this->setNew(false);
+					$this->doInsert($con);
 				} else {
-					$affectedRows += RoundPeer::doUpdate($this, $con);
+					$this->doUpdate($con);
 				}
-
-				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
+				$affectedRows += 1;
+				$this->resetModified();
 			}
 
 			$this->alreadyInSave = false;
@@ -606,6 +607,105 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 		}
 		return $affectedRows;
 	} // doSave()
+
+	/**
+	 * Insert the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @throws     PropelException
+	 * @see        doSave()
+	 */
+	protected function doInsert(PropelPDO $con)
+	{
+		$modifiedColumns = array();
+		$index = 0;
+
+
+		 // check the columns in natural order for more readable SQL queries
+		if ($this->isColumnModified(RoundPeer::ID)) {
+			$modifiedColumns[':p' . $index++]  = '`ID`';
+		}
+		if ($this->isColumnModified(RoundPeer::ID_ORGANISM)) {
+			$modifiedColumns[':p' . $index++]  = '`ID_ORGANISM`';
+		}
+		if ($this->isColumnModified(RoundPeer::ID_SIMULATION)) {
+			$modifiedColumns[':p' . $index++]  = '`ID_SIMULATION`';
+		}
+		if ($this->isColumnModified(RoundPeer::DAY)) {
+			$modifiedColumns[':p' . $index++]  = '`DAY`';
+		}
+		if ($this->isColumnModified(RoundPeer::QUANTITY)) {
+			$modifiedColumns[':p' . $index++]  = '`QUANTITY`';
+		}
+		if ($this->isColumnModified(RoundPeer::AVG_HUNGER)) {
+			$modifiedColumns[':p' . $index++]  = '`AVG_HUNGER`';
+		}
+		if ($this->isColumnModified(RoundPeer::AVG_HITPOINTS)) {
+			$modifiedColumns[':p' . $index++]  = '`AVG_HITPOINTS`';
+		}
+		if ($this->isColumnModified(RoundPeer::NUMBER_OF_NEWBORN)) {
+			$modifiedColumns[':p' . $index++]  = '`NUMBER_OF_NEWBORN`';
+		}
+
+		$sql = sprintf(
+			'INSERT INTO `round` (%s) VALUES (%s)',
+			implode(', ', $modifiedColumns),
+			implode(', ', array_keys($modifiedColumns))
+		);
+
+		try {
+			$stmt = $con->prepare($sql);
+			foreach ($modifiedColumns as $identifier => $columnName) {
+				switch ($columnName) {
+					case '`ID`':
+						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
+						break;
+					case '`ID_ORGANISM`':
+						$stmt->bindValue($identifier, $this->id_organism, PDO::PARAM_INT);
+						break;
+					case '`ID_SIMULATION`':
+						$stmt->bindValue($identifier, $this->id_simulation, PDO::PARAM_INT);
+						break;
+					case '`DAY`':
+						$stmt->bindValue($identifier, $this->day, PDO::PARAM_INT);
+						break;
+					case '`QUANTITY`':
+						$stmt->bindValue($identifier, $this->quantity, PDO::PARAM_INT);
+						break;
+					case '`AVG_HUNGER`':
+						$stmt->bindValue($identifier, $this->avg_hunger, PDO::PARAM_INT);
+						break;
+					case '`AVG_HITPOINTS`':
+						$stmt->bindValue($identifier, $this->avg_hitpoints, PDO::PARAM_INT);
+						break;
+					case '`NUMBER_OF_NEWBORN`':
+						$stmt->bindValue($identifier, $this->number_of_newborn, PDO::PARAM_INT);
+						break;
+				}
+			}
+			$stmt->execute();
+		} catch (Exception $e) {
+			Propel::log($e->getMessage(), Propel::LOG_ERR);
+			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
+		}
+
+		$this->setNew(false);
+	}
+
+	/**
+	 * Update the row in the database.
+	 *
+	 * @param      PropelPDO $con
+	 *
+	 * @see        doSave()
+	 */
+	protected function doUpdate(PropelPDO $con)
+	{
+		$selectCriteria = $this->buildPkeyCriteria();
+		$valuesCriteria = $this->buildCriteria();
+		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
+	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -698,6 +798,190 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 	}
 
 	/**
+	 * Retrieves a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name name
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     mixed Value of field.
+	 */
+	public function getByName($name, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = RoundPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		$field = $this->getByPosition($pos);
+		return $field;
+	}
+
+	/**
+	 * Retrieves a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @return     mixed Value of field at $pos
+	 */
+	public function getByPosition($pos)
+	{
+		switch($pos) {
+			case 0:
+				return $this->getId();
+				break;
+			case 1:
+				return $this->getIdOrganism();
+				break;
+			case 2:
+				return $this->getIdSimulation();
+				break;
+			case 3:
+				return $this->getDay();
+				break;
+			case 4:
+				return $this->getQuantity();
+				break;
+			case 5:
+				return $this->getAvgHunger();
+				break;
+			case 6:
+				return $this->getAvgHitpoints();
+				break;
+			case 7:
+				return $this->getNumberOfNewborn();
+				break;
+			default:
+				return null;
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Exports the object as an array.
+	 *
+	 * You can specify the key type of the array by passing one of the class
+	 * type constants.
+	 *
+	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    Defaults to BasePeer::TYPE_PHPNAME.
+	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
+	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
+	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
+	 *
+	 * @return    array an associative array containing the field names (as keys) and field values
+	 */
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	{
+		if (isset($alreadyDumpedObjects['Round'][$this->getPrimaryKey()])) {
+			return '*RECURSION*';
+		}
+		$alreadyDumpedObjects['Round'][$this->getPrimaryKey()] = true;
+		$keys = RoundPeer::getFieldNames($keyType);
+		$result = array(
+			$keys[0] => $this->getId(),
+			$keys[1] => $this->getIdOrganism(),
+			$keys[2] => $this->getIdSimulation(),
+			$keys[3] => $this->getDay(),
+			$keys[4] => $this->getQuantity(),
+			$keys[5] => $this->getAvgHunger(),
+			$keys[6] => $this->getAvgHitpoints(),
+			$keys[7] => $this->getNumberOfNewborn(),
+		);
+		if ($includeForeignObjects) {
+			if (null !== $this->aOrganism) {
+				$result['Organism'] = $this->aOrganism->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+			}
+			if (null !== $this->aSimulation) {
+				$result['Simulation'] = $this->aSimulation->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Sets a field from the object by name passed in as a string.
+	 *
+	 * @param      string $name peer name
+	 * @param      mixed $value field value
+	 * @param      string $type The type of fieldname the $name is of:
+	 *                     one of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME
+	 *                     BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM
+	 * @return     void
+	 */
+	public function setByName($name, $value, $type = BasePeer::TYPE_PHPNAME)
+	{
+		$pos = RoundPeer::translateFieldName($name, $type, BasePeer::TYPE_NUM);
+		return $this->setByPosition($pos, $value);
+	}
+
+	/**
+	 * Sets a field from the object by Position as specified in the xml schema.
+	 * Zero-based.
+	 *
+	 * @param      int $pos position in xml schema
+	 * @param      mixed $value field value
+	 * @return     void
+	 */
+	public function setByPosition($pos, $value)
+	{
+		switch($pos) {
+			case 0:
+				$this->setId($value);
+				break;
+			case 1:
+				$this->setIdOrganism($value);
+				break;
+			case 2:
+				$this->setIdSimulation($value);
+				break;
+			case 3:
+				$this->setDay($value);
+				break;
+			case 4:
+				$this->setQuantity($value);
+				break;
+			case 5:
+				$this->setAvgHunger($value);
+				break;
+			case 6:
+				$this->setAvgHitpoints($value);
+				break;
+			case 7:
+				$this->setNumberOfNewborn($value);
+				break;
+		} // switch()
+	}
+
+	/**
+	 * Populates the object using an array.
+	 *
+	 * This is particularly useful when populating an object from one of the
+	 * request arrays (e.g. $_POST).  This method goes through the column
+	 * names, checking to see whether a matching key exists in populated
+	 * array. If so the setByName() method is called for that column.
+	 *
+	 * You can specify the key type of the array by additionally passing one
+	 * of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
+	 * BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 * The default key type is the column's phpname (e.g. 'AuthorId')
+	 *
+	 * @param      array  $arr     An array to populate the object from.
+	 * @param      string $keyType The type of keys the array uses.
+	 * @return     void
+	 */
+	public function fromArray($arr, $keyType = BasePeer::TYPE_PHPNAME)
+	{
+		$keys = RoundPeer::getFieldNames($keyType);
+
+		if (array_key_exists($keys[0], $arr)) $this->setId($arr[$keys[0]]);
+		if (array_key_exists($keys[1], $arr)) $this->setIdOrganism($arr[$keys[1]]);
+		if (array_key_exists($keys[2], $arr)) $this->setIdSimulation($arr[$keys[2]]);
+		if (array_key_exists($keys[3], $arr)) $this->setDay($arr[$keys[3]]);
+		if (array_key_exists($keys[4], $arr)) $this->setQuantity($arr[$keys[4]]);
+		if (array_key_exists($keys[5], $arr)) $this->setAvgHunger($arr[$keys[5]]);
+		if (array_key_exists($keys[6], $arr)) $this->setAvgHitpoints($arr[$keys[6]]);
+		if (array_key_exists($keys[7], $arr)) $this->setNumberOfNewborn($arr[$keys[7]]);
+	}
+
+	/**
 	 * Build a Criteria object containing the values of all modified columns in this object.
 	 *
 	 * @return     Criteria The Criteria object containing all modified values.
@@ -729,7 +1013,6 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 	public function buildPkeyCriteria()
 	{
 		$criteria = new Criteria(RoundPeer::DATABASE_NAME);
-
 		$criteria->add(RoundPeer::ID, $this->id);
 
 		return $criteria;
@@ -756,6 +1039,15 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 	}
 
 	/**
+	 * Returns true if the primary key for this object is null.
+	 * @return     boolean
+	 */
+	public function isPrimaryKeyNull()
+	{
+		return null === $this->getId();
+	}
+
+	/**
 	 * Sets contents of passed object to values from current object.
 	 *
 	 * If desired, this method can also make copies of all associated (fkey referrers)
@@ -763,30 +1055,22 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 	 *
 	 * @param      object $copyObj An object of Round (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
+	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false)
+	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
 	{
-
-		$copyObj->setId($this->id);
-
-		$copyObj->setIdOrganism($this->id_organism);
-
-		$copyObj->setIdSimulation($this->id_simulation);
-
-		$copyObj->setDay($this->day);
-
-		$copyObj->setQuantity($this->quantity);
-
-		$copyObj->setAvgHunger($this->avg_hunger);
-
-		$copyObj->setAvgHitpoints($this->avg_hitpoints);
-
-		$copyObj->setNumberOfNewborn($this->number_of_newborn);
-
-
-		$copyObj->setNew(true);
-
+		$copyObj->setId($this->getId());
+		$copyObj->setIdOrganism($this->getIdOrganism());
+		$copyObj->setIdSimulation($this->getIdSimulation());
+		$copyObj->setDay($this->getDay());
+		$copyObj->setQuantity($this->getQuantity());
+		$copyObj->setAvgHunger($this->getAvgHunger());
+		$copyObj->setAvgHitpoints($this->getAvgHitpoints());
+		$copyObj->setNumberOfNewborn($this->getNumberOfNewborn());
+		if ($makeNew) {
+			$copyObj->setNew(true);
+		}
 	}
 
 	/**
@@ -864,13 +1148,13 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 	public function getOrganism(PropelPDO $con = null)
 	{
 		if ($this->aOrganism === null && ($this->id_organism !== null)) {
-			$this->aOrganism = OrganismPeer::retrieveByPk($this->id_organism);
+			$this->aOrganism = OrganismQuery::create()->findPk($this->id_organism, $con);
 			/* The following can be used additionally to
-			   guarantee the related object contains a reference
-			   to this object.  This level of coupling may, however, be
-			   undesirable since it could result in an only partially populated collection
-			   in the referenced object.
-			   $this->aOrganism->addRounds($this);
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aOrganism->addRounds($this);
 			 */
 		}
 		return $this->aOrganism;
@@ -913,34 +1197,65 @@ abstract class BaseRound extends BaseObject  implements Persistent {
 	public function getSimulation(PropelPDO $con = null)
 	{
 		if ($this->aSimulation === null && ($this->id_simulation !== null)) {
-			$this->aSimulation = SimulationPeer::retrieveByPk($this->id_simulation);
+			$this->aSimulation = SimulationQuery::create()->findPk($this->id_simulation, $con);
 			/* The following can be used additionally to
-			   guarantee the related object contains a reference
-			   to this object.  This level of coupling may, however, be
-			   undesirable since it could result in an only partially populated collection
-			   in the referenced object.
-			   $this->aSimulation->addRounds($this);
+				guarantee the related object contains a reference
+				to this object.  This level of coupling may, however, be
+				undesirable since it could result in an only partially populated collection
+				in the referenced object.
+				$this->aSimulation->addRounds($this);
 			 */
 		}
 		return $this->aSimulation;
 	}
 
 	/**
-	 * Resets all collections of referencing foreign keys.
+	 * Clears the current object and sets all attributes to their default values
+	 */
+	public function clear()
+	{
+		$this->id = null;
+		$this->id_organism = null;
+		$this->id_simulation = null;
+		$this->day = null;
+		$this->quantity = null;
+		$this->avg_hunger = null;
+		$this->avg_hitpoints = null;
+		$this->number_of_newborn = null;
+		$this->alreadyInSave = false;
+		$this->alreadyInValidation = false;
+		$this->clearAllReferences();
+		$this->resetModified();
+		$this->setNew(true);
+		$this->setDeleted(false);
+	}
+
+	/**
+	 * Resets all references to other model objects or collections of model objects.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect objects
-	 * with circular references.  This is currently necessary when using Propel in certain
-	 * daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect
+	 * objects with circular references (even in PHP 5.3). This is currently necessary
+	 * when using Propel in certain daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all associated objects.
+	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 		} // if ($deep)
 
-			$this->aOrganism = null;
-			$this->aSimulation = null;
+		$this->aOrganism = null;
+		$this->aSimulation = null;
+	}
+
+	/**
+	 * Return the string representation of this object
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return (string) $this->exportTo(RoundPeer::DEFAULT_STRING_FORMAT);
 	}
 
 } // BaseRound

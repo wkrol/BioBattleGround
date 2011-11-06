@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * This class defines the structure of the 'round' table.
  *
@@ -11,9 +12,10 @@
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
  *
- * @package    biobattleground.map
+ * @package    propel.generator.biobattleground.map
  */
-class RoundTableMap extends TableMap {
+class RoundTableMap extends TableMap
+{
 
 	/**
 	 * The (dot-path) name of this class
@@ -29,7 +31,7 @@ class RoundTableMap extends TableMap {
 	 */
 	public function initialize()
 	{
-	  // attributes
+		// attributes
 		$this->setName('round');
 		$this->setPhpName('Round');
 		$this->setClassname('Round');
@@ -52,8 +54,8 @@ class RoundTableMap extends TableMap {
 	 */
 	public function buildRelations()
 	{
-    $this->addRelation('Organism', 'Organism', RelationMap::MANY_TO_ONE, array('id_organism' => 'id', ), null, null);
-    $this->addRelation('Simulation', 'Simulation', RelationMap::MANY_TO_ONE, array('id_simulation' => 'id', ), 'CASCADE', 'CASCADE');
+		$this->addRelation('Organism', 'Organism', RelationMap::MANY_TO_ONE, array('id_organism' => 'id', ), null, null);
+		$this->addRelation('Simulation', 'Simulation', RelationMap::MANY_TO_ONE, array('id_simulation' => 'id', ), 'CASCADE', 'CASCADE');
 	} // buildRelations()
 
 } // RoundTableMap
