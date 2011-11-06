@@ -1,6 +1,6 @@
 <?
 /*
- * $Id: Propel.php 563 2007-02-01 09:45:55Z heltem $
+ * $Id: Propel.php 1347 2009-12-03 21:06:36Z francois $
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -58,7 +58,7 @@ define('STRUCTURES_DATAGRID_PROPEL_COLUMN_MADE_HIDDEN', 5);
  * $dg->render();
  *
  * @author     Marc <therebel@free.fr>
- * @version    $Rev: 563 $
+ * @version    $Rev: 1347 $
  * @copyright  Copyright (c) 2005 Marc: LGPL - See LICENCE
  * @package    propel.contrib
  */

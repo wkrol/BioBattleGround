@@ -20,17 +20,15 @@
  * @method     UserQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
  * @method     UserQuery innerJoin($relation) Adds a INNER JOIN clause to the query
  *
- * @method     UserQuery leftJoinUserPrivileges($relationAlias = null) Adds a LEFT JOIN clause to the query using the UserPrivileges relation
- * @method     UserQuery rightJoinUserPrivileges($relationAlias = null) Adds a RIGHT JOIN clause to the query using the UserPrivileges relation
- * @method     UserQuery innerJoinUserPrivileges($relationAlias = null) Adds a INNER JOIN clause to the query using the UserPrivileges relation
+ * @method     UserQuery leftJoinUserPrivileges($relationAlias = '') Adds a LEFT JOIN clause to the query using the UserPrivileges relation
+ * @method     UserQuery rightJoinUserPrivileges($relationAlias = '') Adds a RIGHT JOIN clause to the query using the UserPrivileges relation
+ * @method     UserQuery innerJoinUserPrivileges($relationAlias = '') Adds a INNER JOIN clause to the query using the UserPrivileges relation
  *
- * @method     UserQuery leftJoinSimulationPrivileges($relationAlias = null) Adds a LEFT JOIN clause to the query using the SimulationPrivileges relation
- * @method     UserQuery rightJoinSimulationPrivileges($relationAlias = null) Adds a RIGHT JOIN clause to the query using the SimulationPrivileges relation
- * @method     UserQuery innerJoinSimulationPrivileges($relationAlias = null) Adds a INNER JOIN clause to the query using the SimulationPrivileges relation
+ * @method     UserQuery leftJoinSimulationPrivileges($relationAlias = '') Adds a LEFT JOIN clause to the query using the SimulationPrivileges relation
+ * @method     UserQuery rightJoinSimulationPrivileges($relationAlias = '') Adds a RIGHT JOIN clause to the query using the SimulationPrivileges relation
+ * @method     UserQuery innerJoinSimulationPrivileges($relationAlias = '') Adds a INNER JOIN clause to the query using the SimulationPrivileges relation
  *
  * @method     User findOne(PropelPDO $con = null) Return the first User matching the query
- * @method     User findOneOrCreate(PropelPDO $con = null) Return the first User matching the query, or a new User object populated from the query conditions when no match is found
- *
  * @method     User findOneById(int $id) Return the first User filtered by the id column
  * @method     User findOneByLogin(string $login) Return the first User filtered by the login column
  * @method     User findOneByPassword(string $password) Return the first User filtered by the password column
@@ -45,7 +43,7 @@
  */
 abstract class BaseUserQuery extends ModelCriteria
 {
-	
+
 	/**
 	 * Initializes internal state of BaseUserQuery object.
 	 *
@@ -82,14 +80,11 @@ abstract class BaseUserQuery extends ModelCriteria
 	}
 
 	/**
-	 * Find object by primary key.
-	 * Propel uses the instance pool to skip the database if the object exists.
-	 * Go fast if the query is untouched.
-	 *
+	 * Find object by primary key
+	 * Use instance pooling to avoid a database query if the object exists
 	 * <code>
 	 * $obj  = $c->findPk(12, $con);
 	 * </code>
-	 *
 	 * @param     mixed $key Primary key to use for the query
 	 * @param     PropelPDO $con an optional connection object
 	 *
@@ -97,73 +92,16 @@ abstract class BaseUserQuery extends ModelCriteria
 	 */
 	public function findPk($key, $con = null)
 	{
-		if ($key === null) {
-			return null;
-		}
-		if ((null !== ($obj = UserPeer::getInstanceFromPool((string) $key))) && !$this->formatter) {
+		if ((null !== ($obj = UserPeer::getInstanceFromPool((string) $key))) && $this->getFormatter()->isObjectFormatter()) {
 			// the object is alredy in the instance pool
 			return $obj;
-		}
-		if ($con === null) {
-			$con = Propel::getConnection(UserPeer::DATABASE_NAME, Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		if ($this->formatter || $this->modelAlias || $this->with || $this->select
-		 || $this->selectColumns || $this->asColumns || $this->selectModifiers
-		 || $this->map || $this->having || $this->joins) {
-			return $this->findPkComplex($key, $con);
 		} else {
-			return $this->findPkSimple($key, $con);
+			// the object has not been requested yet, or the formatter is not an object formatter
+			$stmt = $this
+				->filterByPrimaryKey($key)
+				->getSelectStatement($con);
+			return $this->getFormatter()->formatOne($stmt);
 		}
-	}
-
-	/**
-	 * Find object by primary key using raw SQL to go fast.
-	 * Bypass doSelect() and the object formatter by using generated code.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    User A model object, or null if the key is not found
-	 */
-	protected function findPkSimple($key, $con)
-	{
-		$sql = 'SELECT `ID`, `LOGIN`, `PASSWORD`, `NAME` FROM `user` WHERE `ID` = :p0';
-		try {
-			$stmt = $con->prepare($sql);
-			$stmt->bindValue(':p0', $key, PDO::PARAM_INT);
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute SELECT statement [%s]', $sql), $e);
-		}
-		$obj = null;
-		if ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-			$obj = new User();
-			$obj->hydrate($row);
-			UserPeer::addInstanceToPool($obj, (string) $row[0]);
-		}
-		$stmt->closeCursor();
-
-		return $obj;
-	}
-
-	/**
-	 * Find object by primary key.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    User|array|mixed the result, formatted by the current formatter
-	 */
-	protected function findPkComplex($key, $con)
-	{
-		// As the query uses a PK condition, no limit(1) is necessary.
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
-			->filterByPrimaryKey($key)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->formatOne($stmt);
 	}
 
 	/**
@@ -177,16 +115,10 @@ abstract class BaseUserQuery extends ModelCriteria
 	 * @return    PropelObjectCollection|array|mixed the list of results, formatted by the current formatter
 	 */
 	public function findPks($keys, $con = null)
-	{
-		if ($con === null) {
-			$con = Propel::getConnection($this->getDbName(), Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
+	{	
+		return $this
 			->filterByPrimaryKeys($keys)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->format($stmt);
+			->find($con);
 	}
 
 	/**
@@ -215,25 +147,16 @@ abstract class BaseUserQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterById(1234); // WHERE id = 1234
-	 * $query->filterById(array(12, 34)); // WHERE id IN (12, 34)
-	 * $query->filterById(array('min' => 12)); // WHERE id > 12
-	 * </code>
-	 *
-	 * @param     mixed $id The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $id The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function filterById($id = null, $comparison = null)
+	public function filterById($id = null, $comparison = Criteria::EQUAL)
 	{
-		if (is_array($id) && null === $comparison) {
+		if (is_array($id) && $comparison == Criteria::EQUAL) {
 			$comparison = Criteria::IN;
 		}
 		return $this->addUsingAlias(UserPeer::ID, $id, $comparison);
@@ -241,26 +164,22 @@ abstract class BaseUserQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the login column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByLogin('fooValue');   // WHERE login = 'fooValue'
-	 * $query->filterByLogin('%fooValue%'); // WHERE login LIKE '%fooValue%'
-	 * </code>
-	 *
+	 * 
 	 * @param     string $login The value to use as filter.
-	 *              Accepts wildcards (* and % trigger a LIKE)
+	 *            Accepts wildcards (* and % trigger a LIKE)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function filterByLogin($login = null, $comparison = null)
+	public function filterByLogin($login = null, $comparison = Criteria::EQUAL)
 	{
-		if (null === $comparison) {
-			if (is_array($login)) {
+		if (is_array($login)) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
-			} elseif (preg_match('/[\%\*]/', $login)) {
-				$login = str_replace('*', '%', $login);
+			}
+		} elseif (preg_match('/[\%\*]/', $login)) {
+			$login = str_replace('*', '%', $login);
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::LIKE;
 			}
 		}
@@ -269,26 +188,22 @@ abstract class BaseUserQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the password column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByPassword('fooValue');   // WHERE password = 'fooValue'
-	 * $query->filterByPassword('%fooValue%'); // WHERE password LIKE '%fooValue%'
-	 * </code>
-	 *
+	 * 
 	 * @param     string $password The value to use as filter.
-	 *              Accepts wildcards (* and % trigger a LIKE)
+	 *            Accepts wildcards (* and % trigger a LIKE)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function filterByPassword($password = null, $comparison = null)
+	public function filterByPassword($password = null, $comparison = Criteria::EQUAL)
 	{
-		if (null === $comparison) {
-			if (is_array($password)) {
+		if (is_array($password)) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
-			} elseif (preg_match('/[\%\*]/', $password)) {
-				$password = str_replace('*', '%', $password);
+			}
+		} elseif (preg_match('/[\%\*]/', $password)) {
+			$password = str_replace('*', '%', $password);
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::LIKE;
 			}
 		}
@@ -297,26 +212,22 @@ abstract class BaseUserQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the name column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByName('fooValue');   // WHERE name = 'fooValue'
-	 * $query->filterByName('%fooValue%'); // WHERE name LIKE '%fooValue%'
-	 * </code>
-	 *
+	 * 
 	 * @param     string $name The value to use as filter.
-	 *              Accepts wildcards (* and % trigger a LIKE)
+	 *            Accepts wildcards (* and % trigger a LIKE)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function filterByName($name = null, $comparison = null)
+	public function filterByName($name = null, $comparison = Criteria::EQUAL)
 	{
-		if (null === $comparison) {
-			if (is_array($name)) {
+		if (is_array($name)) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
-			} elseif (preg_match('/[\%\*]/', $name)) {
-				$name = str_replace('*', '%', $name);
+			}
+		} elseif (preg_match('/[\%\*]/', $name)) {
+			$name = str_replace('*', '%', $name);
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::LIKE;
 			}
 		}
@@ -331,42 +242,30 @@ abstract class BaseUserQuery extends ModelCriteria
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function filterByUserPrivileges($userPrivileges, $comparison = null)
+	public function filterByUserPrivileges($userPrivileges, $comparison = Criteria::EQUAL)
 	{
-		if ($userPrivileges instanceof UserPrivileges) {
-			return $this
-				->addUsingAlias(UserPeer::ID, $userPrivileges->getIdUser(), $comparison);
-		} elseif ($userPrivileges instanceof PropelCollection) {
-			return $this
-				->useUserPrivilegesQuery()
-				->filterByPrimaryKeys($userPrivileges->getPrimaryKeys())
-				->endUse();
-		} else {
-			throw new PropelException('filterByUserPrivileges() only accepts arguments of type UserPrivileges or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPeer::ID, $userPrivileges->getIdUser(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the UserPrivileges relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function joinUserPrivileges($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinUserPrivileges($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('UserPrivileges');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -374,7 +273,7 @@ abstract class BaseUserQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'UserPrivileges');
 		}
-
+		
 		return $this;
 	}
 
@@ -382,14 +281,14 @@ abstract class BaseUserQuery extends ModelCriteria
 	 * Use the UserPrivileges relation UserPrivileges object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery A secondary query class using the current class as primary query
 	 */
-	public function useUserPrivilegesQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useUserPrivilegesQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinUserPrivileges($relationAlias, $joinType)
@@ -404,42 +303,30 @@ abstract class BaseUserQuery extends ModelCriteria
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function filterBySimulationPrivileges($simulationPrivileges, $comparison = null)
+	public function filterBySimulationPrivileges($simulationPrivileges, $comparison = Criteria::EQUAL)
 	{
-		if ($simulationPrivileges instanceof SimulationPrivileges) {
-			return $this
-				->addUsingAlias(UserPeer::ID, $simulationPrivileges->getIdUser(), $comparison);
-		} elseif ($simulationPrivileges instanceof PropelCollection) {
-			return $this
-				->useSimulationPrivilegesQuery()
-				->filterByPrimaryKeys($simulationPrivileges->getPrimaryKeys())
-				->endUse();
-		} else {
-			throw new PropelException('filterBySimulationPrivileges() only accepts arguments of type SimulationPrivileges or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPeer::ID, $simulationPrivileges->getIdUser(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the SimulationPrivileges relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserQuery The current query, for fluid interface
 	 */
-	public function joinSimulationPrivileges($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinSimulationPrivileges($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('SimulationPrivileges');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -447,7 +334,7 @@ abstract class BaseUserQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'SimulationPrivileges');
 		}
-
+		
 		return $this;
 	}
 
@@ -455,14 +342,14 @@ abstract class BaseUserQuery extends ModelCriteria
 	 * Use the SimulationPrivileges relation SimulationPrivileges object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    SimulationPrivilegesQuery A secondary query class using the current class as primary query
 	 */
-	public function useSimulationPrivilegesQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useSimulationPrivilegesQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinSimulationPrivileges($relationAlias, $joinType)
@@ -480,9 +367,40 @@ abstract class BaseUserQuery extends ModelCriteria
 	{
 		if ($user) {
 			$this->addUsingAlias(UserPeer::ID, $user->getId(), Criteria::NOT_EQUAL);
-		}
-
+	  }
+	  
 		return $this;
+	}
+
+	/**
+	 * Code to execute before every SELECT statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreSelect(PropelPDO $con)
+	{
+		return $this->preSelect($con);
+	}
+
+	/**
+	 * Code to execute before every DELETE statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreDelete(PropelPDO $con)
+	{
+		return $this->preDelete($con);
+	}
+
+	/**
+	 * Code to execute before every UPDATE statement
+	 * 
+	 * @param     array $values The associatiove array of columns and values for the update
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreUpdate(&$values, PropelPDO $con)
+	{
+		return $this->preUpdate($values, $con);
 	}
 
 } // BaseUserQuery

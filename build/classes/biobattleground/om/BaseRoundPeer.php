@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base static class for performing query and update operations on the 'round' table.
  *
@@ -24,15 +23,12 @@ abstract class BaseRoundPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'RoundTableMap';
-
+	
 	/** The total number of columns. */
 	const NUM_COLUMNS = 8;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
-
-	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 8;
 
 	/** the column name for the ID field */
 	const ID = 'round.ID';
@@ -58,9 +54,6 @@ abstract class BaseRoundPeer {
 	/** the column name for the NUMBER_OF_NEWBORN field */
 	const NUMBER_OF_NEWBORN = 'round.NUMBER_OF_NEWBORN';
 
-	/** The default string format for model objects of the related table **/
-	const DEFAULT_STRING_FORMAT = 'YAML';
-
 	/**
 	 * An identiy map to hold any loaded instances of Round objects.
 	 * This must be public so that other peer classes can access this when hydrating from JOIN
@@ -76,7 +69,7 @@ abstract class BaseRoundPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	protected static $fieldNames = array (
+	private static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'IdOrganism', 'IdSimulation', 'Day', 'Quantity', 'AvgHunger', 'AvgHitpoints', 'NumberOfNewborn', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'idOrganism', 'idSimulation', 'day', 'quantity', 'avgHunger', 'avgHitpoints', 'numberOfNewborn', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::ID_ORGANISM, self::ID_SIMULATION, self::DAY, self::QUANTITY, self::AVG_HUNGER, self::AVG_HITPOINTS, self::NUMBER_OF_NEWBORN, ),
@@ -91,7 +84,7 @@ abstract class BaseRoundPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	protected static $fieldKeys = array (
+	private static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'IdOrganism' => 1, 'IdSimulation' => 2, 'Day' => 3, 'Quantity' => 4, 'AvgHunger' => 5, 'AvgHitpoints' => 6, 'NumberOfNewborn' => 7, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'idOrganism' => 1, 'idSimulation' => 2, 'day' => 3, 'quantity' => 4, 'avgHunger' => 5, 'avgHitpoints' => 6, 'numberOfNewborn' => 7, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::ID_ORGANISM => 1, self::ID_SIMULATION => 2, self::DAY => 3, self::QUANTITY => 4, self::AVG_HUNGER => 5, self::AVG_HITPOINTS => 6, self::NUMBER_OF_NEWBORN => 7, ),
@@ -233,7 +226,7 @@ abstract class BaseRoundPeer {
 		return $count;
 	}
 	/**
-	 * Selects one object from the DB.
+	 * Method to select one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -252,7 +245,7 @@ abstract class BaseRoundPeer {
 		return null;
 	}
 	/**
-	 * Selects several row from the DB.
+	 * Method to do selects.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -306,7 +299,7 @@ abstract class BaseRoundPeer {
 	 * @param      Round $value A Round object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool($obj, $key = null)
+	public static function addInstanceToPool(Round $obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -401,7 +394,7 @@ abstract class BaseRoundPeer {
 	}
 
 	/**
-	 * Retrieves the primary key from the DB resultset row
+	 * Retrieves the primary key from the DB resultset row 
 	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
 	 * a multi-column primary key, an array of the primary key columns will be returned.
 	 *
@@ -461,7 +454,7 @@ abstract class BaseRoundPeer {
 			// We no longer rehydrate the object, since this can cause data loss.
 			// See http://www.propelorm.org/ticket/509
 			// $obj->hydrate($row, $startcol, true); // rehydrate
-			$col = $startcol + RoundPeer::NUM_HYDRATE_COLUMNS;
+			$col = $startcol + RoundPeer::NUM_COLUMNS;
 		} else {
 			$cls = RoundPeer::OM_CLASS;
 			$obj = new $cls();
@@ -470,7 +463,6 @@ abstract class BaseRoundPeer {
 		}
 		return array($obj, $col);
 	}
-
 
 	/**
 	 * Returns the number of rows matching criteria, joining the related Organism table
@@ -498,9 +490,9 @@ abstract class BaseRoundPeer {
 		if (!$criteria->hasSelectClause()) {
 			RoundPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -548,9 +540,9 @@ abstract class BaseRoundPeer {
 		if (!$criteria->hasSelectClause()) {
 			RoundPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -591,7 +583,7 @@ abstract class BaseRoundPeer {
 		}
 
 		RoundPeer::addSelectColumns($criteria);
-		$startcol = RoundPeer::NUM_HYDRATE_COLUMNS;
+		$startcol = (RoundPeer::NUM_COLUMNS - RoundPeer::NUM_LAZY_LOAD_COLUMNS);
 		OrganismPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(RoundPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
@@ -657,7 +649,7 @@ abstract class BaseRoundPeer {
 		}
 
 		RoundPeer::addSelectColumns($criteria);
-		$startcol = RoundPeer::NUM_HYDRATE_COLUMNS;
+		$startcol = (RoundPeer::NUM_COLUMNS - RoundPeer::NUM_LAZY_LOAD_COLUMNS);
 		SimulationPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(RoundPeer::ID_SIMULATION, SimulationPeer::ID, $join_behavior);
@@ -730,9 +722,9 @@ abstract class BaseRoundPeer {
 		if (!$criteria->hasSelectClause()) {
 			RoundPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -775,13 +767,13 @@ abstract class BaseRoundPeer {
 		}
 
 		RoundPeer::addSelectColumns($criteria);
-		$startcol2 = RoundPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (RoundPeer::NUM_COLUMNS - RoundPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol4 = $startcol3 + (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(RoundPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -865,7 +857,7 @@ abstract class BaseRoundPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(RoundPeer::TABLE_NAME);
-
+		
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -873,9 +865,9 @@ abstract class BaseRoundPeer {
 		if (!$criteria->hasSelectClause()) {
 			RoundPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -915,7 +907,7 @@ abstract class BaseRoundPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(RoundPeer::TABLE_NAME);
-
+		
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -923,9 +915,9 @@ abstract class BaseRoundPeer {
 		if (!$criteria->hasSelectClause()) {
 			RoundPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -969,10 +961,10 @@ abstract class BaseRoundPeer {
 		}
 
 		RoundPeer::addSelectColumns($criteria);
-		$startcol2 = RoundPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (RoundPeer::NUM_COLUMNS - RoundPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(RoundPeer::ID_SIMULATION, SimulationPeer::ID, $join_behavior);
 
@@ -1042,10 +1034,10 @@ abstract class BaseRoundPeer {
 		}
 
 		RoundPeer::addSelectColumns($criteria);
-		$startcol2 = RoundPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (RoundPeer::NUM_COLUMNS - RoundPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		OrganismPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + OrganismPeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(RoundPeer::ID_ORGANISM, OrganismPeer::ID, $join_behavior);
 
@@ -1133,7 +1125,7 @@ abstract class BaseRoundPeer {
 	}
 
 	/**
-	 * Performs an INSERT on the database, given a Round or Criteria object.
+	 * Method perform an INSERT on the database, given a Round or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Round object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -1172,7 +1164,7 @@ abstract class BaseRoundPeer {
 	}
 
 	/**
-	 * Performs an UPDATE on the database, given a Round or Criteria object.
+	 * Method perform an UPDATE on the database, given a Round or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Round object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -1211,12 +1203,11 @@ abstract class BaseRoundPeer {
 	}
 
 	/**
-	 * Deletes all rows from the round table.
+	 * Method to DELETE all rows from the round table.
 	 *
-	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll(PropelPDO $con = null)
+	public static function doDeleteAll($con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(RoundPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -1241,7 +1232,7 @@ abstract class BaseRoundPeer {
 	}
 
 	/**
-	 * Performs a DELETE on the database, given a Round or Criteria object OR a primary key value.
+	 * Method perform a DELETE on the database, given a Round or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or Round object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -1310,7 +1301,7 @@ abstract class BaseRoundPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate($obj, $cols = null)
+	public static function doValidate(Round $obj, $cols = null)
 	{
 		$columns = array();
 

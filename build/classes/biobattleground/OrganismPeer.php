@@ -1,7 +1,5 @@
 <?php
 
-require 'biobattleground/om/BaseOrganismPeer.php';
-
 
 /**
  * Skeleton subclass for performing query and update operations on the 'organism' table.
@@ -12,7 +10,7 @@ require 'biobattleground/om/BaseOrganismPeer.php';
  * application requirements.  This class will only be generated as
  * long as it does not already exist in the output directory.
  *
- * @package    biobattleground
+ * @package    propel.generator.biobattleground
  */
 class OrganismPeer extends BaseOrganismPeer {
 

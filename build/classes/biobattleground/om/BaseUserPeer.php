@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base static class for performing query and update operations on the 'user' table.
  *
@@ -24,15 +23,12 @@ abstract class BaseUserPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'UserTableMap';
-
+	
 	/** The total number of columns. */
 	const NUM_COLUMNS = 4;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
-
-	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 4;
 
 	/** the column name for the ID field */
 	const ID = 'user.ID';
@@ -45,9 +41,6 @@ abstract class BaseUserPeer {
 
 	/** the column name for the NAME field */
 	const NAME = 'user.NAME';
-
-	/** The default string format for model objects of the related table **/
-	const DEFAULT_STRING_FORMAT = 'YAML';
 
 	/**
 	 * An identiy map to hold any loaded instances of User objects.
@@ -64,7 +57,7 @@ abstract class BaseUserPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	protected static $fieldNames = array (
+	private static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'Login', 'Password', 'Name', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'login', 'password', 'name', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::LOGIN, self::PASSWORD, self::NAME, ),
@@ -79,7 +72,7 @@ abstract class BaseUserPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	protected static $fieldKeys = array (
+	private static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'Login' => 1, 'Password' => 2, 'Name' => 3, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'login' => 1, 'password' => 2, 'name' => 3, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::LOGIN => 1, self::PASSWORD => 2, self::NAME => 3, ),
@@ -213,7 +206,7 @@ abstract class BaseUserPeer {
 		return $count;
 	}
 	/**
-	 * Selects one object from the DB.
+	 * Method to select one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -232,7 +225,7 @@ abstract class BaseUserPeer {
 		return null;
 	}
 	/**
-	 * Selects several row from the DB.
+	 * Method to do selects.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -286,7 +279,7 @@ abstract class BaseUserPeer {
 	 * @param      User $value A User object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool($obj, $key = null)
+	public static function addInstanceToPool(User $obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -359,9 +352,9 @@ abstract class BaseUserPeer {
 	 */
 	public static function clearRelatedInstancePool()
 	{
-		// Invalidate objects in UserPrivilegesPeer instance pool,
-		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+		// invalidate objects in UserPrivilegesPeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
 		UserPrivilegesPeer::clearInstancePool();
+
 	}
 
 	/**
@@ -384,7 +377,7 @@ abstract class BaseUserPeer {
 	}
 
 	/**
-	 * Retrieves the primary key from the DB resultset row
+	 * Retrieves the primary key from the DB resultset row 
 	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
 	 * a multi-column primary key, an array of the primary key columns will be returned.
 	 *
@@ -444,7 +437,7 @@ abstract class BaseUserPeer {
 			// We no longer rehydrate the object, since this can cause data loss.
 			// See http://www.propelorm.org/ticket/509
 			// $obj->hydrate($row, $startcol, true); // rehydrate
-			$col = $startcol + UserPeer::NUM_HYDRATE_COLUMNS;
+			$col = $startcol + UserPeer::NUM_COLUMNS;
 		} else {
 			$cls = UserPeer::OM_CLASS;
 			$obj = new $cls();
@@ -453,7 +446,6 @@ abstract class BaseUserPeer {
 		}
 		return array($obj, $col);
 	}
-
 	/**
 	 * Returns the TableMap related to this peer.
 	 * This method is not needed for general use but a specific application could have a need.
@@ -495,7 +487,7 @@ abstract class BaseUserPeer {
 	}
 
 	/**
-	 * Performs an INSERT on the database, given a User or Criteria object.
+	 * Method perform an INSERT on the database, given a User or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or User object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -538,7 +530,7 @@ abstract class BaseUserPeer {
 	}
 
 	/**
-	 * Performs an UPDATE on the database, given a User or Criteria object.
+	 * Method perform an UPDATE on the database, given a User or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or User object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -577,12 +569,11 @@ abstract class BaseUserPeer {
 	}
 
 	/**
-	 * Deletes all rows from the user table.
+	 * Method to DELETE all rows from the user table.
 	 *
-	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll(PropelPDO $con = null)
+	public static function doDeleteAll($con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(UserPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -608,7 +599,7 @@ abstract class BaseUserPeer {
 	}
 
 	/**
-	 * Performs a DELETE on the database, given a User or Criteria object OR a primary key value.
+	 * Method perform a DELETE on the database, given a User or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or User object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -644,10 +635,7 @@ abstract class BaseUserPeer {
 			// use transaction because $criteria could contain info
 			// for more than one table or we could emulating ON DELETE CASCADE, etc.
 			$con->beginTransaction();
-			
-			// cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-			$c = clone $criteria;
-			$affectedRows += UserPeer::doOnDeleteCascade($c, $con);
+			$affectedRows += UserPeer::doOnDeleteCascade($criteria, $con);
 			
 			// Because this db requires some delete cascade/set null emulation, we have to
 			// clear the cached instance *after* the emulation has happened (since
@@ -716,7 +704,7 @@ abstract class BaseUserPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate($obj, $cols = null)
+	public static function doValidate(User $obj, $cols = null)
 	{
 		$columns = array();
 

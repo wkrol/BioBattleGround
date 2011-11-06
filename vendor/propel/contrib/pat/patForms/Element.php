@@ -3,7 +3,7 @@
  * base patForms element class with all needed base functionality that each element
  * should have.
  *
- * $Id: Element.php 521 2007-01-05 13:29:36Z heltem $
+ * $Id: Element.php 1347 2009-12-03 21:06:36Z francois $
  *
  * @package    patForms
  * @subpackage patForms_Element
@@ -140,7 +140,7 @@ define( 'PATFORMS_FILTER_TYPE_PHP', 2 );
  * base patForms element class with all needed base functionality that each element
  * should have. Extend this class to create your own elements.
  *
- * $Id: Element.php 521 2007-01-05 13:29:36Z heltem $
+ * $Id: Element.php 1347 2009-12-03 21:06:36Z francois $
  *
  * @abstract
  * @package    patForms

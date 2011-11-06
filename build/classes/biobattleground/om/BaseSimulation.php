@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base class that represents a row from the 'simulation' table.
  *
@@ -14,7 +13,7 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	/**
 	 * Peer class name
 	 */
-	const PEER = 'SimulationPeer';
+  const PEER = 'SimulationPeer';
 
 	/**
 	 * The Peer class.
@@ -87,18 +86,6 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $groupsScheduledForDeletion = null;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $roundsScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -269,18 +256,45 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	/**
 	 * Sets the value of [date] column to a normalized version of the date/time value specified.
 	 * 
-	 * @param      mixed $v string, integer (timestamp), or DateTime value.
-	 *               Empty strings are treated as NULL.
+	 * @param      mixed $v string, integer (timestamp), or DateTime value.  Empty string will
+	 *						be treated as NULL for temporal objects.
 	 * @return     Simulation The current object (for fluent API support)
 	 */
 	public function setDate($v)
 	{
-		$dt = PropelDateTime::newInstance($v, null, 'DateTime');
-		if ($this->date !== null || $dt !== null) {
-			$currentDateAsString = ($this->date !== null && $tmpDt = new DateTime($this->date)) ? $tmpDt->format('Y-m-d') : null;
-			$newDateAsString = $dt ? $dt->format('Y-m-d') : null;
-			if ($currentDateAsString !== $newDateAsString) {
-				$this->date = $newDateAsString;
+		// we treat '' as NULL for temporal objects because DateTime('') == DateTime('now')
+		// -- which is unexpected, to say the least.
+		if ($v === null || $v === '') {
+			$dt = null;
+		} elseif ($v instanceof DateTime) {
+			$dt = $v;
+		} else {
+			// some string/numeric value passed; we normalize that so that we can
+			// validate it.
+			try {
+				if (is_numeric($v)) { // if it's a unix timestamp
+					$dt = new DateTime('@'.$v, new DateTimeZone('UTC'));
+					// We have to explicitly specify and then change the time zone because of a
+					// DateTime bug: http://bugs.php.net/bug.php?id=43003
+					$dt->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+				} else {
+					$dt = new DateTime($v);
+				}
+			} catch (Exception $x) {
+				throw new PropelException('Error parsing date/time value: ' . var_export($v, true), $x);
+			}
+		}
+
+		if ( $this->date !== null || $dt !== null ) {
+			// (nested ifs are a little easier to read in this case)
+
+			$currNorm = ($this->date !== null && $tmpDt = new DateTime($this->date)) ? $tmpDt->format('Y-m-d') : null;
+			$newNorm = ($dt !== null) ? $dt->format('Y-m-d') : null;
+
+			if ( ($currNorm !== $newNorm) // normalized values don't match 
+					)
+			{
+				$this->date = ($dt ? $dt->format('Y-m-d') : null);
 				$this->modifiedColumns[] = SimulationPeer::DATE;
 			}
 		} // if either are not null
@@ -333,7 +347,7 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 5; // 5 = SimulationPeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 5; // 5 = SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS).
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating Simulation object", $e);
@@ -428,21 +442,21 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(SimulationPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		try {
-			$deleteQuery = SimulationQuery::create()
-				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				$deleteQuery->delete($con);
+				SimulationQuery::create()
+					->filterByPrimaryKey($this->getPrimaryKey())
+					->delete($con);
 				$this->postDelete($con);
 				$con->commit();
 				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -470,7 +484,7 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(SimulationPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -494,7 +508,7 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -536,24 +550,27 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 				$this->setClimate($this->aClimate);
 			}
 
-			if ($this->isNew() || $this->isModified()) {
-				// persist changes
-				if ($this->isNew()) {
-					$this->doInsert($con);
-				} else {
-					$this->doUpdate($con);
-				}
-				$affectedRows += 1;
-				$this->resetModified();
+			if ($this->isNew() ) {
+				$this->modifiedColumns[] = SimulationPeer::ID;
 			}
 
-			if ($this->groupsScheduledForDeletion !== null) {
-				if (!$this->groupsScheduledForDeletion->isEmpty()) {
-					GroupQuery::create()
-						->filterByPrimaryKeys($this->groupsScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->groupsScheduledForDeletion = null;
+			// If this object has been modified, then save it to the database.
+			if ($this->isModified()) {
+				if ($this->isNew()) {
+					$criteria = $this->buildCriteria();
+					if ($criteria->keyContainsValue(SimulationPeer::ID) ) {
+						throw new PropelException('Cannot insert a value for auto-increment primary key ('.SimulationPeer::ID.')');
+					}
+
+					$pk = BasePeer::doInsert($criteria, $con);
+					$affectedRows += 1;
+					$this->setId($pk);  //[IMV] update autoincrement primary key
+					$this->setNew(false);
+				} else {
+					$affectedRows += SimulationPeer::doUpdate($this, $con);
 				}
+
+				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collGroups !== null) {
@@ -561,15 +578,6 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
-				}
-			}
-
-			if ($this->roundsScheduledForDeletion !== null) {
-				if (!$this->roundsScheduledForDeletion->isEmpty()) {
-					RoundQuery::create()
-						->filterByPrimaryKeys($this->roundsScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->roundsScheduledForDeletion = null;
 				}
 			}
 
@@ -586,98 +594,6 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
-
-	/**
-	 * Insert the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @throws     PropelException
-	 * @see        doSave()
-	 */
-	protected function doInsert(PropelPDO $con)
-	{
-		$modifiedColumns = array();
-		$index = 0;
-
-		$this->modifiedColumns[] = SimulationPeer::ID;
-		if (null !== $this->id) {
-			throw new PropelException('Cannot insert a value for auto-increment primary key (' . SimulationPeer::ID . ')');
-		}
-
-		 // check the columns in natural order for more readable SQL queries
-		if ($this->isColumnModified(SimulationPeer::ID)) {
-			$modifiedColumns[':p' . $index++]  = '`ID`';
-		}
-		if ($this->isColumnModified(SimulationPeer::ID_CLIMATE)) {
-			$modifiedColumns[':p' . $index++]  = '`ID_CLIMATE`';
-		}
-		if ($this->isColumnModified(SimulationPeer::ID_MAP)) {
-			$modifiedColumns[':p' . $index++]  = '`ID_MAP`';
-		}
-		if ($this->isColumnModified(SimulationPeer::SIMULATION_LENGTH)) {
-			$modifiedColumns[':p' . $index++]  = '`SIMULATION_LENGTH`';
-		}
-		if ($this->isColumnModified(SimulationPeer::DATE)) {
-			$modifiedColumns[':p' . $index++]  = '`DATE`';
-		}
-
-		$sql = sprintf(
-			'INSERT INTO `simulation` (%s) VALUES (%s)',
-			implode(', ', $modifiedColumns),
-			implode(', ', array_keys($modifiedColumns))
-		);
-
-		try {
-			$stmt = $con->prepare($sql);
-			foreach ($modifiedColumns as $identifier => $columnName) {
-				switch ($columnName) {
-					case '`ID`':
-						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
-						break;
-					case '`ID_CLIMATE`':
-						$stmt->bindValue($identifier, $this->id_climate, PDO::PARAM_INT);
-						break;
-					case '`ID_MAP`':
-						$stmt->bindValue($identifier, $this->id_map, PDO::PARAM_INT);
-						break;
-					case '`SIMULATION_LENGTH`':
-						$stmt->bindValue($identifier, $this->simulation_length, PDO::PARAM_INT);
-						break;
-					case '`DATE`':
-						$stmt->bindValue($identifier, $this->date, PDO::PARAM_STR);
-						break;
-				}
-			}
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
-		}
-
-		try {
-			$pk = $con->lastInsertId();
-		} catch (Exception $e) {
-			throw new PropelException('Unable to get autoincrement id.', $e);
-		}
-		$this->setId($pk);
-
-		$this->setNew(false);
-	}
-
-	/**
-	 * Update the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @see        doSave()
-	 */
-	protected function doUpdate(PropelPDO $con)
-	{
-		$selectCriteria = $this->buildPkeyCriteria();
-		$valuesCriteria = $this->buildCriteria();
-		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
-	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -839,20 +755,15 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 * type constants.
 	 *
 	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
-	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM. 
 	 *                    Defaults to BasePeer::TYPE_PHPNAME.
 	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
-	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
 	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
 	 *
 	 * @return    array an associative array containing the field names (as keys) and field values
 	 */
-	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $includeForeignObjects = false)
 	{
-		if (isset($alreadyDumpedObjects['Simulation'][$this->getPrimaryKey()])) {
-			return '*RECURSION*';
-		}
-		$alreadyDumpedObjects['Simulation'][$this->getPrimaryKey()] = true;
 		$keys = SimulationPeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getId(),
@@ -863,16 +774,10 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 		);
 		if ($includeForeignObjects) {
 			if (null !== $this->aMap) {
-				$result['Map'] = $this->aMap->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+				$result['Map'] = $this->aMap->toArray($keyType, $includeLazyLoadColumns, true);
 			}
 			if (null !== $this->aClimate) {
-				$result['Climate'] = $this->aClimate->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
-			}
-			if (null !== $this->collGroups) {
-				$result['Groups'] = $this->collGroups->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-			if (null !== $this->collRounds) {
-				$result['Rounds'] = $this->collRounds->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+				$result['Climate'] = $this->aClimate->toArray($keyType, $includeLazyLoadColumns, true);
 			}
 		}
 		return $result;
@@ -1022,15 +927,14 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 *
 	 * @param      object $copyObj An object of Simulation (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
+	public function copyInto($copyObj, $deepCopy = false)
 	{
-		$copyObj->setIdClimate($this->getIdClimate());
-		$copyObj->setIdMap($this->getIdMap());
-		$copyObj->setSimulationLength($this->getSimulationLength());
-		$copyObj->setDate($this->getDate());
+		$copyObj->setIdClimate($this->id_climate);
+		$copyObj->setIdMap($this->id_map);
+		$copyObj->setSimulationLength($this->simulation_length);
+		$copyObj->setDate($this->date);
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -1051,10 +955,9 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 
 		} // if ($deepCopy)
 
-		if ($makeNew) {
-			$copyObj->setNew(true);
-			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-		}
+
+		$copyObj->setNew(true);
+		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
 	}
 
 	/**
@@ -1132,13 +1035,13 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	public function getMap(PropelPDO $con = null)
 	{
 		if ($this->aMap === null && ($this->id_map !== null)) {
-			$this->aMap = MapQuery::create()->findPk($this->id_map, $con);
+			$this->aMap = MapQuery::create()->findPk($this->id_map);
 			/* The following can be used additionally to
-				guarantee the related object contains a reference
-				to this object.  This level of coupling may, however, be
-				undesirable since it could result in an only partially populated collection
-				in the referenced object.
-				$this->aMap->addSimulations($this);
+			   guarantee the related object contains a reference
+			   to this object.  This level of coupling may, however, be
+			   undesirable since it could result in an only partially populated collection
+			   in the referenced object.
+			   $this->aMap->addSimulations($this);
 			 */
 		}
 		return $this->aMap;
@@ -1181,35 +1084,16 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	public function getClimate(PropelPDO $con = null)
 	{
 		if ($this->aClimate === null && ($this->id_climate !== null)) {
-			$this->aClimate = ClimateQuery::create()->findPk($this->id_climate, $con);
+			$this->aClimate = ClimateQuery::create()->findPk($this->id_climate);
 			/* The following can be used additionally to
-				guarantee the related object contains a reference
-				to this object.  This level of coupling may, however, be
-				undesirable since it could result in an only partially populated collection
-				in the referenced object.
-				$this->aClimate->addSimulations($this);
+			   guarantee the related object contains a reference
+			   to this object.  This level of coupling may, however, be
+			   undesirable since it could result in an only partially populated collection
+			   in the referenced object.
+			   $this->aClimate->addSimulations($this);
 			 */
 		}
 		return $this->aClimate;
-	}
-
-
-	/**
-	 * Initializes a collection based on the name of a relation.
-	 * Avoids crafting an 'init[$relationName]s' method name
-	 * that wouldn't work when StandardEnglishPluralizer is used.
-	 *
-	 * @param      string $relationName The name of the relation to initialize
-	 * @return     void
-	 */
-	public function initRelation($relationName)
-	{
-		if ('Group' == $relationName) {
-			return $this->initGroups();
-		}
-		if ('Round' == $relationName) {
-			return $this->initRounds();
-		}
 	}
 
 	/**
@@ -1233,16 +1117,10 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initGroups($overrideExisting = true)
+	public function initGroups()
 	{
-		if (null !== $this->collGroups && !$overrideExisting) {
-			return;
-		}
 		$this->collGroups = new PropelObjectCollection();
 		$this->collGroups->setModel('Group');
 	}
@@ -1281,30 +1159,6 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of Group objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $groups A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setGroups(PropelCollection $groups, PropelPDO $con = null)
-	{
-		$this->groupsScheduledForDeletion = $this->getGroups(new Criteria(), $con)->diff($groups);
-
-		foreach ($groups as $group) {
-			// Fix issue with collection modified by reference
-			if ($group->isNew()) {
-				$group->setSimulation($this);
-			}
-			$this->addGroup($group);
-		}
-
-		$this->collGroups = $groups;
-	}
-
-	/**
 	 * Returns the number of related Group objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1337,7 +1191,8 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 * through the Group foreign key attribute.
 	 *
 	 * @param      Group $l Group
-	 * @return     Simulation The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addGroup(Group $l)
 	{
@@ -1345,19 +1200,9 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 			$this->initGroups();
 		}
 		if (!$this->collGroups->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddGroup($l);
+			$this->collGroups[]= $l;
+			$l->setSimulation($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	Group $group The group object to add.
-	 */
-	protected function doAddGroup($group)
-	{
-		$this->collGroups[]= $group;
-		$group->setSimulation($this);
 	}
 
 
@@ -1431,16 +1276,10 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initRounds($overrideExisting = true)
+	public function initRounds()
 	{
-		if (null !== $this->collRounds && !$overrideExisting) {
-			return;
-		}
 		$this->collRounds = new PropelObjectCollection();
 		$this->collRounds->setModel('Round');
 	}
@@ -1479,30 +1318,6 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of Round objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $rounds A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setRounds(PropelCollection $rounds, PropelPDO $con = null)
-	{
-		$this->roundsScheduledForDeletion = $this->getRounds(new Criteria(), $con)->diff($rounds);
-
-		foreach ($rounds as $round) {
-			// Fix issue with collection modified by reference
-			if ($round->isNew()) {
-				$round->setSimulation($this);
-			}
-			$this->addRound($round);
-		}
-
-		$this->collRounds = $rounds;
-	}
-
-	/**
 	 * Returns the number of related Round objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1535,7 +1350,8 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 	 * through the Round foreign key attribute.
 	 *
 	 * @param      Round $l Round
-	 * @return     Simulation The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addRound(Round $l)
 	{
@@ -1543,19 +1359,9 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 			$this->initRounds();
 		}
 		if (!$this->collRounds->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddRound($l);
+			$this->collRounds[]= $l;
+			$l->setSimulation($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	Round $round The round object to add.
-	 */
-	protected function doAddRound($round)
-	{
-		$this->collRounds[]= $round;
-		$round->setSimulation($this);
 	}
 
 
@@ -1598,53 +1404,47 @@ abstract class BaseSimulation extends BaseObject  implements Persistent
 		$this->clearAllReferences();
 		$this->resetModified();
 		$this->setNew(true);
-		$this->setDeleted(false);
 	}
 
 	/**
-	 * Resets all references to other model objects or collections of model objects.
+	 * Resets all collections of referencing foreign keys.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect
-	 * objects with circular references (even in PHP 5.3). This is currently necessary
-	 * when using Propel in certain daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect objects
+	 * with circular references.  This is currently necessary when using Propel in certain
+	 * daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
+	 * @param      boolean $deep Whether to also clear the references on all associated objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collGroups) {
-				foreach ($this->collGroups as $o) {
+				foreach ((array) $this->collGroups as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collRounds) {
-				foreach ($this->collRounds as $o) {
+				foreach ((array) $this->collRounds as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
-		if ($this->collGroups instanceof PropelCollection) {
-			$this->collGroups->clearIterator();
-		}
 		$this->collGroups = null;
-		if ($this->collRounds instanceof PropelCollection) {
-			$this->collRounds->clearIterator();
-		}
 		$this->collRounds = null;
 		$this->aMap = null;
 		$this->aClimate = null;
 	}
 
 	/**
-	 * Return the string representation of this object
-	 *
-	 * @return string
+	 * Catches calls to virtual methods
 	 */
-	public function __toString()
+	public function __call($name, $params)
 	{
-		return (string) $this->exportTo(SimulationPeer::DEFAULT_STRING_FORMAT);
+		if (preg_match('/get(\w+)/', $name, $matches) && $this->hasVirtualColumn($matches[1])) {
+			return $this->getVirtualColumn($matches[1]);
+		}
+		throw new PropelException('Call to undefined method: ' . $name);
 	}
 
 } // BaseSimulation

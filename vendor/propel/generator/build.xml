@@ -16,7 +16,7 @@
     $> phing -Dproject=bookstore -Dtarget=insert-sql
 
 -->
-<project name="propel-project-builder" default="main" basedir=".">
+<project name="propel-project-builder" default="main">
 
 <!-- in case ${project.dir} was specified on command line, we set the project.dir
      property here.  If it wasn't set, then this will be bogus, but it will
@@ -138,10 +138,6 @@
 
 <target name="create-db" depends="configure">
 	<phing phingfile="build-propel.xml" target="create-db"/>
-</target>
-
-<target name="creole" depends="configure">
-	<phing phingfile="build-propel.xml" target="creole"/>
 </target>
 
 <target name="reverse" depends="configure">

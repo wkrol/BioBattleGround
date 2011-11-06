@@ -1,17 +1,17 @@
 = Installing Propel =
 
+[[PageOutline]]
+
 Propel is available as a [http://pear.php.net/manual/en/installation.getting.php PEAR] package, as a "traditional" tgz or zip package, and as a checkout from a Subversion repository. Whatever installation method you may choose, getting Propel to work is pretty straightforward.
 
 == Prerequisites ==
 
 Propel requirements are very light, allowing it to run on most PHP platforms:
 
- * [http://www.php.net/ PHP 5.2.4] or newer, with the following module enabled:
-   * XSLT (libxslt)
-   * DOM (libxml2)
+ * [http://www.php.net/ PHP 5.2.4] or newer, with the DOM (libxml2) module enabled
  * A supported database (MySQL, MS SQL Server, PostgreSQL, SQLite, Oracle)
  
-Tip: Propel uses the PDO and SPL components, which are bundled and enabled by default in PHP5.
+'''Tip''': Propel uses the PDO and SPL components, which are bundled and enabled by default in PHP5.
 
 == Propel Components ==
 
@@ -27,13 +27,13 @@ Usually, both the generator and the runtime components are installed on developm
 
 === Installing Propel From PEAR ===
 
-In order to install the Propel packages, you must add the `pear.phpdb.org` channel to your PEAR environment. Once the channel is discovered, you can install the generator package, or the runtime package, or both. Use the '-a' option to let PEAR download and install dependencies.
+In order to install the Propel packages, you must add the `pear.propelorm.org` channel to your PEAR environment. Once the channel is discovered, you can install the generator package, or the runtime package, or both. Use the '-a' option to let PEAR download and install dependencies.
 
 {{{
 #!sh
-> pear channel-discover pear.phpdb.org
-> pear install -a phpdb/propel_generator
-> pear install -a phpdb/propel_runtime
+> pear channel-discover pear.propelorm.org
+> pear install -a propelorm/propel_generator
+> pear install -a propelorm/propel_runtime
 }}}
 
 Propel is now installed, and you can test it by following the instructions of the '''Testing Propel Installation''' section at the end of this page.
@@ -47,7 +47,7 @@ Tip: If you want to install non-stable versions of Propel, change your `preferre
 
 === Dependencies for Tarball and Subversion Versions ===
 
-The Propel generator uses [http://phing.info/ Phing 2.2.x] to manage command line tasks; both the generator and the runtime classes use [http://pear.php.net/package/Log/ PEAR Log] to log events.
+The Propel generator uses [http://phing.info/ Phing 2.3.3] to manage command line tasks; both the generator and the runtime classes use [http://pear.php.net/package/Log/ PEAR Log] to log events.
 
 If you choose to install Propel via PEAR, these components will be automatically installed as dependencies. If you choose to install Propel from a tarball or a Subversion checkout, you'll have to install them manually:
 
@@ -66,14 +66,14 @@ Installing from SVN trunk ensures that you have the most up-to-date source code.
 
 {{{
 #!sh
-> svn checkout http://svn.phpdb.org/propel/branches/1.4 /usr/local/propel
+> svn checkout http://svn.propelorm.org/branches/1.5 /usr/local/propel
 }}}
 
 This will export both the generator and runtime components to your local `propel` directory. In addition, you'll also get Propel documentation and unit tests - that's why this method is the preferred installation method for Propel contributors.
 
 Once this is done, you'll need to setup your PHP environment to use this library - see the '''Setting Up PHP for Propel''' section below.
 
-Note: `branches/1.4` is currently more uptodate code than `trunk`; trunk is what will become 2.0, however it has had very little work done to it in a long time.
+Note: `branches/1.5` is currently more uptodate code than `trunk`; trunk is what will become 2.0, however it has had very little work done to it in a long time.
 
 === Installing Propel From a Tarball ===
 
@@ -84,10 +84,10 @@ Download a tarball of each of the Propel components from the Propel website, and
 > cd /usr/local
 > mkdir propel
 > cd propel
-> wget http://pear.phpdb.org/get/propel_generator-1.4.0.tgz
-> tar zxvf propel_generator-1.4.0.tgz
-> wget http://pear.phpdb.org/get/propel_runtime-1.4.0.tgz
-> tar zxvf propel_runtime-1.4.0.tgz
+> wget http://pear.propelorm.org/get/propel_generator-1.5.0.tgz
+> tar zxvf propel_generator-1.5.0.tgz
+> wget http://pear.propelorm.org/get/propel_runtime-1.5.0.tgz
+> tar zxvf propel_runtime-1.5.0.tgz
 }}}
 
 Once this is done, you'll need to setup your PHP environment to use this library.
@@ -123,18 +123,18 @@ In order to allow an easier execution the script, you can also:
 
 Propel requires that the runtime classes are in PHP `include_path`. 
 
-The easiest and most permanent way to set your `include_path` is to simply edit your `php.ini` file and add the `propel/runctime/classes/` directory to the `include_path` variable:
+The easiest and most permanent way to set your `include_path` is to simply edit your `php.ini` file and add the `propel/runtime/lib/` directory to the `include_path` variable:
 
 {{{
 ; Unix
-include_path="/usr/local/lib/php:/usr/local/propel/runtime/classes"
+include_path="/usr/local/lib/php:/usr/local/propel/runtime/lib"
 }}}
 
 or, if you're using Windows,
 
 {{{
 ; Windows
-include_path="C:\PHP\PEAR;C:\PHP\apps\propel\runtime\classes"
+include_path="C:\PHP\PEAR;C:\PHP\apps\propel\runtime\lib"
 }}}
 
 If you do not have access to the `php.ini` file and cannot specify the `include_path` value in your `.htaccess` file, you can always do this at runtime within your PHP scripts:
@@ -142,7 +142,7 @@ If you do not have access to the `php.ini` file and cannot specify the `include_
 {{{
 #!php
 <?php 
-set_include_path("/usr/local/propel/runtime/classes" . PATH_SEPARATOR . get_include_path());
+set_include_path("/usr/local/propel/runtime/lib" . PATH_SEPARATOR . get_include_path());
 }}}
 
 Now the Propel runtime environment is ready to be used by your object model. As you will learn later, you will also need to modify the `include_path` to account for your object model PHP classes (i.e. the classes that the Propel generator builds for you).
@@ -165,13 +165,17 @@ You can test that the '''Propel runtime''' component is properly installed by re
 {{{
 #!php
 <?php 
-set_include_path("/usr/local/propel/runtime/classes" . PATH_SEPARATOR . get_include_path());
-
+// PEAR installation
 require_once 'propel/Propel.php';
+
+// manual installation
+set_include_path("/usr/local/propel/runtime/lib" . PATH_SEPARATOR . get_include_path());
+require_once 'Propel.php';
+
 // Propel setup code ... (to be discussed later)
 }}}
 
-At this point, Propel should be setup and ready to use. You can follow the steps in the [wiki:Users/Documentation/1.4/QuickStart Quickstart Guide] to try it out.
+At this point, Propel should be setup and ready to use. You can follow the steps in the [wiki:Users/Documentation/1.5/QuickStart Quickstart Guide] to try it out.
 
 == Troubleshooting ==
 
@@ -186,7 +190,7 @@ Propel requires the following settings in `php.ini`:
 
 === PEAR Directory In Include Path ===
 
-If you choose to install Propel via PEAR, and if it's your first use of PEAR, the PEAR directory may noit be on your PHP `include_path`. Check the PEAR documentation for deatils on how to do that.
+If you choose to install Propel via PEAR, and if it's your first use of PEAR, the PEAR directory may not be on your PHP `include_path`. Check the PEAR documentation for details on how to do that.
 
 === Getting Help ===
 

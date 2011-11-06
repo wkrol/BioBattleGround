@@ -1,4 +1,4 @@
-<project name="propel" default="main" basedir=".">
+<project name="propel" default="main">
 
   <!--
     Note - You should not have to edit this file.
@@ -37,42 +37,40 @@
   -->
 
   <path id="propelclasses">
-    <pathelement dir="${propel.home}/classes/"/>
+    <pathelement dir="${propel.home}/lib/"/>
+    <pathelement dir="${propel.project.dir}/"/>
   </path>
 
   <taskdef
     name="propel-data-model"
-    classname="propel.phing.PropelDataModelTemplateTask" classpathRef="propelclasses"/>
+    classname="task.PropelDataModelTemplateTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-om"
-    classname="propel.phing.PropelOMTask" classpathRef="propelclasses"/>
+    classname="task.PropelOMTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-data-dtd"
-    classname="propel.phing.PropelDataDTDTask" classpathRef="propelclasses"/>
+    classname="task.PropelDataDTDTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-data-dump"
-    classname="propel.phing.PropelDataDumpTask" classpathRef="propelclasses"/>
+    classname="task.PropelDataDumpTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-data-sql"
-    classname="propel.phing.PropelDataSQLTask" classpathRef="propelclasses"/>
-   <taskdef
-    name="propel-creole-transform"
-    classname="propel.phing.PropelCreoleTransformTask" classpathRef="propelclasses"/>
+    classname="task.PropelDataSQLTask" classpathRef="propelclasses"/>
    <taskdef
     name="propel-schema-reverse"
-    classname="propel.phing.PropelSchemaReverseTask" classpathRef="propelclasses"/>
+    classname="task.PropelSchemaReverseTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-sql"
-    classname="propel.phing.PropelSQLTask" classpathRef="propelclasses"/>
+    classname="task.PropelSQLTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-sql-exec"
-    classname="propel.phing.PropelSQLExec" classpathRef="propelclasses"/>
+    classname="task.PropelSQLExec" classpathRef="propelclasses"/>
   <taskdef
     name="propel-graphviz"
-    classname="propel.phing.PropelGraphvizTask" classpathRef="propelclasses"/>
+    classname="task.PropelGraphvizTask" classpathRef="propelclasses"/>
   <taskdef
     name="propel-convert-conf"
-    classname="propel.phing.PropelConvertConfTask" classpathRef="propelclasses"/>
+    classname="task.PropelConvertConfTask" classpathRef="propelclasses"/>
 
   <!-- ================================================================ -->
   <!-- M A I N  T A R G E T                                             -->
@@ -270,33 +268,6 @@
       userId="${propel.database.user}"
       password="${propel.database.password}"
     />
-  </target>
-
-  <!-- ================================================================ -->
-  <!-- C R E O L E   T O   X M L                                        -->
-  <!-- ================================================================ -->
-
-  <target
-    name="creole"
-    description="==> generate xml schema from Creole metadata">
-
-    <echo message="+-----------------------------------------------+"/>
-    <echo message="|                                               |"/>
-    <echo message="| Generating XML from Creole connection !       |"/>
-    <echo message="|                                               |"/>
-    <echo message="+-----------------------------------------------+"/>
-
-    <propel-creole-transform
-      dbDriver="${propel.database.creole.driver}"
-      dbSchema="${propel.database.schema}"
-      dbEncoding="${propel.database.encoding}"
-      dbUrl="${propel.database.creole.url}"
-      outputFile="${propel.schema.dir}/${propel.default.schema.basename}.xml"
-      samePhpName="${propel.samePhpName}"
-      addVendorInfo="${propel.addVendorInfo}"
-      addValidators="${propel.addValidators}"
-    />
-
   </target>
   
   <!-- ================================================================ -->

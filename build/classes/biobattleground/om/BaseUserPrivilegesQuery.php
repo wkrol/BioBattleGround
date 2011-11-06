@@ -30,29 +30,27 @@
  * @method     UserPrivilegesQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
  * @method     UserPrivilegesQuery innerJoin($relation) Adds a INNER JOIN clause to the query
  *
- * @method     UserPrivilegesQuery leftJoinOrganism($relationAlias = null) Adds a LEFT JOIN clause to the query using the Organism relation
- * @method     UserPrivilegesQuery rightJoinOrganism($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Organism relation
- * @method     UserPrivilegesQuery innerJoinOrganism($relationAlias = null) Adds a INNER JOIN clause to the query using the Organism relation
+ * @method     UserPrivilegesQuery leftJoinOrganism($relationAlias = '') Adds a LEFT JOIN clause to the query using the Organism relation
+ * @method     UserPrivilegesQuery rightJoinOrganism($relationAlias = '') Adds a RIGHT JOIN clause to the query using the Organism relation
+ * @method     UserPrivilegesQuery innerJoinOrganism($relationAlias = '') Adds a INNER JOIN clause to the query using the Organism relation
  *
- * @method     UserPrivilegesQuery leftJoinUser($relationAlias = null) Adds a LEFT JOIN clause to the query using the User relation
- * @method     UserPrivilegesQuery rightJoinUser($relationAlias = null) Adds a RIGHT JOIN clause to the query using the User relation
- * @method     UserPrivilegesQuery innerJoinUser($relationAlias = null) Adds a INNER JOIN clause to the query using the User relation
+ * @method     UserPrivilegesQuery leftJoinUser($relationAlias = '') Adds a LEFT JOIN clause to the query using the User relation
+ * @method     UserPrivilegesQuery rightJoinUser($relationAlias = '') Adds a RIGHT JOIN clause to the query using the User relation
+ * @method     UserPrivilegesQuery innerJoinUser($relationAlias = '') Adds a INNER JOIN clause to the query using the User relation
  *
- * @method     UserPrivilegesQuery leftJoinMap($relationAlias = null) Adds a LEFT JOIN clause to the query using the Map relation
- * @method     UserPrivilegesQuery rightJoinMap($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Map relation
- * @method     UserPrivilegesQuery innerJoinMap($relationAlias = null) Adds a INNER JOIN clause to the query using the Map relation
+ * @method     UserPrivilegesQuery leftJoinMap($relationAlias = '') Adds a LEFT JOIN clause to the query using the Map relation
+ * @method     UserPrivilegesQuery rightJoinMap($relationAlias = '') Adds a RIGHT JOIN clause to the query using the Map relation
+ * @method     UserPrivilegesQuery innerJoinMap($relationAlias = '') Adds a INNER JOIN clause to the query using the Map relation
  *
- * @method     UserPrivilegesQuery leftJoinClimate($relationAlias = null) Adds a LEFT JOIN clause to the query using the Climate relation
- * @method     UserPrivilegesQuery rightJoinClimate($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Climate relation
- * @method     UserPrivilegesQuery innerJoinClimate($relationAlias = null) Adds a INNER JOIN clause to the query using the Climate relation
+ * @method     UserPrivilegesQuery leftJoinClimate($relationAlias = '') Adds a LEFT JOIN clause to the query using the Climate relation
+ * @method     UserPrivilegesQuery rightJoinClimate($relationAlias = '') Adds a RIGHT JOIN clause to the query using the Climate relation
+ * @method     UserPrivilegesQuery innerJoinClimate($relationAlias = '') Adds a INNER JOIN clause to the query using the Climate relation
  *
- * @method     UserPrivilegesQuery leftJoinGroup($relationAlias = null) Adds a LEFT JOIN clause to the query using the Group relation
- * @method     UserPrivilegesQuery rightJoinGroup($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Group relation
- * @method     UserPrivilegesQuery innerJoinGroup($relationAlias = null) Adds a INNER JOIN clause to the query using the Group relation
+ * @method     UserPrivilegesQuery leftJoinGroup($relationAlias = '') Adds a LEFT JOIN clause to the query using the Group relation
+ * @method     UserPrivilegesQuery rightJoinGroup($relationAlias = '') Adds a RIGHT JOIN clause to the query using the Group relation
+ * @method     UserPrivilegesQuery innerJoinGroup($relationAlias = '') Adds a INNER JOIN clause to the query using the Group relation
  *
  * @method     UserPrivileges findOne(PropelPDO $con = null) Return the first UserPrivileges matching the query
- * @method     UserPrivileges findOneOrCreate(PropelPDO $con = null) Return the first UserPrivileges matching the query, or a new UserPrivileges object populated from the query conditions when no match is found
- *
  * @method     UserPrivileges findOneById(int $id) Return the first UserPrivileges filtered by the id column
  * @method     UserPrivileges findOneByIdUser(int $id_user) Return the first UserPrivileges filtered by the id_user column
  * @method     UserPrivileges findOneByIdOrganism(int $id_organism) Return the first UserPrivileges filtered by the id_organism column
@@ -77,7 +75,7 @@
  */
 abstract class BaseUserPrivilegesQuery extends ModelCriteria
 {
-	
+
 	/**
 	 * Initializes internal state of BaseUserPrivilegesQuery object.
 	 *
@@ -114,14 +112,11 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	}
 
 	/**
-	 * Find object by primary key.
-	 * Propel uses the instance pool to skip the database if the object exists.
-	 * Go fast if the query is untouched.
-	 *
+	 * Find object by primary key
+	 * Use instance pooling to avoid a database query if the object exists
 	 * <code>
 	 * $obj  = $c->findPk(12, $con);
 	 * </code>
-	 *
 	 * @param     mixed $key Primary key to use for the query
 	 * @param     PropelPDO $con an optional connection object
 	 *
@@ -129,73 +124,16 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 */
 	public function findPk($key, $con = null)
 	{
-		if ($key === null) {
-			return null;
-		}
-		if ((null !== ($obj = UserPrivilegesPeer::getInstanceFromPool((string) $key))) && !$this->formatter) {
+		if ((null !== ($obj = UserPrivilegesPeer::getInstanceFromPool((string) $key))) && $this->getFormatter()->isObjectFormatter()) {
 			// the object is alredy in the instance pool
 			return $obj;
-		}
-		if ($con === null) {
-			$con = Propel::getConnection(UserPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		if ($this->formatter || $this->modelAlias || $this->with || $this->select
-		 || $this->selectColumns || $this->asColumns || $this->selectModifiers
-		 || $this->map || $this->having || $this->joins) {
-			return $this->findPkComplex($key, $con);
 		} else {
-			return $this->findPkSimple($key, $con);
+			// the object has not been requested yet, or the formatter is not an object formatter
+			$stmt = $this
+				->filterByPrimaryKey($key)
+				->getSelectStatement($con);
+			return $this->getFormatter()->formatOne($stmt);
 		}
-	}
-
-	/**
-	 * Find object by primary key using raw SQL to go fast.
-	 * Bypass doSelect() and the object formatter by using generated code.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    UserPrivileges A model object, or null if the key is not found
-	 */
-	protected function findPkSimple($key, $con)
-	{
-		$sql = 'SELECT `ID`, `ID_USER`, `ID_ORGANISM`, `ID_MAP`, `ID_CLIMATE`, `PLAY`, `FIGHT`, `EDIT`, `SHOW_STATS` FROM `user_privileges` WHERE `ID` = :p0';
-		try {
-			$stmt = $con->prepare($sql);
-			$stmt->bindValue(':p0', $key, PDO::PARAM_INT);
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute SELECT statement [%s]', $sql), $e);
-		}
-		$obj = null;
-		if ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-			$obj = new UserPrivileges();
-			$obj->hydrate($row);
-			UserPrivilegesPeer::addInstanceToPool($obj, (string) $row[0]);
-		}
-		$stmt->closeCursor();
-
-		return $obj;
-	}
-
-	/**
-	 * Find object by primary key.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    UserPrivileges|array|mixed the result, formatted by the current formatter
-	 */
-	protected function findPkComplex($key, $con)
-	{
-		// As the query uses a PK condition, no limit(1) is necessary.
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
-			->filterByPrimaryKey($key)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->formatOne($stmt);
 	}
 
 	/**
@@ -209,16 +147,10 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 * @return    PropelObjectCollection|array|mixed the list of results, formatted by the current formatter
 	 */
 	public function findPks($keys, $con = null)
-	{
-		if ($con === null) {
-			$con = Propel::getConnection($this->getDbName(), Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
+	{	
+		return $this
 			->filterByPrimaryKeys($keys)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->format($stmt);
+			->find($con);
 	}
 
 	/**
@@ -247,25 +179,16 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterById(1234); // WHERE id = 1234
-	 * $query->filterById(array(12, 34)); // WHERE id IN (12, 34)
-	 * $query->filterById(array('min' => 12)); // WHERE id > 12
-	 * </code>
-	 *
-	 * @param     mixed $id The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $id The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterById($id = null, $comparison = null)
+	public function filterById($id = null, $comparison = Criteria::EQUAL)
 	{
-		if (is_array($id) && null === $comparison) {
+		if (is_array($id) && $comparison == Criteria::EQUAL) {
 			$comparison = Criteria::IN;
 		}
 		return $this->addUsingAlias(UserPrivilegesPeer::ID, $id, $comparison);
@@ -273,25 +196,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id_user column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByIdUser(1234); // WHERE id_user = 1234
-	 * $query->filterByIdUser(array(12, 34)); // WHERE id_user IN (12, 34)
-	 * $query->filterByIdUser(array('min' => 12)); // WHERE id_user > 12
-	 * </code>
-	 *
-	 * @see       filterByUser()
-	 *
-	 * @param     mixed $idUser The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $idUser The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByIdUser($idUser = null, $comparison = null)
+	public function filterByIdUser($idUser = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($idUser)) {
 			$useMinMax = false;
@@ -306,7 +218,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -315,25 +227,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id_organism column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByIdOrganism(1234); // WHERE id_organism = 1234
-	 * $query->filterByIdOrganism(array(12, 34)); // WHERE id_organism IN (12, 34)
-	 * $query->filterByIdOrganism(array('min' => 12)); // WHERE id_organism > 12
-	 * </code>
-	 *
-	 * @see       filterByOrganism()
-	 *
-	 * @param     mixed $idOrganism The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $idOrganism The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByIdOrganism($idOrganism = null, $comparison = null)
+	public function filterByIdOrganism($idOrganism = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($idOrganism)) {
 			$useMinMax = false;
@@ -348,7 +249,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -357,25 +258,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id_map column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByIdMap(1234); // WHERE id_map = 1234
-	 * $query->filterByIdMap(array(12, 34)); // WHERE id_map IN (12, 34)
-	 * $query->filterByIdMap(array('min' => 12)); // WHERE id_map > 12
-	 * </code>
-	 *
-	 * @see       filterByMap()
-	 *
-	 * @param     mixed $idMap The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $idMap The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByIdMap($idMap = null, $comparison = null)
+	public function filterByIdMap($idMap = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($idMap)) {
 			$useMinMax = false;
@@ -390,7 +280,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -399,25 +289,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id_climate column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByIdClimate(1234); // WHERE id_climate = 1234
-	 * $query->filterByIdClimate(array(12, 34)); // WHERE id_climate IN (12, 34)
-	 * $query->filterByIdClimate(array('min' => 12)); // WHERE id_climate > 12
-	 * </code>
-	 *
-	 * @see       filterByClimate()
-	 *
-	 * @param     mixed $idClimate The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $idClimate The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByIdClimate($idClimate = null, $comparison = null)
+	public function filterByIdClimate($idClimate = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($idClimate)) {
 			$useMinMax = false;
@@ -432,7 +311,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -441,23 +320,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the play column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByPlay(1234); // WHERE play = 1234
-	 * $query->filterByPlay(array(12, 34)); // WHERE play IN (12, 34)
-	 * $query->filterByPlay(array('min' => 12)); // WHERE play > 12
-	 * </code>
-	 *
-	 * @param     mixed $play The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $play The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByPlay($play = null, $comparison = null)
+	public function filterByPlay($play = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($play)) {
 			$useMinMax = false;
@@ -472,7 +342,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -481,23 +351,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the fight column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByFight(1234); // WHERE fight = 1234
-	 * $query->filterByFight(array(12, 34)); // WHERE fight IN (12, 34)
-	 * $query->filterByFight(array('min' => 12)); // WHERE fight > 12
-	 * </code>
-	 *
-	 * @param     mixed $fight The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $fight The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByFight($fight = null, $comparison = null)
+	public function filterByFight($fight = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($fight)) {
 			$useMinMax = false;
@@ -512,7 +373,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -521,23 +382,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the edit column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByEdit(1234); // WHERE edit = 1234
-	 * $query->filterByEdit(array(12, 34)); // WHERE edit IN (12, 34)
-	 * $query->filterByEdit(array('min' => 12)); // WHERE edit > 12
-	 * </code>
-	 *
-	 * @param     mixed $edit The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $edit The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByEdit($edit = null, $comparison = null)
+	public function filterByEdit($edit = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($edit)) {
 			$useMinMax = false;
@@ -552,7 +404,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -561,23 +413,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the show_stats column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByShowStats(1234); // WHERE show_stats = 1234
-	 * $query->filterByShowStats(array(12, 34)); // WHERE show_stats IN (12, 34)
-	 * $query->filterByShowStats(array('min' => 12)); // WHERE show_stats > 12
-	 * </code>
-	 *
-	 * @param     mixed $showStats The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $showStats The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByShowStats($showStats = null, $comparison = null)
+	public function filterByShowStats($showStats = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($showStats)) {
 			$useMinMax = false;
@@ -592,7 +435,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -602,48 +445,35 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	/**
 	 * Filter the query by a related Organism object
 	 *
-	 * @param     Organism|PropelCollection $organism The related object(s) to use as filter
+	 * @param     Organism $organism  the related object to use as filter
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByOrganism($organism, $comparison = null)
+	public function filterByOrganism($organism, $comparison = Criteria::EQUAL)
 	{
-		if ($organism instanceof Organism) {
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_ORGANISM, $organism->getId(), $comparison);
-		} elseif ($organism instanceof PropelCollection) {
-			if (null === $comparison) {
-				$comparison = Criteria::IN;
-			}
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_ORGANISM, $organism->toKeyValue('PrimaryKey', 'Id'), $comparison);
-		} else {
-			throw new PropelException('filterByOrganism() only accepts arguments of type Organism or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPrivilegesPeer::ID_ORGANISM, $organism->getId(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the Organism relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function joinOrganism($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinOrganism($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('Organism');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -651,7 +481,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'Organism');
 		}
-
+		
 		return $this;
 	}
 
@@ -659,14 +489,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 * Use the Organism relation Organism object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    OrganismQuery A secondary query class using the current class as primary query
 	 */
-	public function useOrganismQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useOrganismQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinOrganism($relationAlias, $joinType)
@@ -676,48 +506,35 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	/**
 	 * Filter the query by a related User object
 	 *
-	 * @param     User|PropelCollection $user The related object(s) to use as filter
+	 * @param     User $user  the related object to use as filter
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByUser($user, $comparison = null)
+	public function filterByUser($user, $comparison = Criteria::EQUAL)
 	{
-		if ($user instanceof User) {
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_USER, $user->getId(), $comparison);
-		} elseif ($user instanceof PropelCollection) {
-			if (null === $comparison) {
-				$comparison = Criteria::IN;
-			}
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_USER, $user->toKeyValue('PrimaryKey', 'Id'), $comparison);
-		} else {
-			throw new PropelException('filterByUser() only accepts arguments of type User or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPrivilegesPeer::ID_USER, $user->getId(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the User relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function joinUser($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinUser($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('User');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -725,7 +542,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'User');
 		}
-
+		
 		return $this;
 	}
 
@@ -733,14 +550,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 * Use the User relation User object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserQuery A secondary query class using the current class as primary query
 	 */
-	public function useUserQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useUserQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinUser($relationAlias, $joinType)
@@ -750,48 +567,35 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	/**
 	 * Filter the query by a related Map object
 	 *
-	 * @param     Map|PropelCollection $map The related object(s) to use as filter
+	 * @param     Map $map  the related object to use as filter
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByMap($map, $comparison = null)
+	public function filterByMap($map, $comparison = Criteria::EQUAL)
 	{
-		if ($map instanceof Map) {
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_MAP, $map->getId(), $comparison);
-		} elseif ($map instanceof PropelCollection) {
-			if (null === $comparison) {
-				$comparison = Criteria::IN;
-			}
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_MAP, $map->toKeyValue('PrimaryKey', 'Id'), $comparison);
-		} else {
-			throw new PropelException('filterByMap() only accepts arguments of type Map or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPrivilegesPeer::ID_MAP, $map->getId(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the Map relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function joinMap($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinMap($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('Map');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -799,7 +603,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'Map');
 		}
-
+		
 		return $this;
 	}
 
@@ -807,14 +611,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 * Use the Map relation Map object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    MapQuery A secondary query class using the current class as primary query
 	 */
-	public function useMapQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useMapQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinMap($relationAlias, $joinType)
@@ -824,48 +628,35 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	/**
 	 * Filter the query by a related Climate object
 	 *
-	 * @param     Climate|PropelCollection $climate The related object(s) to use as filter
+	 * @param     Climate $climate  the related object to use as filter
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByClimate($climate, $comparison = null)
+	public function filterByClimate($climate, $comparison = Criteria::EQUAL)
 	{
-		if ($climate instanceof Climate) {
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_CLIMATE, $climate->getId(), $comparison);
-		} elseif ($climate instanceof PropelCollection) {
-			if (null === $comparison) {
-				$comparison = Criteria::IN;
-			}
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_CLIMATE, $climate->toKeyValue('PrimaryKey', 'Id'), $comparison);
-		} else {
-			throw new PropelException('filterByClimate() only accepts arguments of type Climate or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPrivilegesPeer::ID_CLIMATE, $climate->getId(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the Climate relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function joinClimate($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinClimate($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('Climate');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -873,7 +664,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'Climate');
 		}
-
+		
 		return $this;
 	}
 
@@ -881,14 +672,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 * Use the Climate relation Climate object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    ClimateQuery A secondary query class using the current class as primary query
 	 */
-	public function useClimateQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useClimateQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinClimate($relationAlias, $joinType)
@@ -903,42 +694,30 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByGroup($group, $comparison = null)
+	public function filterByGroup($group, $comparison = Criteria::EQUAL)
 	{
-		if ($group instanceof Group) {
-			return $this
-				->addUsingAlias(UserPrivilegesPeer::ID_USER, $group->getIdUserPrivileges(), $comparison);
-		} elseif ($group instanceof PropelCollection) {
-			return $this
-				->useGroupQuery()
-				->filterByPrimaryKeys($group->getPrimaryKeys())
-				->endUse();
-		} else {
-			throw new PropelException('filterByGroup() only accepts arguments of type Group or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(UserPrivilegesPeer::ID_USER, $group->getIdUserPrivileges(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the Group relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery The current query, for fluid interface
 	 */
-	public function joinGroup($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinGroup($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('Group');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -946,7 +725,7 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'Group');
 		}
-
+		
 		return $this;
 	}
 
@@ -954,14 +733,14 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	 * Use the Group relation Group object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    GroupQuery A secondary query class using the current class as primary query
 	 */
-	public function useGroupQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useGroupQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinGroup($relationAlias, $joinType)
@@ -979,9 +758,40 @@ abstract class BaseUserPrivilegesQuery extends ModelCriteria
 	{
 		if ($userPrivileges) {
 			$this->addUsingAlias(UserPrivilegesPeer::ID, $userPrivileges->getId(), Criteria::NOT_EQUAL);
-		}
-
+	  }
+	  
 		return $this;
+	}
+
+	/**
+	 * Code to execute before every SELECT statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreSelect(PropelPDO $con)
+	{
+		return $this->preSelect($con);
+	}
+
+	/**
+	 * Code to execute before every DELETE statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreDelete(PropelPDO $con)
+	{
+		return $this->preDelete($con);
+	}
+
+	/**
+	 * Code to execute before every UPDATE statement
+	 * 
+	 * @param     array $values The associatiove array of columns and values for the update
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreUpdate(&$values, PropelPDO $con)
+	{
+		return $this->preUpdate($values, $con);
 	}
 
 } // BaseUserPrivilegesQuery

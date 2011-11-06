@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base class that represents a row from the 'climate' table.
  *
@@ -14,7 +13,7 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	/**
 	 * Peer class name
 	 */
-	const PEER = 'ClimatePeer';
+  const PEER = 'ClimatePeer';
 
 	/**
 	 * The Peer class.
@@ -77,18 +76,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $userPrivilegessScheduledForDeletion = null;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $simulationsScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -285,7 +272,7 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 5; // 5 = ClimatePeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 5; // 5 = ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS).
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating Climate object", $e);
@@ -372,21 +359,21 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(ClimatePeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		try {
-			$deleteQuery = ClimateQuery::create()
-				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				$deleteQuery->delete($con);
+				ClimateQuery::create()
+					->filterByPrimaryKey($this->getPrimaryKey())
+					->delete($con);
 				$this->postDelete($con);
 				$con->commit();
 				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -414,7 +401,7 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(ClimatePeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -438,7 +425,7 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -461,24 +448,27 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 		if (!$this->alreadyInSave) {
 			$this->alreadyInSave = true;
 
-			if ($this->isNew() || $this->isModified()) {
-				// persist changes
-				if ($this->isNew()) {
-					$this->doInsert($con);
-				} else {
-					$this->doUpdate($con);
-				}
-				$affectedRows += 1;
-				$this->resetModified();
+			if ($this->isNew() ) {
+				$this->modifiedColumns[] = ClimatePeer::ID;
 			}
 
-			if ($this->userPrivilegessScheduledForDeletion !== null) {
-				if (!$this->userPrivilegessScheduledForDeletion->isEmpty()) {
-					UserPrivilegesQuery::create()
-						->filterByPrimaryKeys($this->userPrivilegessScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->userPrivilegessScheduledForDeletion = null;
+			// If this object has been modified, then save it to the database.
+			if ($this->isModified()) {
+				if ($this->isNew()) {
+					$criteria = $this->buildCriteria();
+					if ($criteria->keyContainsValue(ClimatePeer::ID) ) {
+						throw new PropelException('Cannot insert a value for auto-increment primary key ('.ClimatePeer::ID.')');
+					}
+
+					$pk = BasePeer::doInsert($criteria, $con);
+					$affectedRows = 1;
+					$this->setId($pk);  //[IMV] update autoincrement primary key
+					$this->setNew(false);
+				} else {
+					$affectedRows = ClimatePeer::doUpdate($this, $con);
 				}
+
+				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collUserPrivilegess !== null) {
@@ -486,15 +476,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
-				}
-			}
-
-			if ($this->simulationsScheduledForDeletion !== null) {
-				if (!$this->simulationsScheduledForDeletion->isEmpty()) {
-					SimulationQuery::create()
-						->filterByPrimaryKeys($this->simulationsScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->simulationsScheduledForDeletion = null;
 				}
 			}
 
@@ -511,98 +492,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
-
-	/**
-	 * Insert the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @throws     PropelException
-	 * @see        doSave()
-	 */
-	protected function doInsert(PropelPDO $con)
-	{
-		$modifiedColumns = array();
-		$index = 0;
-
-		$this->modifiedColumns[] = ClimatePeer::ID;
-		if (null !== $this->id) {
-			throw new PropelException('Cannot insert a value for auto-increment primary key (' . ClimatePeer::ID . ')');
-		}
-
-		 // check the columns in natural order for more readable SQL queries
-		if ($this->isColumnModified(ClimatePeer::ID)) {
-			$modifiedColumns[':p' . $index++]  = '`ID`';
-		}
-		if ($this->isColumnModified(ClimatePeer::NAME)) {
-			$modifiedColumns[':p' . $index++]  = '`NAME`';
-		}
-		if ($this->isColumnModified(ClimatePeer::SUN)) {
-			$modifiedColumns[':p' . $index++]  = '`SUN`';
-		}
-		if ($this->isColumnModified(ClimatePeer::RAIN)) {
-			$modifiedColumns[':p' . $index++]  = '`RAIN`';
-		}
-		if ($this->isColumnModified(ClimatePeer::WIND)) {
-			$modifiedColumns[':p' . $index++]  = '`WIND`';
-		}
-
-		$sql = sprintf(
-			'INSERT INTO `climate` (%s) VALUES (%s)',
-			implode(', ', $modifiedColumns),
-			implode(', ', array_keys($modifiedColumns))
-		);
-
-		try {
-			$stmt = $con->prepare($sql);
-			foreach ($modifiedColumns as $identifier => $columnName) {
-				switch ($columnName) {
-					case '`ID`':
-						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
-						break;
-					case '`NAME`':
-						$stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
-						break;
-					case '`SUN`':
-						$stmt->bindValue($identifier, $this->sun, PDO::PARAM_INT);
-						break;
-					case '`RAIN`':
-						$stmt->bindValue($identifier, $this->rain, PDO::PARAM_INT);
-						break;
-					case '`WIND`':
-						$stmt->bindValue($identifier, $this->wind, PDO::PARAM_INT);
-						break;
-				}
-			}
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
-		}
-
-		try {
-			$pk = $con->lastInsertId();
-		} catch (Exception $e) {
-			throw new PropelException('Unable to get autoincrement id.', $e);
-		}
-		$this->setId($pk);
-
-		$this->setNew(false);
-	}
-
-	/**
-	 * Update the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @see        doSave()
-	 */
-	protected function doUpdate(PropelPDO $con)
-	{
-		$selectCriteria = $this->buildPkeyCriteria();
-		$valuesCriteria = $this->buildCriteria();
-		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
-	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -746,20 +635,14 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 * type constants.
 	 *
 	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
-	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM. 
 	 *                    Defaults to BasePeer::TYPE_PHPNAME.
 	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
-	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
-	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
 	 *
 	 * @return    array an associative array containing the field names (as keys) and field values
 	 */
-	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true)
 	{
-		if (isset($alreadyDumpedObjects['Climate'][$this->getPrimaryKey()])) {
-			return '*RECURSION*';
-		}
-		$alreadyDumpedObjects['Climate'][$this->getPrimaryKey()] = true;
 		$keys = ClimatePeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getId(),
@@ -768,14 +651,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 			$keys[3] => $this->getRain(),
 			$keys[4] => $this->getWind(),
 		);
-		if ($includeForeignObjects) {
-			if (null !== $this->collUserPrivilegess) {
-				$result['UserPrivilegess'] = $this->collUserPrivilegess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-			if (null !== $this->collSimulations) {
-				$result['Simulations'] = $this->collSimulations->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-		}
 		return $result;
 	}
 
@@ -923,15 +798,14 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 *
 	 * @param      object $copyObj An object of Climate (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
+	public function copyInto($copyObj, $deepCopy = false)
 	{
-		$copyObj->setName($this->getName());
-		$copyObj->setSun($this->getSun());
-		$copyObj->setRain($this->getRain());
-		$copyObj->setWind($this->getWind());
+		$copyObj->setName($this->name);
+		$copyObj->setSun($this->sun);
+		$copyObj->setRain($this->rain);
+		$copyObj->setWind($this->wind);
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -952,10 +826,9 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 
 		} // if ($deepCopy)
 
-		if ($makeNew) {
-			$copyObj->setNew(true);
-			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-		}
+
+		$copyObj->setNew(true);
+		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
 	}
 
 	/**
@@ -996,25 +869,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 		return self::$peer;
 	}
 
-
-	/**
-	 * Initializes a collection based on the name of a relation.
-	 * Avoids crafting an 'init[$relationName]s' method name
-	 * that wouldn't work when StandardEnglishPluralizer is used.
-	 *
-	 * @param      string $relationName The name of the relation to initialize
-	 * @return     void
-	 */
-	public function initRelation($relationName)
-	{
-		if ('UserPrivileges' == $relationName) {
-			return $this->initUserPrivilegess();
-		}
-		if ('Simulation' == $relationName) {
-			return $this->initSimulations();
-		}
-	}
-
 	/**
 	 * Clears out the collUserPrivilegess collection
 	 *
@@ -1036,16 +890,10 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initUserPrivilegess($overrideExisting = true)
+	public function initUserPrivilegess()
 	{
-		if (null !== $this->collUserPrivilegess && !$overrideExisting) {
-			return;
-		}
 		$this->collUserPrivilegess = new PropelObjectCollection();
 		$this->collUserPrivilegess->setModel('UserPrivileges');
 	}
@@ -1084,30 +932,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of UserPrivileges objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $userPrivilegess A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setUserPrivilegess(PropelCollection $userPrivilegess, PropelPDO $con = null)
-	{
-		$this->userPrivilegessScheduledForDeletion = $this->getUserPrivilegess(new Criteria(), $con)->diff($userPrivilegess);
-
-		foreach ($userPrivilegess as $userPrivileges) {
-			// Fix issue with collection modified by reference
-			if ($userPrivileges->isNew()) {
-				$userPrivileges->setClimate($this);
-			}
-			$this->addUserPrivileges($userPrivileges);
-		}
-
-		$this->collUserPrivilegess = $userPrivilegess;
-	}
-
-	/**
 	 * Returns the number of related UserPrivileges objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1140,7 +964,8 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 * through the UserPrivileges foreign key attribute.
 	 *
 	 * @param      UserPrivileges $l UserPrivileges
-	 * @return     Climate The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addUserPrivileges(UserPrivileges $l)
 	{
@@ -1148,19 +973,9 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 			$this->initUserPrivilegess();
 		}
 		if (!$this->collUserPrivilegess->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddUserPrivileges($l);
+			$this->collUserPrivilegess[]= $l;
+			$l->setClimate($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	UserPrivileges $userPrivileges The userPrivileges object to add.
-	 */
-	protected function doAddUserPrivileges($userPrivileges)
-	{
-		$this->collUserPrivilegess[]= $userPrivileges;
-		$userPrivileges->setClimate($this);
 	}
 
 
@@ -1259,16 +1074,10 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initSimulations($overrideExisting = true)
+	public function initSimulations()
 	{
-		if (null !== $this->collSimulations && !$overrideExisting) {
-			return;
-		}
 		$this->collSimulations = new PropelObjectCollection();
 		$this->collSimulations->setModel('Simulation');
 	}
@@ -1307,30 +1116,6 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of Simulation objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $simulations A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setSimulations(PropelCollection $simulations, PropelPDO $con = null)
-	{
-		$this->simulationsScheduledForDeletion = $this->getSimulations(new Criteria(), $con)->diff($simulations);
-
-		foreach ($simulations as $simulation) {
-			// Fix issue with collection modified by reference
-			if ($simulation->isNew()) {
-				$simulation->setClimate($this);
-			}
-			$this->addSimulation($simulation);
-		}
-
-		$this->collSimulations = $simulations;
-	}
-
-	/**
 	 * Returns the number of related Simulation objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1363,7 +1148,8 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 	 * through the Simulation foreign key attribute.
 	 *
 	 * @param      Simulation $l Simulation
-	 * @return     Climate The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addSimulation(Simulation $l)
 	{
@@ -1371,19 +1157,9 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 			$this->initSimulations();
 		}
 		if (!$this->collSimulations->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddSimulation($l);
+			$this->collSimulations[]= $l;
+			$l->setClimate($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	Simulation $simulation The simulation object to add.
-	 */
-	protected function doAddSimulation($simulation)
-	{
-		$this->collSimulations[]= $simulation;
-		$simulation->setClimate($this);
 	}
 
 
@@ -1426,51 +1202,45 @@ abstract class BaseClimate extends BaseObject  implements Persistent
 		$this->clearAllReferences();
 		$this->resetModified();
 		$this->setNew(true);
-		$this->setDeleted(false);
 	}
 
 	/**
-	 * Resets all references to other model objects or collections of model objects.
+	 * Resets all collections of referencing foreign keys.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect
-	 * objects with circular references (even in PHP 5.3). This is currently necessary
-	 * when using Propel in certain daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect objects
+	 * with circular references.  This is currently necessary when using Propel in certain
+	 * daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
+	 * @param      boolean $deep Whether to also clear the references on all associated objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collUserPrivilegess) {
-				foreach ($this->collUserPrivilegess as $o) {
+				foreach ((array) $this->collUserPrivilegess as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collSimulations) {
-				foreach ($this->collSimulations as $o) {
+				foreach ((array) $this->collSimulations as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
-		if ($this->collUserPrivilegess instanceof PropelCollection) {
-			$this->collUserPrivilegess->clearIterator();
-		}
 		$this->collUserPrivilegess = null;
-		if ($this->collSimulations instanceof PropelCollection) {
-			$this->collSimulations->clearIterator();
-		}
 		$this->collSimulations = null;
 	}
 
 	/**
-	 * Return the string representation of this object
-	 *
-	 * @return string
+	 * Catches calls to virtual methods
 	 */
-	public function __toString()
+	public function __call($name, $params)
 	{
-		return (string) $this->exportTo(ClimatePeer::DEFAULT_STRING_FORMAT);
+		if (preg_match('/get(\w+)/', $name, $matches) && $this->hasVirtualColumn($matches[1])) {
+			return $this->getVirtualColumn($matches[1]);
+		}
+		throw new PropelException('Call to undefined method: ' . $name);
 	}
 
 } // BaseClimate

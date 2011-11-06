@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * This class defines the structure of the 'simulation' table.
  *
@@ -14,8 +13,7 @@
  *
  * @package    propel.generator.biobattleground.map
  */
-class SimulationTableMap extends TableMap
-{
+class SimulationTableMap extends TableMap {
 
 	/**
 	 * The (dot-path) name of this class
@@ -31,7 +29,7 @@ class SimulationTableMap extends TableMap
 	 */
 	public function initialize()
 	{
-		// attributes
+	  // attributes
 		$this->setName('simulation');
 		$this->setPhpName('Simulation');
 		$this->setClassname('Simulation');
@@ -51,10 +49,10 @@ class SimulationTableMap extends TableMap
 	 */
 	public function buildRelations()
 	{
-		$this->addRelation('Map', 'Map', RelationMap::MANY_TO_ONE, array('id_map' => 'id', ), null, null);
-		$this->addRelation('Climate', 'Climate', RelationMap::MANY_TO_ONE, array('id_climate' => 'id', ), null, null);
-		$this->addRelation('Group', 'Group', RelationMap::ONE_TO_MANY, array('id' => 'id_simulation', ), 'CASCADE', 'CASCADE', 'Groups');
-		$this->addRelation('Round', 'Round', RelationMap::ONE_TO_MANY, array('id' => 'id_simulation', ), 'CASCADE', 'CASCADE', 'Rounds');
+    $this->addRelation('Map', 'Map', RelationMap::MANY_TO_ONE, array('id_map' => 'id', ), null, null);
+    $this->addRelation('Climate', 'Climate', RelationMap::MANY_TO_ONE, array('id_climate' => 'id', ), null, null);
+    $this->addRelation('Group', 'Group', RelationMap::ONE_TO_MANY, array('id' => 'id_simulation', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('Round', 'Round', RelationMap::ONE_TO_MANY, array('id' => 'id_simulation', ), 'CASCADE', 'CASCADE');
 	} // buildRelations()
 
 } // SimulationTableMap

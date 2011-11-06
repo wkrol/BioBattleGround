@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base class that represents a row from the 'user_privileges' table.
  *
@@ -14,7 +13,7 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	/**
 	 * Peer class name
 	 */
-	const PEER = 'UserPrivilegesPeer';
+  const PEER = 'UserPrivilegesPeer';
 
 	/**
 	 * The Peer class.
@@ -116,12 +115,6 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $groupsScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -458,7 +451,7 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 9; // 9 = UserPrivilegesPeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 9; // 9 = UserPrivilegesPeer::NUM_COLUMNS - UserPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS).
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating UserPrivileges object", $e);
@@ -559,21 +552,21 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(UserPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		try {
-			$deleteQuery = UserPrivilegesQuery::create()
-				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				$deleteQuery->delete($con);
+				UserPrivilegesQuery::create()
+					->filterByPrimaryKey($this->getPrimaryKey())
+					->delete($con);
 				$this->postDelete($con);
 				$con->commit();
 				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -601,7 +594,7 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(UserPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -625,7 +618,7 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -681,24 +674,27 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 				$this->setClimate($this->aClimate);
 			}
 
-			if ($this->isNew() || $this->isModified()) {
-				// persist changes
-				if ($this->isNew()) {
-					$this->doInsert($con);
-				} else {
-					$this->doUpdate($con);
-				}
-				$affectedRows += 1;
-				$this->resetModified();
+			if ($this->isNew() ) {
+				$this->modifiedColumns[] = UserPrivilegesPeer::ID;
 			}
 
-			if ($this->groupsScheduledForDeletion !== null) {
-				if (!$this->groupsScheduledForDeletion->isEmpty()) {
-					GroupQuery::create()
-						->filterByPrimaryKeys($this->groupsScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->groupsScheduledForDeletion = null;
+			// If this object has been modified, then save it to the database.
+			if ($this->isModified()) {
+				if ($this->isNew()) {
+					$criteria = $this->buildCriteria();
+					if ($criteria->keyContainsValue(UserPrivilegesPeer::ID) ) {
+						throw new PropelException('Cannot insert a value for auto-increment primary key ('.UserPrivilegesPeer::ID.')');
+					}
+
+					$pk = BasePeer::doInsert($criteria, $con);
+					$affectedRows += 1;
+					$this->setId($pk);  //[IMV] update autoincrement primary key
+					$this->setNew(false);
+				} else {
+					$affectedRows += UserPrivilegesPeer::doUpdate($this, $con);
 				}
+
+				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collGroups !== null) {
@@ -714,122 +710,6 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
-
-	/**
-	 * Insert the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @throws     PropelException
-	 * @see        doSave()
-	 */
-	protected function doInsert(PropelPDO $con)
-	{
-		$modifiedColumns = array();
-		$index = 0;
-
-		$this->modifiedColumns[] = UserPrivilegesPeer::ID;
-		if (null !== $this->id) {
-			throw new PropelException('Cannot insert a value for auto-increment primary key (' . UserPrivilegesPeer::ID . ')');
-		}
-
-		 // check the columns in natural order for more readable SQL queries
-		if ($this->isColumnModified(UserPrivilegesPeer::ID)) {
-			$modifiedColumns[':p' . $index++]  = '`ID`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::ID_USER)) {
-			$modifiedColumns[':p' . $index++]  = '`ID_USER`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::ID_ORGANISM)) {
-			$modifiedColumns[':p' . $index++]  = '`ID_ORGANISM`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::ID_MAP)) {
-			$modifiedColumns[':p' . $index++]  = '`ID_MAP`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::ID_CLIMATE)) {
-			$modifiedColumns[':p' . $index++]  = '`ID_CLIMATE`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::PLAY)) {
-			$modifiedColumns[':p' . $index++]  = '`PLAY`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::FIGHT)) {
-			$modifiedColumns[':p' . $index++]  = '`FIGHT`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::EDIT)) {
-			$modifiedColumns[':p' . $index++]  = '`EDIT`';
-		}
-		if ($this->isColumnModified(UserPrivilegesPeer::SHOW_STATS)) {
-			$modifiedColumns[':p' . $index++]  = '`SHOW_STATS`';
-		}
-
-		$sql = sprintf(
-			'INSERT INTO `user_privileges` (%s) VALUES (%s)',
-			implode(', ', $modifiedColumns),
-			implode(', ', array_keys($modifiedColumns))
-		);
-
-		try {
-			$stmt = $con->prepare($sql);
-			foreach ($modifiedColumns as $identifier => $columnName) {
-				switch ($columnName) {
-					case '`ID`':
-						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
-						break;
-					case '`ID_USER`':
-						$stmt->bindValue($identifier, $this->id_user, PDO::PARAM_INT);
-						break;
-					case '`ID_ORGANISM`':
-						$stmt->bindValue($identifier, $this->id_organism, PDO::PARAM_INT);
-						break;
-					case '`ID_MAP`':
-						$stmt->bindValue($identifier, $this->id_map, PDO::PARAM_INT);
-						break;
-					case '`ID_CLIMATE`':
-						$stmt->bindValue($identifier, $this->id_climate, PDO::PARAM_INT);
-						break;
-					case '`PLAY`':
-						$stmt->bindValue($identifier, $this->play, PDO::PARAM_INT);
-						break;
-					case '`FIGHT`':
-						$stmt->bindValue($identifier, $this->fight, PDO::PARAM_INT);
-						break;
-					case '`EDIT`':
-						$stmt->bindValue($identifier, $this->edit, PDO::PARAM_INT);
-						break;
-					case '`SHOW_STATS`':
-						$stmt->bindValue($identifier, $this->show_stats, PDO::PARAM_INT);
-						break;
-				}
-			}
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
-		}
-
-		try {
-			$pk = $con->lastInsertId();
-		} catch (Exception $e) {
-			throw new PropelException('Unable to get autoincrement id.', $e);
-		}
-		$this->setId($pk);
-
-		$this->setNew(false);
-	}
-
-	/**
-	 * Update the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @see        doSave()
-	 */
-	protected function doUpdate(PropelPDO $con)
-	{
-		$selectCriteria = $this->buildPkeyCriteria();
-		$valuesCriteria = $this->buildCriteria();
-		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
-	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -1007,20 +887,15 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	 * type constants.
 	 *
 	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
-	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM. 
 	 *                    Defaults to BasePeer::TYPE_PHPNAME.
 	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
-	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
 	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
 	 *
 	 * @return    array an associative array containing the field names (as keys) and field values
 	 */
-	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $includeForeignObjects = false)
 	{
-		if (isset($alreadyDumpedObjects['UserPrivileges'][$this->getPrimaryKey()])) {
-			return '*RECURSION*';
-		}
-		$alreadyDumpedObjects['UserPrivileges'][$this->getPrimaryKey()] = true;
 		$keys = UserPrivilegesPeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getId(),
@@ -1035,19 +910,16 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 		);
 		if ($includeForeignObjects) {
 			if (null !== $this->aOrganism) {
-				$result['Organism'] = $this->aOrganism->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+				$result['Organism'] = $this->aOrganism->toArray($keyType, $includeLazyLoadColumns, true);
 			}
 			if (null !== $this->aUser) {
-				$result['User'] = $this->aUser->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+				$result['User'] = $this->aUser->toArray($keyType, $includeLazyLoadColumns, true);
 			}
 			if (null !== $this->aMap) {
-				$result['Map'] = $this->aMap->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+				$result['Map'] = $this->aMap->toArray($keyType, $includeLazyLoadColumns, true);
 			}
 			if (null !== $this->aClimate) {
-				$result['Climate'] = $this->aClimate->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
-			}
-			if (null !== $this->collGroups) {
-				$result['Groups'] = $this->collGroups->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+				$result['Climate'] = $this->aClimate->toArray($keyType, $includeLazyLoadColumns, true);
 			}
 		}
 		return $result;
@@ -1217,19 +1089,18 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	 *
 	 * @param      object $copyObj An object of UserPrivileges (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
+	public function copyInto($copyObj, $deepCopy = false)
 	{
-		$copyObj->setIdUser($this->getIdUser());
-		$copyObj->setIdOrganism($this->getIdOrganism());
-		$copyObj->setIdMap($this->getIdMap());
-		$copyObj->setIdClimate($this->getIdClimate());
-		$copyObj->setPlay($this->getPlay());
-		$copyObj->setFight($this->getFight());
-		$copyObj->setEdit($this->getEdit());
-		$copyObj->setShowStats($this->getShowStats());
+		$copyObj->setIdUser($this->id_user);
+		$copyObj->setIdOrganism($this->id_organism);
+		$copyObj->setIdMap($this->id_map);
+		$copyObj->setIdClimate($this->id_climate);
+		$copyObj->setPlay($this->play);
+		$copyObj->setFight($this->fight);
+		$copyObj->setEdit($this->edit);
+		$copyObj->setShowStats($this->show_stats);
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -1244,10 +1115,9 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 
 		} // if ($deepCopy)
 
-		if ($makeNew) {
-			$copyObj->setNew(true);
-			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-		}
+
+		$copyObj->setNew(true);
+		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
 	}
 
 	/**
@@ -1325,13 +1195,13 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	public function getOrganism(PropelPDO $con = null)
 	{
 		if ($this->aOrganism === null && ($this->id_organism !== null)) {
-			$this->aOrganism = OrganismQuery::create()->findPk($this->id_organism, $con);
+			$this->aOrganism = OrganismQuery::create()->findPk($this->id_organism);
 			/* The following can be used additionally to
-				guarantee the related object contains a reference
-				to this object.  This level of coupling may, however, be
-				undesirable since it could result in an only partially populated collection
-				in the referenced object.
-				$this->aOrganism->addUserPrivilegess($this);
+			   guarantee the related object contains a reference
+			   to this object.  This level of coupling may, however, be
+			   undesirable since it could result in an only partially populated collection
+			   in the referenced object.
+			   $this->aOrganism->addUserPrivilegess($this);
 			 */
 		}
 		return $this->aOrganism;
@@ -1374,13 +1244,13 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	public function getUser(PropelPDO $con = null)
 	{
 		if ($this->aUser === null && ($this->id_user !== null)) {
-			$this->aUser = UserQuery::create()->findPk($this->id_user, $con);
+			$this->aUser = UserQuery::create()->findPk($this->id_user);
 			/* The following can be used additionally to
-				guarantee the related object contains a reference
-				to this object.  This level of coupling may, however, be
-				undesirable since it could result in an only partially populated collection
-				in the referenced object.
-				$this->aUser->addUserPrivilegess($this);
+			   guarantee the related object contains a reference
+			   to this object.  This level of coupling may, however, be
+			   undesirable since it could result in an only partially populated collection
+			   in the referenced object.
+			   $this->aUser->addUserPrivilegess($this);
 			 */
 		}
 		return $this->aUser;
@@ -1423,13 +1293,13 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	public function getMap(PropelPDO $con = null)
 	{
 		if ($this->aMap === null && ($this->id_map !== null)) {
-			$this->aMap = MapQuery::create()->findPk($this->id_map, $con);
+			$this->aMap = MapQuery::create()->findPk($this->id_map);
 			/* The following can be used additionally to
-				guarantee the related object contains a reference
-				to this object.  This level of coupling may, however, be
-				undesirable since it could result in an only partially populated collection
-				in the referenced object.
-				$this->aMap->addUserPrivilegess($this);
+			   guarantee the related object contains a reference
+			   to this object.  This level of coupling may, however, be
+			   undesirable since it could result in an only partially populated collection
+			   in the referenced object.
+			   $this->aMap->addUserPrivilegess($this);
 			 */
 		}
 		return $this->aMap;
@@ -1472,32 +1342,16 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	public function getClimate(PropelPDO $con = null)
 	{
 		if ($this->aClimate === null && ($this->id_climate !== null)) {
-			$this->aClimate = ClimateQuery::create()->findPk($this->id_climate, $con);
+			$this->aClimate = ClimateQuery::create()->findPk($this->id_climate);
 			/* The following can be used additionally to
-				guarantee the related object contains a reference
-				to this object.  This level of coupling may, however, be
-				undesirable since it could result in an only partially populated collection
-				in the referenced object.
-				$this->aClimate->addUserPrivilegess($this);
+			   guarantee the related object contains a reference
+			   to this object.  This level of coupling may, however, be
+			   undesirable since it could result in an only partially populated collection
+			   in the referenced object.
+			   $this->aClimate->addUserPrivilegess($this);
 			 */
 		}
 		return $this->aClimate;
-	}
-
-
-	/**
-	 * Initializes a collection based on the name of a relation.
-	 * Avoids crafting an 'init[$relationName]s' method name
-	 * that wouldn't work when StandardEnglishPluralizer is used.
-	 *
-	 * @param      string $relationName The name of the relation to initialize
-	 * @return     void
-	 */
-	public function initRelation($relationName)
-	{
-		if ('Group' == $relationName) {
-			return $this->initGroups();
-		}
 	}
 
 	/**
@@ -1521,16 +1375,10 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initGroups($overrideExisting = true)
+	public function initGroups()
 	{
-		if (null !== $this->collGroups && !$overrideExisting) {
-			return;
-		}
 		$this->collGroups = new PropelObjectCollection();
 		$this->collGroups->setModel('Group');
 	}
@@ -1569,30 +1417,6 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of Group objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $groups A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setGroups(PropelCollection $groups, PropelPDO $con = null)
-	{
-		$this->groupsScheduledForDeletion = $this->getGroups(new Criteria(), $con)->diff($groups);
-
-		foreach ($groups as $group) {
-			// Fix issue with collection modified by reference
-			if ($group->isNew()) {
-				$group->setUserPrivileges($this);
-			}
-			$this->addGroup($group);
-		}
-
-		$this->collGroups = $groups;
-	}
-
-	/**
 	 * Returns the number of related Group objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1625,7 +1449,8 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	 * through the Group foreign key attribute.
 	 *
 	 * @param      Group $l Group
-	 * @return     UserPrivileges The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addGroup(Group $l)
 	{
@@ -1633,19 +1458,9 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 			$this->initGroups();
 		}
 		if (!$this->collGroups->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddGroup($l);
+			$this->collGroups[]= $l;
+			$l->setUserPrivileges($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	Group $group The group object to add.
-	 */
-	protected function doAddGroup($group)
-	{
-		$this->collGroups[]= $group;
-		$group->setUserPrivileges($this);
 	}
 
 
@@ -1717,31 +1532,27 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 		$this->clearAllReferences();
 		$this->resetModified();
 		$this->setNew(true);
-		$this->setDeleted(false);
 	}
 
 	/**
-	 * Resets all references to other model objects or collections of model objects.
+	 * Resets all collections of referencing foreign keys.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect
-	 * objects with circular references (even in PHP 5.3). This is currently necessary
-	 * when using Propel in certain daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect objects
+	 * with circular references.  This is currently necessary when using Propel in certain
+	 * daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
+	 * @param      boolean $deep Whether to also clear the references on all associated objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collGroups) {
-				foreach ($this->collGroups as $o) {
+				foreach ((array) $this->collGroups as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
-		if ($this->collGroups instanceof PropelCollection) {
-			$this->collGroups->clearIterator();
-		}
 		$this->collGroups = null;
 		$this->aOrganism = null;
 		$this->aUser = null;
@@ -1750,13 +1561,14 @@ abstract class BaseUserPrivileges extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Return the string representation of this object
-	 *
-	 * @return string
+	 * Catches calls to virtual methods
 	 */
-	public function __toString()
+	public function __call($name, $params)
 	{
-		return (string) $this->exportTo(UserPrivilegesPeer::DEFAULT_STRING_FORMAT);
+		if (preg_match('/get(\w+)/', $name, $matches) && $this->hasVirtualColumn($matches[1])) {
+			return $this->getVirtualColumn($matches[1]);
+		}
+		throw new PropelException('Call to undefined method: ' . $name);
 	}
 
 } // BaseUserPrivileges

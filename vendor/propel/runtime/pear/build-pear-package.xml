@@ -6,7 +6,7 @@
 
 -->
 
-<project name="propel_runtime" basedir="." default="main">
+<project name="propel_runtime" default="main">
 
 	<property name="propel.home" value=".."/>
 	<property name="build.base.dir" value="build"/>
@@ -14,8 +14,9 @@
 	<property name="build.src.dir" value="${build.base.dir}/${pkgname}"/>
 
 	<!-- some default properties -->
-	<property name="notes"><![CDATA[This is a release of the 1.4 branch of the Propel Runtime.
-See: http://propel.phpdb.org/trac/query?status=closed&milestone=1.4&resolution=fixed&order=priority for CHANGELOG.
+	<property name="notes"><![CDATA[
+		This is a release of the 1.5 branch of the Propel Generator. 
+		See http://bit.ly/dskpCk for CHANGELOG.
 	]]></property>
 	<property name="state" value="stable"/>
 
@@ -23,7 +24,7 @@ See: http://propel.phpdb.org/trac/query?status=closed&milestone=1.4&resolution=f
     name="pear-package"
     classname="BuildPropelPEARPackageTask" classpath="."/>
 
-	<fileset dir="${propel.home}/classes/propel" id="classes">
+	<fileset dir="${propel.home}/lib" id="classes">
 		<include name="**"/>
 	</fileset>
 

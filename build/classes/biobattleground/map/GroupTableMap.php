@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * This class defines the structure of the 'group' table.
  *
@@ -14,8 +13,7 @@
  *
  * @package    propel.generator.biobattleground.map
  */
-class GroupTableMap extends TableMap
-{
+class GroupTableMap extends TableMap {
 
 	/**
 	 * The (dot-path) name of this class
@@ -31,7 +29,7 @@ class GroupTableMap extends TableMap
 	 */
 	public function initialize()
 	{
-		// attributes
+	  // attributes
 		$this->setName('group');
 		$this->setPhpName('Group');
 		$this->setClassname('Group');
@@ -54,9 +52,9 @@ class GroupTableMap extends TableMap
 	 */
 	public function buildRelations()
 	{
-		$this->addRelation('Organism', 'Organism', RelationMap::MANY_TO_ONE, array('id_organism' => 'id', ), 'CASCADE', 'CASCADE');
-		$this->addRelation('Simulation', 'Simulation', RelationMap::MANY_TO_ONE, array('id_simulation' => 'id', ), 'CASCADE', 'CASCADE');
-		$this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::MANY_TO_ONE, array('id_user_privileges' => 'id_user', ), null, null);
+    $this->addRelation('Organism', 'Organism', RelationMap::MANY_TO_ONE, array('id_organism' => 'id', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('Simulation', 'Simulation', RelationMap::MANY_TO_ONE, array('id_simulation' => 'id', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::MANY_TO_ONE, array('id_user_privileges' => 'id_user', ), null, null);
 	} // buildRelations()
 
 } // GroupTableMap

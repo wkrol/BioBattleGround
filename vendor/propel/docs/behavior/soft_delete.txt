@@ -25,23 +25,23 @@ $b->save();
 $b->delete();
 echo $b->isDeleted(); // false
 echo $b->getDeletedAt(); // 2009-10-02 18:14:23
-$books = BookPeer::doSelect(new Criteria()); // empty array
+$books = BookQuery::create()->find(); // empty collection
 }}}
 
 Behind the curtain, the behavior adds a condition to every SELECT query to return only records where the `deleted_at` column is null. That's why the deleted objects don't appear anymore upon selection.
 
-You can turn off the query alteration globally by calling the static method `disableSoftDelete()` on the related Peer object:
+You can turn off the query alteration globally by calling the static method `disableSoftDelete()` on the related Query object:
 
 {{{
 #!php
 <?php
-BookPeer::disableSoftDelete();
-$books = BookPeer::doSelect(new Criteria());
+BookQuery::disableSoftDelete();
+$books = BookQuery::create()->find();
 $book = $books[0];
 echo $book->getTitle(); // 'War And Peace'
 }}}
 
-Note that `doSelect()` and other selection methods automatically re-enable the `soft_delete` filter. You can also enable it manually by calling the `enableSoftDelete()` method on Peer objects.
+Note that `find()` and other selection methods automatically re-enable the `soft_delete` filter. You can also enable it manually by calling the `enableSoftDelete()` method on Peer objects.
 
 If you want to recover a deleted object, use the `unDelete()` method:
 
@@ -49,7 +49,7 @@ If you want to recover a deleted object, use the `unDelete()` method:
 #!php
 <?php
 $book->unDelete();
-$books = BookPeer::doSelect(new Criteria());
+$books = BookQuery::create()->find();
 $book = $books[0];
 echo $book->getTitle(); // 'War And Peace'
 }}}
@@ -61,10 +61,10 @@ If you want to force the real deletion of an object, call the `forceDelete()` me
 <?php
 $book->forceDelete();
 echo $book->isDeleted(); // true
-$books = BookPeer::doSelect(new Criteria()); // empty array
+$books = BookQuery::create()->find(); // empty collection
 }}}
 
-The static Peer methods `doDelete()` and `doDeleteAll()` also perform a soft deletion, unless you disable the behavior on the peer class:
+The query methods `delete()` and `deleteAll()` also perform a soft deletion, unless you disable the behavior on the peer class:
 
 {{{
 #!php
@@ -73,38 +73,24 @@ $b = new Book();
 $b->setTitle('War And Peace');
 $b->save();
 
-BookPeer::doDelete($b);
-$books = BookPeer::doSelect(new Criteria()); // empty array
+BookQuery::create()->delete($b);
+$books = BookQuery::create()->find(); // empty collection
 // the rows look deleted, but they are still there
-BookPeer::disableSoftDelete();
-$books = BookPeer::doSelect(new Criteria());
+BookQuery::disableSoftDelete();
+$books = BookQuery::create()->find();
 $book = $books[0];
 echo $book->getTitle(); // 'War And Peace'
 
 // To perform a true deletion, disable the softDelete feature
-BookPeer::disableSoftDelete();
-BookPeer::doDeleteAll();
-// Alternatively, use doForceDelete()
-BookPeer::doForceDeleteAll();
+BookQuery::disableSoftDelete();
+BookQuery::create()->delete();
+// Alternatively, use forceDelete()
+BookQuery::create()->forceDelete();
 }}}
 
 == Parameters ==
 
-By default, the behavior adds one column to the model. If this column is already described in the schema, set the `add_columns` parameter to 'false', as follows:
-
-{{{
-#!xml
-<table name="book">
-  <column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER" />
-  <column name="title" type="VARCHAR" required="true" primaryString="true" />
-  <column name="deleted_at" type="TIMESTAMP" />
-  <behavior name="soft_delete">
-    <parameter name="add_columns" value="false" />
-  </behavior>
-</table>
-}}}
-
-You can also change the name of the column by setting the `deleted_column` parameter:
+You can change the name of the column added by the behavior by setting the `deleted_column` parameter:
 
 {{{
 #!xml
@@ -112,20 +98,6 @@ You can also change the name of the column by setting the `deleted_column` param
   <column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER" />
   <column name="title" type="VARCHAR" required="true" primaryString="true" />
   <column name="my_deletion_date" type="TIMESTAMP" />
-  <behavior name="soft_delete">
-    <parameter name="add_columns" value="false" />
-    <parameter name="deleted_column" value="my_deletion_date" />
-  </behavior>
-</table>
-}}}
-
-If you keep the `add_columns` parameter to 'true' by set custom column name, then the behavior will generate this column:
-
-{{{
-#!xml
-<table name="book">
-  <column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER" />
-  <column name="title" type="VARCHAR" required="true" primaryString="true" />
   <behavior name="soft_delete">
     <parameter name="deleted_column" value="my_deletion_date" />
   </behavior>
@@ -140,5 +112,5 @@ $b->setTitle('War And Peace');
 $b->save();
 $b->delete();
 echo $b->getMyDeletionDate(); // 2009-10-02 18:14:23
-$books = BookPeer::doSelect(new Criteria()); // empty array
+$books = BookQuery::create()->find(); // empty collection
 }}}

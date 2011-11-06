@@ -1,7 +1,7 @@
 ﻿<?php
 session_start();
 // Include the main Propel script
-require_once '../../vendor/propel/runtime/classes/propel/Propel.php';
+require_once '../../vendor/propel/runtime/lib/Propel.php';
 
 // Initialize Propel with the runtime configuration
 Propel::init("../../build/conf/biobattleground-conf.php");
@@ -40,7 +40,7 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		if ($nazwa_uz && $haslo) {
 
 			try {
-				UserPeer::loguj($nazwa_uz, $haslo);
+				User::loguj($nazwa_uz, $haslo);
     
 				$_SESSION['zalogowany'] = $nazwa_uz;
 				$wyswietl= 'Witaj '.$_SESSION['zalogowany'].'.<a href="index.php">Idź do strony głównej.</a>';

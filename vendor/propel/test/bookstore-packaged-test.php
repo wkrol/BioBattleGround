@@ -1,6 +1,14 @@
 <?php
 
 /**
+ * This file is part of the Propel package.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @license    MIT License
+ */
+
+/**
  * Simple test script for Propel drivers.
  *
  * This script will no do in-depth testing, but is designed to test whether drivers
@@ -18,7 +26,7 @@
  * functionality into class & provide ability to subclass.
  *
  * @author     Hans Lellelid <hans@xmpl.org>
- * @version    $Revision: 563 $
+ * @version    $Revision: 1612 $
  */
 
 // Setup configuration.  It is expected that the bookstore-conf.php file exists in ../build/conf

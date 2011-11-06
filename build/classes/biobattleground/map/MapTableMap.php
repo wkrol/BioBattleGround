@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * This class defines the structure of the 'map' table.
  *
@@ -14,8 +13,7 @@
  *
  * @package    propel.generator.biobattleground.map
  */
-class MapTableMap extends TableMap
-{
+class MapTableMap extends TableMap {
 
 	/**
 	 * The (dot-path) name of this class
@@ -31,7 +29,7 @@ class MapTableMap extends TableMap
 	 */
 	public function initialize()
 	{
-		// attributes
+	  // attributes
 		$this->setName('map');
 		$this->setPhpName('Map');
 		$this->setClassname('Map');
@@ -49,8 +47,8 @@ class MapTableMap extends TableMap
 	 */
 	public function buildRelations()
 	{
-		$this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_map', ), 'CASCADE', 'CASCADE', 'UserPrivilegess');
-		$this->addRelation('Simulation', 'Simulation', RelationMap::ONE_TO_MANY, array('id' => 'id_map', ), null, null, 'Simulations');
+    $this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_map', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('Simulation', 'Simulation', RelationMap::ONE_TO_MANY, array('id' => 'id_map', ), null, null);
 	} // buildRelations()
 
 } // MapTableMap

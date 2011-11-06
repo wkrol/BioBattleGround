@@ -24,21 +24,19 @@
  * @method     OrganismQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
  * @method     OrganismQuery innerJoin($relation) Adds a INNER JOIN clause to the query
  *
- * @method     OrganismQuery leftJoinUserPrivileges($relationAlias = null) Adds a LEFT JOIN clause to the query using the UserPrivileges relation
- * @method     OrganismQuery rightJoinUserPrivileges($relationAlias = null) Adds a RIGHT JOIN clause to the query using the UserPrivileges relation
- * @method     OrganismQuery innerJoinUserPrivileges($relationAlias = null) Adds a INNER JOIN clause to the query using the UserPrivileges relation
+ * @method     OrganismQuery leftJoinUserPrivileges($relationAlias = '') Adds a LEFT JOIN clause to the query using the UserPrivileges relation
+ * @method     OrganismQuery rightJoinUserPrivileges($relationAlias = '') Adds a RIGHT JOIN clause to the query using the UserPrivileges relation
+ * @method     OrganismQuery innerJoinUserPrivileges($relationAlias = '') Adds a INNER JOIN clause to the query using the UserPrivileges relation
  *
- * @method     OrganismQuery leftJoinGroup($relationAlias = null) Adds a LEFT JOIN clause to the query using the Group relation
- * @method     OrganismQuery rightJoinGroup($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Group relation
- * @method     OrganismQuery innerJoinGroup($relationAlias = null) Adds a INNER JOIN clause to the query using the Group relation
+ * @method     OrganismQuery leftJoinGroup($relationAlias = '') Adds a LEFT JOIN clause to the query using the Group relation
+ * @method     OrganismQuery rightJoinGroup($relationAlias = '') Adds a RIGHT JOIN clause to the query using the Group relation
+ * @method     OrganismQuery innerJoinGroup($relationAlias = '') Adds a INNER JOIN clause to the query using the Group relation
  *
- * @method     OrganismQuery leftJoinRound($relationAlias = null) Adds a LEFT JOIN clause to the query using the Round relation
- * @method     OrganismQuery rightJoinRound($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Round relation
- * @method     OrganismQuery innerJoinRound($relationAlias = null) Adds a INNER JOIN clause to the query using the Round relation
+ * @method     OrganismQuery leftJoinRound($relationAlias = '') Adds a LEFT JOIN clause to the query using the Round relation
+ * @method     OrganismQuery rightJoinRound($relationAlias = '') Adds a RIGHT JOIN clause to the query using the Round relation
+ * @method     OrganismQuery innerJoinRound($relationAlias = '') Adds a INNER JOIN clause to the query using the Round relation
  *
  * @method     Organism findOne(PropelPDO $con = null) Return the first Organism matching the query
- * @method     Organism findOneOrCreate(PropelPDO $con = null) Return the first Organism matching the query, or a new Organism object populated from the query conditions when no match is found
- *
  * @method     Organism findOneById(int $id) Return the first Organism filtered by the id column
  * @method     Organism findOneByName(string $name) Return the first Organism filtered by the name column
  * @method     Organism findOneByInstinct(int $instinct) Return the first Organism filtered by the instinct column
@@ -57,7 +55,7 @@
  */
 abstract class BaseOrganismQuery extends ModelCriteria
 {
-	
+
 	/**
 	 * Initializes internal state of BaseOrganismQuery object.
 	 *
@@ -94,14 +92,11 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	}
 
 	/**
-	 * Find object by primary key.
-	 * Propel uses the instance pool to skip the database if the object exists.
-	 * Go fast if the query is untouched.
-	 *
+	 * Find object by primary key
+	 * Use instance pooling to avoid a database query if the object exists
 	 * <code>
 	 * $obj  = $c->findPk(12, $con);
 	 * </code>
-	 *
 	 * @param     mixed $key Primary key to use for the query
 	 * @param     PropelPDO $con an optional connection object
 	 *
@@ -109,73 +104,16 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 */
 	public function findPk($key, $con = null)
 	{
-		if ($key === null) {
-			return null;
-		}
-		if ((null !== ($obj = OrganismPeer::getInstanceFromPool((string) $key))) && !$this->formatter) {
+		if ((null !== ($obj = OrganismPeer::getInstanceFromPool((string) $key))) && $this->getFormatter()->isObjectFormatter()) {
 			// the object is alredy in the instance pool
 			return $obj;
-		}
-		if ($con === null) {
-			$con = Propel::getConnection(OrganismPeer::DATABASE_NAME, Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		if ($this->formatter || $this->modelAlias || $this->with || $this->select
-		 || $this->selectColumns || $this->asColumns || $this->selectModifiers
-		 || $this->map || $this->having || $this->joins) {
-			return $this->findPkComplex($key, $con);
 		} else {
-			return $this->findPkSimple($key, $con);
+			// the object has not been requested yet, or the formatter is not an object formatter
+			$stmt = $this
+				->filterByPrimaryKey($key)
+				->getSelectStatement($con);
+			return $this->getFormatter()->formatOne($stmt);
 		}
-	}
-
-	/**
-	 * Find object by primary key using raw SQL to go fast.
-	 * Bypass doSelect() and the object formatter by using generated code.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    Organism A model object, or null if the key is not found
-	 */
-	protected function findPkSimple($key, $con)
-	{
-		$sql = 'SELECT `ID`, `NAME`, `INSTINCT`, `TOUGHNESS`, `VITALITY`, `TYPE` FROM `organism` WHERE `ID` = :p0';
-		try {
-			$stmt = $con->prepare($sql);
-			$stmt->bindValue(':p0', $key, PDO::PARAM_INT);
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute SELECT statement [%s]', $sql), $e);
-		}
-		$obj = null;
-		if ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-			$obj = new Organism();
-			$obj->hydrate($row);
-			OrganismPeer::addInstanceToPool($obj, (string) $row[0]);
-		}
-		$stmt->closeCursor();
-
-		return $obj;
-	}
-
-	/**
-	 * Find object by primary key.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    Organism|array|mixed the result, formatted by the current formatter
-	 */
-	protected function findPkComplex($key, $con)
-	{
-		// As the query uses a PK condition, no limit(1) is necessary.
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
-			->filterByPrimaryKey($key)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->formatOne($stmt);
 	}
 
 	/**
@@ -189,16 +127,10 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 * @return    PropelObjectCollection|array|mixed the list of results, formatted by the current formatter
 	 */
 	public function findPks($keys, $con = null)
-	{
-		if ($con === null) {
-			$con = Propel::getConnection($this->getDbName(), Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
+	{	
+		return $this
 			->filterByPrimaryKeys($keys)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->format($stmt);
+			->find($con);
 	}
 
 	/**
@@ -227,25 +159,16 @@ abstract class BaseOrganismQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterById(1234); // WHERE id = 1234
-	 * $query->filterById(array(12, 34)); // WHERE id IN (12, 34)
-	 * $query->filterById(array('min' => 12)); // WHERE id > 12
-	 * </code>
-	 *
-	 * @param     mixed $id The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $id The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterById($id = null, $comparison = null)
+	public function filterById($id = null, $comparison = Criteria::EQUAL)
 	{
-		if (is_array($id) && null === $comparison) {
+		if (is_array($id) && $comparison == Criteria::EQUAL) {
 			$comparison = Criteria::IN;
 		}
 		return $this->addUsingAlias(OrganismPeer::ID, $id, $comparison);
@@ -253,26 +176,22 @@ abstract class BaseOrganismQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the name column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByName('fooValue');   // WHERE name = 'fooValue'
-	 * $query->filterByName('%fooValue%'); // WHERE name LIKE '%fooValue%'
-	 * </code>
-	 *
+	 * 
 	 * @param     string $name The value to use as filter.
-	 *              Accepts wildcards (* and % trigger a LIKE)
+	 *            Accepts wildcards (* and % trigger a LIKE)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByName($name = null, $comparison = null)
+	public function filterByName($name = null, $comparison = Criteria::EQUAL)
 	{
-		if (null === $comparison) {
-			if (is_array($name)) {
+		if (is_array($name)) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
-			} elseif (preg_match('/[\%\*]/', $name)) {
-				$name = str_replace('*', '%', $name);
+			}
+		} elseif (preg_match('/[\%\*]/', $name)) {
+			$name = str_replace('*', '%', $name);
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::LIKE;
 			}
 		}
@@ -281,23 +200,14 @@ abstract class BaseOrganismQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the instinct column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByInstinct(1234); // WHERE instinct = 1234
-	 * $query->filterByInstinct(array(12, 34)); // WHERE instinct IN (12, 34)
-	 * $query->filterByInstinct(array('min' => 12)); // WHERE instinct > 12
-	 * </code>
-	 *
-	 * @param     mixed $instinct The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $instinct The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByInstinct($instinct = null, $comparison = null)
+	public function filterByInstinct($instinct = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($instinct)) {
 			$useMinMax = false;
@@ -312,7 +222,7 @@ abstract class BaseOrganismQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -321,23 +231,14 @@ abstract class BaseOrganismQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the toughness column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByToughness(1234); // WHERE toughness = 1234
-	 * $query->filterByToughness(array(12, 34)); // WHERE toughness IN (12, 34)
-	 * $query->filterByToughness(array('min' => 12)); // WHERE toughness > 12
-	 * </code>
-	 *
-	 * @param     mixed $toughness The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $toughness The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByToughness($toughness = null, $comparison = null)
+	public function filterByToughness($toughness = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($toughness)) {
 			$useMinMax = false;
@@ -352,7 +253,7 @@ abstract class BaseOrganismQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -361,23 +262,14 @@ abstract class BaseOrganismQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the vitality column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByVitality(1234); // WHERE vitality = 1234
-	 * $query->filterByVitality(array(12, 34)); // WHERE vitality IN (12, 34)
-	 * $query->filterByVitality(array('min' => 12)); // WHERE vitality > 12
-	 * </code>
-	 *
-	 * @param     mixed $vitality The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $vitality The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByVitality($vitality = null, $comparison = null)
+	public function filterByVitality($vitality = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($vitality)) {
 			$useMinMax = false;
@@ -392,7 +284,7 @@ abstract class BaseOrganismQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -401,26 +293,22 @@ abstract class BaseOrganismQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the type column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByType('fooValue');   // WHERE type = 'fooValue'
-	 * $query->filterByType('%fooValue%'); // WHERE type LIKE '%fooValue%'
-	 * </code>
-	 *
+	 * 
 	 * @param     string $type The value to use as filter.
-	 *              Accepts wildcards (* and % trigger a LIKE)
+	 *            Accepts wildcards (* and % trigger a LIKE)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByType($type = null, $comparison = null)
+	public function filterByType($type = null, $comparison = Criteria::EQUAL)
 	{
-		if (null === $comparison) {
-			if (is_array($type)) {
+		if (is_array($type)) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
-			} elseif (preg_match('/[\%\*]/', $type)) {
-				$type = str_replace('*', '%', $type);
+			}
+		} elseif (preg_match('/[\%\*]/', $type)) {
+			$type = str_replace('*', '%', $type);
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::LIKE;
 			}
 		}
@@ -435,42 +323,30 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByUserPrivileges($userPrivileges, $comparison = null)
+	public function filterByUserPrivileges($userPrivileges, $comparison = Criteria::EQUAL)
 	{
-		if ($userPrivileges instanceof UserPrivileges) {
-			return $this
-				->addUsingAlias(OrganismPeer::ID, $userPrivileges->getIdOrganism(), $comparison);
-		} elseif ($userPrivileges instanceof PropelCollection) {
-			return $this
-				->useUserPrivilegesQuery()
-				->filterByPrimaryKeys($userPrivileges->getPrimaryKeys())
-				->endUse();
-		} else {
-			throw new PropelException('filterByUserPrivileges() only accepts arguments of type UserPrivileges or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(OrganismPeer::ID, $userPrivileges->getIdOrganism(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the UserPrivileges relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function joinUserPrivileges($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinUserPrivileges($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('UserPrivileges');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -478,7 +354,7 @@ abstract class BaseOrganismQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'UserPrivileges');
 		}
-
+		
 		return $this;
 	}
 
@@ -486,14 +362,14 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 * Use the UserPrivileges relation UserPrivileges object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserPrivilegesQuery A secondary query class using the current class as primary query
 	 */
-	public function useUserPrivilegesQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useUserPrivilegesQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinUserPrivileges($relationAlias, $joinType)
@@ -508,42 +384,30 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByGroup($group, $comparison = null)
+	public function filterByGroup($group, $comparison = Criteria::EQUAL)
 	{
-		if ($group instanceof Group) {
-			return $this
-				->addUsingAlias(OrganismPeer::ID, $group->getIdOrganism(), $comparison);
-		} elseif ($group instanceof PropelCollection) {
-			return $this
-				->useGroupQuery()
-				->filterByPrimaryKeys($group->getPrimaryKeys())
-				->endUse();
-		} else {
-			throw new PropelException('filterByGroup() only accepts arguments of type Group or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(OrganismPeer::ID, $group->getIdOrganism(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the Group relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function joinGroup($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinGroup($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('Group');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -551,7 +415,7 @@ abstract class BaseOrganismQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'Group');
 		}
-
+		
 		return $this;
 	}
 
@@ -559,14 +423,14 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 * Use the Group relation Group object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    GroupQuery A secondary query class using the current class as primary query
 	 */
-	public function useGroupQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useGroupQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinGroup($relationAlias, $joinType)
@@ -581,42 +445,30 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function filterByRound($round, $comparison = null)
+	public function filterByRound($round, $comparison = Criteria::EQUAL)
 	{
-		if ($round instanceof Round) {
-			return $this
-				->addUsingAlias(OrganismPeer::ID, $round->getIdOrganism(), $comparison);
-		} elseif ($round instanceof PropelCollection) {
-			return $this
-				->useRoundQuery()
-				->filterByPrimaryKeys($round->getPrimaryKeys())
-				->endUse();
-		} else {
-			throw new PropelException('filterByRound() only accepts arguments of type Round or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(OrganismPeer::ID, $round->getIdOrganism(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the Round relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    OrganismQuery The current query, for fluid interface
 	 */
-	public function joinRound($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinRound($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('Round');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -624,7 +476,7 @@ abstract class BaseOrganismQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'Round');
 		}
-
+		
 		return $this;
 	}
 
@@ -632,14 +484,14 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	 * Use the Round relation Round object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    RoundQuery A secondary query class using the current class as primary query
 	 */
-	public function useRoundQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useRoundQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinRound($relationAlias, $joinType)
@@ -657,9 +509,40 @@ abstract class BaseOrganismQuery extends ModelCriteria
 	{
 		if ($organism) {
 			$this->addUsingAlias(OrganismPeer::ID, $organism->getId(), Criteria::NOT_EQUAL);
-		}
-
+	  }
+	  
 		return $this;
+	}
+
+	/**
+	 * Code to execute before every SELECT statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreSelect(PropelPDO $con)
+	{
+		return $this->preSelect($con);
+	}
+
+	/**
+	 * Code to execute before every DELETE statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreDelete(PropelPDO $con)
+	{
+		return $this->preDelete($con);
+	}
+
+	/**
+	 * Code to execute before every UPDATE statement
+	 * 
+	 * @param     array $values The associatiove array of columns and values for the update
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreUpdate(&$values, PropelPDO $con)
+	{
+		return $this->preUpdate($values, $con);
 	}
 
 } // BaseOrganismQuery

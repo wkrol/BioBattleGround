@@ -1,7 +1,5 @@
 <?php
 
-require 'biobattleground/om/BaseUserPrivileges.php';
-
 
 /**
  * Skeleton subclass for representing a row from the 'user_privileges' table.
@@ -12,7 +10,7 @@ require 'biobattleground/om/BaseUserPrivileges.php';
  * application requirements.  This class will only be generated as
  * long as it does not already exist in the output directory.
  *
- * @package    biobattleground
+ * @package    propel.generator.biobattleground
  */
 class UserPrivileges extends BaseUserPrivileges {
 

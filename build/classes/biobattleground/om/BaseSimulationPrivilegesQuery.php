@@ -20,13 +20,11 @@
  * @method     SimulationPrivilegesQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
  * @method     SimulationPrivilegesQuery innerJoin($relation) Adds a INNER JOIN clause to the query
  *
- * @method     SimulationPrivilegesQuery leftJoinUser($relationAlias = null) Adds a LEFT JOIN clause to the query using the User relation
- * @method     SimulationPrivilegesQuery rightJoinUser($relationAlias = null) Adds a RIGHT JOIN clause to the query using the User relation
- * @method     SimulationPrivilegesQuery innerJoinUser($relationAlias = null) Adds a INNER JOIN clause to the query using the User relation
+ * @method     SimulationPrivilegesQuery leftJoinUser($relationAlias = '') Adds a LEFT JOIN clause to the query using the User relation
+ * @method     SimulationPrivilegesQuery rightJoinUser($relationAlias = '') Adds a RIGHT JOIN clause to the query using the User relation
+ * @method     SimulationPrivilegesQuery innerJoinUser($relationAlias = '') Adds a INNER JOIN clause to the query using the User relation
  *
  * @method     SimulationPrivileges findOne(PropelPDO $con = null) Return the first SimulationPrivileges matching the query
- * @method     SimulationPrivileges findOneOrCreate(PropelPDO $con = null) Return the first SimulationPrivileges matching the query, or a new SimulationPrivileges object populated from the query conditions when no match is found
- *
  * @method     SimulationPrivileges findOneById(int $id) Return the first SimulationPrivileges filtered by the id column
  * @method     SimulationPrivileges findOneByIdUser(int $id_user) Return the first SimulationPrivileges filtered by the id_user column
  * @method     SimulationPrivileges findOneByCreate(int $create) Return the first SimulationPrivileges filtered by the create column
@@ -41,7 +39,7 @@
  */
 abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 {
-	
+
 	/**
 	 * Initializes internal state of BaseSimulationPrivilegesQuery object.
 	 *
@@ -78,14 +76,11 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 	}
 
 	/**
-	 * Find object by primary key.
-	 * Propel uses the instance pool to skip the database if the object exists.
-	 * Go fast if the query is untouched.
-	 *
+	 * Find object by primary key
+	 * Use instance pooling to avoid a database query if the object exists
 	 * <code>
 	 * $obj  = $c->findPk(12, $con);
 	 * </code>
-	 *
 	 * @param     mixed $key Primary key to use for the query
 	 * @param     PropelPDO $con an optional connection object
 	 *
@@ -93,73 +88,16 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 	 */
 	public function findPk($key, $con = null)
 	{
-		if ($key === null) {
-			return null;
-		}
-		if ((null !== ($obj = SimulationPrivilegesPeer::getInstanceFromPool((string) $key))) && !$this->formatter) {
+		if ((null !== ($obj = SimulationPrivilegesPeer::getInstanceFromPool((string) $key))) && $this->getFormatter()->isObjectFormatter()) {
 			// the object is alredy in the instance pool
 			return $obj;
-		}
-		if ($con === null) {
-			$con = Propel::getConnection(SimulationPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		if ($this->formatter || $this->modelAlias || $this->with || $this->select
-		 || $this->selectColumns || $this->asColumns || $this->selectModifiers
-		 || $this->map || $this->having || $this->joins) {
-			return $this->findPkComplex($key, $con);
 		} else {
-			return $this->findPkSimple($key, $con);
+			// the object has not been requested yet, or the formatter is not an object formatter
+			$stmt = $this
+				->filterByPrimaryKey($key)
+				->getSelectStatement($con);
+			return $this->getFormatter()->formatOne($stmt);
 		}
-	}
-
-	/**
-	 * Find object by primary key using raw SQL to go fast.
-	 * Bypass doSelect() and the object formatter by using generated code.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    SimulationPrivileges A model object, or null if the key is not found
-	 */
-	protected function findPkSimple($key, $con)
-	{
-		$sql = 'SELECT `ID`, `ID_USER`, `CREATE`, `JOIN` FROM `simulation_privileges` WHERE `ID` = :p0';
-		try {
-			$stmt = $con->prepare($sql);
-			$stmt->bindValue(':p0', $key, PDO::PARAM_INT);
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute SELECT statement [%s]', $sql), $e);
-		}
-		$obj = null;
-		if ($row = $stmt->fetch(PDO::FETCH_NUM)) {
-			$obj = new SimulationPrivileges();
-			$obj->hydrate($row);
-			SimulationPrivilegesPeer::addInstanceToPool($obj, (string) $row[0]);
-		}
-		$stmt->closeCursor();
-
-		return $obj;
-	}
-
-	/**
-	 * Find object by primary key.
-	 *
-	 * @param     mixed $key Primary key to use for the query
-	 * @param     PropelPDO $con A connection object
-	 *
-	 * @return    SimulationPrivileges|array|mixed the result, formatted by the current formatter
-	 */
-	protected function findPkComplex($key, $con)
-	{
-		// As the query uses a PK condition, no limit(1) is necessary.
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
-			->filterByPrimaryKey($key)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->formatOne($stmt);
 	}
 
 	/**
@@ -173,16 +111,10 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 	 * @return    PropelObjectCollection|array|mixed the list of results, formatted by the current formatter
 	 */
 	public function findPks($keys, $con = null)
-	{
-		if ($con === null) {
-			$con = Propel::getConnection($this->getDbName(), Propel::CONNECTION_READ);
-		}
-		$this->basePreSelect($con);
-		$criteria = $this->isKeepQuery() ? clone $this : $this;
-		$stmt = $criteria
+	{	
+		return $this
 			->filterByPrimaryKeys($keys)
-			->doSelect($con);
-		return $criteria->getFormatter()->init($criteria)->format($stmt);
+			->find($con);
 	}
 
 	/**
@@ -211,25 +143,16 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterById(1234); // WHERE id = 1234
-	 * $query->filterById(array(12, 34)); // WHERE id IN (12, 34)
-	 * $query->filterById(array('min' => 12)); // WHERE id > 12
-	 * </code>
-	 *
-	 * @param     mixed $id The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $id The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    SimulationPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterById($id = null, $comparison = null)
+	public function filterById($id = null, $comparison = Criteria::EQUAL)
 	{
-		if (is_array($id) && null === $comparison) {
+		if (is_array($id) && $comparison == Criteria::EQUAL) {
 			$comparison = Criteria::IN;
 		}
 		return $this->addUsingAlias(SimulationPrivilegesPeer::ID, $id, $comparison);
@@ -237,25 +160,14 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the id_user column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByIdUser(1234); // WHERE id_user = 1234
-	 * $query->filterByIdUser(array(12, 34)); // WHERE id_user IN (12, 34)
-	 * $query->filterByIdUser(array('min' => 12)); // WHERE id_user > 12
-	 * </code>
-	 *
-	 * @see       filterByUser()
-	 *
-	 * @param     mixed $idUser The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $idUser The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    SimulationPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByIdUser($idUser = null, $comparison = null)
+	public function filterByIdUser($idUser = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($idUser)) {
 			$useMinMax = false;
@@ -270,7 +182,7 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -279,23 +191,14 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the create column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByCreate(1234); // WHERE create = 1234
-	 * $query->filterByCreate(array(12, 34)); // WHERE create IN (12, 34)
-	 * $query->filterByCreate(array('min' => 12)); // WHERE create > 12
-	 * </code>
-	 *
-	 * @param     mixed $create The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $create The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    SimulationPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByCreate($create = null, $comparison = null)
+	public function filterByCreate($create = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($create)) {
 			$useMinMax = false;
@@ -310,7 +213,7 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -319,23 +222,14 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 
 	/**
 	 * Filter the query on the join column
-	 *
-	 * Example usage:
-	 * <code>
-	 * $query->filterByJoin(1234); // WHERE join = 1234
-	 * $query->filterByJoin(array(12, 34)); // WHERE join IN (12, 34)
-	 * $query->filterByJoin(array('min' => 12)); // WHERE join > 12
-	 * </code>
-	 *
-	 * @param     mixed $join The value to use as filter.
-	 *              Use scalar values for equality.
-	 *              Use array values for in_array() equivalent.
-	 *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+	 * 
+	 * @param     int|array $join The value to use as filter.
+	 *            Accepts an associative array('min' => $minValue, 'max' => $maxValue)
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    SimulationPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByJoin($join = null, $comparison = null)
+	public function filterByJoin($join = null, $comparison = Criteria::EQUAL)
 	{
 		if (is_array($join)) {
 			$useMinMax = false;
@@ -350,7 +244,7 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 			if ($useMinMax) {
 				return $this;
 			}
-			if (null === $comparison) {
+			if ($comparison == Criteria::EQUAL) {
 				$comparison = Criteria::IN;
 			}
 		}
@@ -360,48 +254,35 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 	/**
 	 * Filter the query by a related User object
 	 *
-	 * @param     User|PropelCollection $user The related object(s) to use as filter
+	 * @param     User $user  the related object to use as filter
 	 * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
 	 *
 	 * @return    SimulationPrivilegesQuery The current query, for fluid interface
 	 */
-	public function filterByUser($user, $comparison = null)
+	public function filterByUser($user, $comparison = Criteria::EQUAL)
 	{
-		if ($user instanceof User) {
-			return $this
-				->addUsingAlias(SimulationPrivilegesPeer::ID_USER, $user->getId(), $comparison);
-		} elseif ($user instanceof PropelCollection) {
-			if (null === $comparison) {
-				$comparison = Criteria::IN;
-			}
-			return $this
-				->addUsingAlias(SimulationPrivilegesPeer::ID_USER, $user->toKeyValue('PrimaryKey', 'Id'), $comparison);
-		} else {
-			throw new PropelException('filterByUser() only accepts arguments of type User or PropelCollection');
-		}
+		return $this
+			->addUsingAlias(SimulationPrivilegesPeer::ID_USER, $user->getId(), $comparison);
 	}
 
 	/**
 	 * Adds a JOIN clause to the query using the User relation
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    SimulationPrivilegesQuery The current query, for fluid interface
 	 */
-	public function joinUser($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function joinUser($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		$tableMap = $this->getTableMap();
 		$relationMap = $tableMap->getRelation('User');
-
+		
 		// create a ModelJoin object for this join
 		$join = new ModelJoin();
 		$join->setJoinType($joinType);
 		$join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-		if ($previousJoin = $this->getPreviousJoin()) {
-			$join->setPreviousJoin($previousJoin);
-		}
-
+		
 		// add the ModelJoin to the current object
 		if($relationAlias) {
 			$this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
@@ -409,7 +290,7 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 		} else {
 			$this->addJoinObject($join, 'User');
 		}
-
+		
 		return $this;
 	}
 
@@ -417,14 +298,14 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 	 * Use the User relation User object
 	 *
 	 * @see       useQuery()
-	 *
+	 * 
 	 * @param     string $relationAlias optional alias for the relation,
 	 *                                   to be used as main alias in the secondary query
 	 * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
 	 *
 	 * @return    UserQuery A secondary query class using the current class as primary query
 	 */
-	public function useUserQuery($relationAlias = null, $joinType = Criteria::LEFT_JOIN)
+	public function useUserQuery($relationAlias = '', $joinType = Criteria::LEFT_JOIN)
 	{
 		return $this
 			->joinUser($relationAlias, $joinType)
@@ -442,9 +323,40 @@ abstract class BaseSimulationPrivilegesQuery extends ModelCriteria
 	{
 		if ($simulationPrivileges) {
 			$this->addUsingAlias(SimulationPrivilegesPeer::ID, $simulationPrivileges->getId(), Criteria::NOT_EQUAL);
-		}
-
+	  }
+	  
 		return $this;
+	}
+
+	/**
+	 * Code to execute before every SELECT statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreSelect(PropelPDO $con)
+	{
+		return $this->preSelect($con);
+	}
+
+	/**
+	 * Code to execute before every DELETE statement
+	 * 
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreDelete(PropelPDO $con)
+	{
+		return $this->preDelete($con);
+	}
+
+	/**
+	 * Code to execute before every UPDATE statement
+	 * 
+	 * @param     array $values The associatiove array of columns and values for the update
+	 * @param     PropelPDO $con The connection object used by the query
+	 */
+	protected function basePreUpdate(&$values, PropelPDO $con)
+	{
+		return $this->preUpdate($values, $con);
 	}
 
 } // BaseSimulationPrivilegesQuery

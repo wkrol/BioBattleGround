@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * This class defines the structure of the 'organism' table.
  *
@@ -14,8 +13,7 @@
  *
  * @package    propel.generator.biobattleground.map
  */
-class OrganismTableMap extends TableMap
-{
+class OrganismTableMap extends TableMap {
 
 	/**
 	 * The (dot-path) name of this class
@@ -31,7 +29,7 @@ class OrganismTableMap extends TableMap
 	 */
 	public function initialize()
 	{
-		// attributes
+	  // attributes
 		$this->setName('organism');
 		$this->setPhpName('Organism');
 		$this->setClassname('Organism');
@@ -52,9 +50,9 @@ class OrganismTableMap extends TableMap
 	 */
 	public function buildRelations()
 	{
-		$this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_organism', ), 'CASCADE', 'CASCADE', 'UserPrivilegess');
-		$this->addRelation('Group', 'Group', RelationMap::ONE_TO_MANY, array('id' => 'id_organism', ), 'CASCADE', 'CASCADE', 'Groups');
-		$this->addRelation('Round', 'Round', RelationMap::ONE_TO_MANY, array('id' => 'id_organism', ), null, null, 'Rounds');
+    $this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_organism', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('Group', 'Group', RelationMap::ONE_TO_MANY, array('id' => 'id_organism', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('Round', 'Round', RelationMap::ONE_TO_MANY, array('id' => 'id_organism', ), null, null);
 	} // buildRelations()
 
 } // OrganismTableMap

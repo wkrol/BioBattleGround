@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * This class defines the structure of the 'user' table.
  *
@@ -14,8 +13,7 @@
  *
  * @package    propel.generator.biobattleground.map
  */
-class UserTableMap extends TableMap
-{
+class UserTableMap extends TableMap {
 
 	/**
 	 * The (dot-path) name of this class
@@ -31,7 +29,7 @@ class UserTableMap extends TableMap
 	 */
 	public function initialize()
 	{
-		// attributes
+	  // attributes
 		$this->setName('user');
 		$this->setPhpName('User');
 		$this->setClassname('User');
@@ -50,8 +48,8 @@ class UserTableMap extends TableMap
 	 */
 	public function buildRelations()
 	{
-		$this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), 'CASCADE', 'CASCADE', 'UserPrivilegess');
-		$this->addRelation('SimulationPrivileges', 'SimulationPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), null, null, 'SimulationPrivilegess');
+    $this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('SimulationPrivileges', 'SimulationPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_user', ), null, null);
 	} // buildRelations()
 
 } // UserTableMap

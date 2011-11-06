@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base static class for performing query and update operations on the 'simulation_privileges' table.
  *
@@ -24,15 +23,12 @@ abstract class BaseSimulationPrivilegesPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'SimulationPrivilegesTableMap';
-
+	
 	/** The total number of columns. */
 	const NUM_COLUMNS = 4;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
-
-	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 4;
 
 	/** the column name for the ID field */
 	const ID = 'simulation_privileges.ID';
@@ -45,9 +41,6 @@ abstract class BaseSimulationPrivilegesPeer {
 
 	/** the column name for the JOIN field */
 	const JOIN = 'simulation_privileges.JOIN';
-
-	/** The default string format for model objects of the related table **/
-	const DEFAULT_STRING_FORMAT = 'YAML';
 
 	/**
 	 * An identiy map to hold any loaded instances of SimulationPrivileges objects.
@@ -64,7 +57,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	protected static $fieldNames = array (
+	private static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'IdUser', 'Create', 'Join', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'idUser', 'create', 'join', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::ID_USER, self::CREATE, self::JOIN, ),
@@ -79,7 +72,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	protected static $fieldKeys = array (
+	private static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'IdUser' => 1, 'Create' => 2, 'Join' => 3, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'idUser' => 1, 'create' => 2, 'join' => 3, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::ID_USER => 1, self::CREATE => 2, self::JOIN => 3, ),
@@ -213,7 +206,7 @@ abstract class BaseSimulationPrivilegesPeer {
 		return $count;
 	}
 	/**
-	 * Selects one object from the DB.
+	 * Method to select one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -232,7 +225,7 @@ abstract class BaseSimulationPrivilegesPeer {
 		return null;
 	}
 	/**
-	 * Selects several row from the DB.
+	 * Method to do selects.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -286,7 +279,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	 * @param      SimulationPrivileges $value A SimulationPrivileges object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool($obj, $key = null)
+	public static function addInstanceToPool(SimulationPrivileges $obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -381,7 +374,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	}
 
 	/**
-	 * Retrieves the primary key from the DB resultset row
+	 * Retrieves the primary key from the DB resultset row 
 	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
 	 * a multi-column primary key, an array of the primary key columns will be returned.
 	 *
@@ -441,7 +434,7 @@ abstract class BaseSimulationPrivilegesPeer {
 			// We no longer rehydrate the object, since this can cause data loss.
 			// See http://www.propelorm.org/ticket/509
 			// $obj->hydrate($row, $startcol, true); // rehydrate
-			$col = $startcol + SimulationPrivilegesPeer::NUM_HYDRATE_COLUMNS;
+			$col = $startcol + SimulationPrivilegesPeer::NUM_COLUMNS;
 		} else {
 			$cls = SimulationPrivilegesPeer::OM_CLASS;
 			$obj = new $cls();
@@ -450,7 +443,6 @@ abstract class BaseSimulationPrivilegesPeer {
 		}
 		return array($obj, $col);
 	}
-
 
 	/**
 	 * Returns the number of rows matching criteria, joining the related User table
@@ -478,9 +470,9 @@ abstract class BaseSimulationPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPrivilegesPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -521,7 +513,7 @@ abstract class BaseSimulationPrivilegesPeer {
 		}
 
 		SimulationPrivilegesPeer::addSelectColumns($criteria);
-		$startcol = SimulationPrivilegesPeer::NUM_HYDRATE_COLUMNS;
+		$startcol = (SimulationPrivilegesPeer::NUM_COLUMNS - SimulationPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
 		UserPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(SimulationPrivilegesPeer::ID_USER, UserPeer::ID, $join_behavior);
@@ -594,9 +586,9 @@ abstract class BaseSimulationPrivilegesPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPrivilegesPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -637,10 +629,10 @@ abstract class BaseSimulationPrivilegesPeer {
 		}
 
 		SimulationPrivilegesPeer::addSelectColumns($criteria);
-		$startcol2 = SimulationPrivilegesPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (SimulationPrivilegesPeer::NUM_COLUMNS - SimulationPrivilegesPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		UserPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + UserPeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(SimulationPrivilegesPeer::ID_USER, UserPeer::ID, $join_behavior);
 
@@ -726,7 +718,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	}
 
 	/**
-	 * Performs an INSERT on the database, given a SimulationPrivileges or Criteria object.
+	 * Method perform an INSERT on the database, given a SimulationPrivileges or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or SimulationPrivileges object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -769,7 +761,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	}
 
 	/**
-	 * Performs an UPDATE on the database, given a SimulationPrivileges or Criteria object.
+	 * Method perform an UPDATE on the database, given a SimulationPrivileges or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or SimulationPrivileges object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -808,12 +800,11 @@ abstract class BaseSimulationPrivilegesPeer {
 	}
 
 	/**
-	 * Deletes all rows from the simulation_privileges table.
+	 * Method to DELETE all rows from the simulation_privileges table.
 	 *
-	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll(PropelPDO $con = null)
+	public static function doDeleteAll($con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(SimulationPrivilegesPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -838,7 +829,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	}
 
 	/**
-	 * Performs a DELETE on the database, given a SimulationPrivileges or Criteria object OR a primary key value.
+	 * Method perform a DELETE on the database, given a SimulationPrivileges or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or SimulationPrivileges object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -907,7 +898,7 @@ abstract class BaseSimulationPrivilegesPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate($obj, $cols = null)
+	public static function doValidate(SimulationPrivileges $obj, $cols = null)
 	{
 		$columns = array();
 

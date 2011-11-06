@@ -1,8 +1,16 @@
 <?php
 
+/**
+ * This file is part of the Propel package.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @license    MIT License
+ */
+
 require_once 'PHPUnit/Framework/TestCase.php';
-include_once 'propel/map/ColumnMap.php';
-include_once 'propel/map/TableMap.php';
+require_once 'map/ColumnMap.php';
+require_once 'map/TableMap.php';
 
 class TestableTableMap extends TableMap
 {
@@ -46,7 +54,7 @@ class BarTableMap extends TableMap
  * Test class for TableMap.
  *
  * @author     François Zaninotto
- * @version    $Id: TableMapTest.php 1121 2009-09-14 17:20:11Z francois $
+ * @version    $Id: TableMapTest.php 1650 2010-03-27 22:12:51Z francois $
  * @package    runtime.map
  */
 class TableMapTest extends PHPUnit_Framework_TestCase 
@@ -108,7 +116,7 @@ class TableMapTest extends PHPUnit_Framework_TestCase
   public function testGetColumn()
   {
     $column = $this->tmap->addColumn('BAR', 'Bar', 'INTEGER');
-    $this->assertEquals($column, $this->tmap->getColumn('BAR'), 'getColumn returns a ColumnMap according to a column mame');
+    $this->assertEquals($column, $this->tmap->getColumn('BAR'), 'getColumn returns a ColumnMap according to a column name');
     try
     {
       $this->tmap->getColumn('FOO');
@@ -119,6 +127,17 @@ class TableMapTest extends PHPUnit_Framework_TestCase
     {
       $this->tmap->getColumn('foo.bar', false);
       $this->fail('getColumn accepts a $normalize parameter to skip name normalization');
+    } catch(PropelException $e) {}
+  }
+
+  public function testGetColumnByPhpName()
+  {
+    $column = $this->tmap->addColumn('BAR_BAZ', 'BarBaz', 'INTEGER');
+    $this->assertEquals($column, $this->tmap->getColumnByPhpName('BarBaz'), 'getColumnByPhpName() returns a ColumnMap according to a column phpName');
+    try
+    {
+      $this->tmap->getColumn('Foo');
+      $this->fail('getColumnByPhpName() throws an exception when called on an inexistent column');
     } catch(PropelException $e) {}
   }
   
@@ -204,10 +223,10 @@ class TableMapTest extends PHPUnit_Framework_TestCase
   public function testAddRelation()
   {
     $foreigntmap1 = new TableMap('bar');
-    $foreigntmap1->setPhpName('Bar');
+    $foreigntmap1->setClassname('Bar');
     $this->databaseMap->addTableObject($foreigntmap1);
     $foreigntmap2 = new TableMap('baz');
-    $foreigntmap2->setPhpName('Baz');
+    $foreigntmap2->setClassname('Baz');
     $this->databaseMap->addTableObject($foreigntmap2);
     $this->rmap1 = $this->tmap->addRelation('Bar', 'Bar', RelationMap::MANY_TO_ONE);
     $this->rmap2 = $this->tmap->addRelation('Bazz', 'Baz', RelationMap::ONE_TO_MANY);

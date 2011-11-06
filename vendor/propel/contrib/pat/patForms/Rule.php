@@ -2,7 +2,7 @@
 /**
  * patForms rule base class
  *
- * $Id: Rule.php 521 2007-01-05 13:29:36Z heltem $
+ * $Id: Rule.php 1347 2009-12-03 21:06:36Z francois $
  *
  * @access     protected
  * @package    patForms

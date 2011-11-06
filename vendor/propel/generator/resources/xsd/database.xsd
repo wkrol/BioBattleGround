@@ -93,10 +93,15 @@
 	<xs:simpleType name="delete">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="cascade"/>
+			<xs:enumeration value="CASCADE"/>
 			<xs:enumeration value="set null"/>
+			<xs:enumeration value="SET NULL"/>
 			<xs:enumeration value="setnull"/>
+			<xs:enumeration value="SETNULL"/>
 			<xs:enumeration value="restrict"/>
+			<xs:enumeration value="RESTRICT"/>
 			<xs:enumeration value="none"/>
+			<xs:enumeration value="NONE"/>
 			<xs:enumeration value=""/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -104,10 +109,15 @@
 	<xs:simpleType name="update">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="cascade"/>
-			<xs:enumeration value="setnull"/>
+			<xs:enumeration value="CASCADE"/>
 			<xs:enumeration value="set null"/>
+			<xs:enumeration value="SET NULL"/>
+			<xs:enumeration value="setnull"/>
+			<xs:enumeration value="SETNULL"/>
 			<xs:enumeration value="restrict"/>
+			<xs:enumeration value="RESTRICT"/>
 			<xs:enumeration value="none"/>
+			<xs:enumeration value="NONE"/>
 			<xs:enumeration value=""/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -335,6 +345,7 @@
 		<xs:attribute name="name" type="foreign_name" use="optional"/>
 		<xs:attribute name="phpName" type="php_name" use="optional"/>
 		<xs:attribute name="refPhpName" type="php_name" use="optional"/>
+		<xs:attribute name="defaultJoin" type="xs:string" use="optional"/>
 		<xs:attribute name="onDelete" type="delete" default="none"/>
 		<xs:attribute name="onUpdate" type="update" default="none"/>
 	</xs:complexType>
@@ -375,6 +386,7 @@
 		<xs:attribute name="treeMode" type="treemode" use="optional"/>
 		<xs:attribute name="reloadOnInsert" type="xs:boolean" default="false"/>
 		<xs:attribute name="reloadOnUpdate" type="xs:boolean" default="false"/>
+		<xs:attribute name="isCrossRef" type="xs:boolean" default="false"/>
 	</xs:complexType>
 
 	<xs:complexType name="database">
@@ -393,5 +405,6 @@
 		<xs:attribute name="basePeer" type="php_class" use="optional"/>
 		<xs:attribute name="defaultPhpNamingMethod" type="phpnamingmethod" default="underscore"/>
 		<xs:attribute name="heavyIndexing" type="xs:boolean" default="false"/>
+		<xs:attribute name="tablePrefix" type="xs:string" use="optional"/>
 	</xs:complexType>
 </xs:schema>

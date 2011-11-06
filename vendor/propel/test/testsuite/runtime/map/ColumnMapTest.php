@@ -1,14 +1,22 @@
 <?php
 
+/**
+ * This file is part of the Propel package.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @license    MIT License
+ */
+
 require_once 'PHPUnit/Framework/TestCase.php';
-include_once 'propel/map/ColumnMap.php';
-include_once 'propel/map/TableMap.php';
+require_once 'map/ColumnMap.php';
+require_once 'map/TableMap.php';
 
 /**
  * Test class for TableMap.
  *
  * @author     François Zaninotto
- * @version    $Id: ColumnMapTest.php 1121 2009-09-14 17:20:11Z francois $
+ * @version    $Id: ColumnMapTest.php 1612 2010-03-16 22:56:21Z francois $
  * @package    runtime.map
  */
 class ColumnMapTest extends PHPUnit_Framework_TestCase 

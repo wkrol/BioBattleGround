@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base class that represents a row from the 'organism' table.
  *
@@ -14,7 +13,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	/**
 	 * Peer class name
 	 */
-	const PEER = 'OrganismPeer';
+  const PEER = 'OrganismPeer';
 
 	/**
 	 * The Peer class.
@@ -88,24 +87,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $userPrivilegessScheduledForDeletion = null;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $groupsScheduledForDeletion = null;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $roundsScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -333,7 +314,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 6; // 6 = OrganismPeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 6; // 6 = OrganismPeer::NUM_COLUMNS - OrganismPeer::NUM_LAZY_LOAD_COLUMNS).
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating Organism object", $e);
@@ -422,21 +403,21 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(OrganismPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		try {
-			$deleteQuery = OrganismQuery::create()
-				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				$deleteQuery->delete($con);
+				OrganismQuery::create()
+					->filterByPrimaryKey($this->getPrimaryKey())
+					->delete($con);
 				$this->postDelete($con);
 				$con->commit();
 				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -464,7 +445,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(OrganismPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -488,7 +469,7 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -511,24 +492,27 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 		if (!$this->alreadyInSave) {
 			$this->alreadyInSave = true;
 
-			if ($this->isNew() || $this->isModified()) {
-				// persist changes
-				if ($this->isNew()) {
-					$this->doInsert($con);
-				} else {
-					$this->doUpdate($con);
-				}
-				$affectedRows += 1;
-				$this->resetModified();
+			if ($this->isNew() ) {
+				$this->modifiedColumns[] = OrganismPeer::ID;
 			}
 
-			if ($this->userPrivilegessScheduledForDeletion !== null) {
-				if (!$this->userPrivilegessScheduledForDeletion->isEmpty()) {
-					UserPrivilegesQuery::create()
-						->filterByPrimaryKeys($this->userPrivilegessScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->userPrivilegessScheduledForDeletion = null;
+			// If this object has been modified, then save it to the database.
+			if ($this->isModified()) {
+				if ($this->isNew()) {
+					$criteria = $this->buildCriteria();
+					if ($criteria->keyContainsValue(OrganismPeer::ID) ) {
+						throw new PropelException('Cannot insert a value for auto-increment primary key ('.OrganismPeer::ID.')');
+					}
+
+					$pk = BasePeer::doInsert($criteria, $con);
+					$affectedRows = 1;
+					$this->setId($pk);  //[IMV] update autoincrement primary key
+					$this->setNew(false);
+				} else {
+					$affectedRows = OrganismPeer::doUpdate($this, $con);
 				}
+
+				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collUserPrivilegess !== null) {
@@ -539,29 +523,11 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 				}
 			}
 
-			if ($this->groupsScheduledForDeletion !== null) {
-				if (!$this->groupsScheduledForDeletion->isEmpty()) {
-					GroupQuery::create()
-						->filterByPrimaryKeys($this->groupsScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->groupsScheduledForDeletion = null;
-				}
-			}
-
 			if ($this->collGroups !== null) {
 				foreach ($this->collGroups as $referrerFK) {
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
-				}
-			}
-
-			if ($this->roundsScheduledForDeletion !== null) {
-				if (!$this->roundsScheduledForDeletion->isEmpty()) {
-					RoundQuery::create()
-						->filterByPrimaryKeys($this->roundsScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->roundsScheduledForDeletion = null;
 				}
 			}
 
@@ -578,104 +544,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
-
-	/**
-	 * Insert the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @throws     PropelException
-	 * @see        doSave()
-	 */
-	protected function doInsert(PropelPDO $con)
-	{
-		$modifiedColumns = array();
-		$index = 0;
-
-		$this->modifiedColumns[] = OrganismPeer::ID;
-		if (null !== $this->id) {
-			throw new PropelException('Cannot insert a value for auto-increment primary key (' . OrganismPeer::ID . ')');
-		}
-
-		 // check the columns in natural order for more readable SQL queries
-		if ($this->isColumnModified(OrganismPeer::ID)) {
-			$modifiedColumns[':p' . $index++]  = '`ID`';
-		}
-		if ($this->isColumnModified(OrganismPeer::NAME)) {
-			$modifiedColumns[':p' . $index++]  = '`NAME`';
-		}
-		if ($this->isColumnModified(OrganismPeer::INSTINCT)) {
-			$modifiedColumns[':p' . $index++]  = '`INSTINCT`';
-		}
-		if ($this->isColumnModified(OrganismPeer::TOUGHNESS)) {
-			$modifiedColumns[':p' . $index++]  = '`TOUGHNESS`';
-		}
-		if ($this->isColumnModified(OrganismPeer::VITALITY)) {
-			$modifiedColumns[':p' . $index++]  = '`VITALITY`';
-		}
-		if ($this->isColumnModified(OrganismPeer::TYPE)) {
-			$modifiedColumns[':p' . $index++]  = '`TYPE`';
-		}
-
-		$sql = sprintf(
-			'INSERT INTO `organism` (%s) VALUES (%s)',
-			implode(', ', $modifiedColumns),
-			implode(', ', array_keys($modifiedColumns))
-		);
-
-		try {
-			$stmt = $con->prepare($sql);
-			foreach ($modifiedColumns as $identifier => $columnName) {
-				switch ($columnName) {
-					case '`ID`':
-						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
-						break;
-					case '`NAME`':
-						$stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
-						break;
-					case '`INSTINCT`':
-						$stmt->bindValue($identifier, $this->instinct, PDO::PARAM_INT);
-						break;
-					case '`TOUGHNESS`':
-						$stmt->bindValue($identifier, $this->toughness, PDO::PARAM_INT);
-						break;
-					case '`VITALITY`':
-						$stmt->bindValue($identifier, $this->vitality, PDO::PARAM_INT);
-						break;
-					case '`TYPE`':
-						$stmt->bindValue($identifier, $this->type, PDO::PARAM_STR);
-						break;
-				}
-			}
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
-		}
-
-		try {
-			$pk = $con->lastInsertId();
-		} catch (Exception $e) {
-			throw new PropelException('Unable to get autoincrement id.', $e);
-		}
-		$this->setId($pk);
-
-		$this->setNew(false);
-	}
-
-	/**
-	 * Update the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @see        doSave()
-	 */
-	protected function doUpdate(PropelPDO $con)
-	{
-		$selectCriteria = $this->buildPkeyCriteria();
-		$valuesCriteria = $this->buildCriteria();
-		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
-	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -830,20 +698,14 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * type constants.
 	 *
 	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
-	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM. 
 	 *                    Defaults to BasePeer::TYPE_PHPNAME.
 	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
-	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
-	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
 	 *
 	 * @return    array an associative array containing the field names (as keys) and field values
 	 */
-	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true)
 	{
-		if (isset($alreadyDumpedObjects['Organism'][$this->getPrimaryKey()])) {
-			return '*RECURSION*';
-		}
-		$alreadyDumpedObjects['Organism'][$this->getPrimaryKey()] = true;
 		$keys = OrganismPeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getId(),
@@ -853,17 +715,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 			$keys[4] => $this->getVitality(),
 			$keys[5] => $this->getType(),
 		);
-		if ($includeForeignObjects) {
-			if (null !== $this->collUserPrivilegess) {
-				$result['UserPrivilegess'] = $this->collUserPrivilegess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-			if (null !== $this->collGroups) {
-				$result['Groups'] = $this->collGroups->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-			if (null !== $this->collRounds) {
-				$result['Rounds'] = $this->collRounds->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-		}
 		return $result;
 	}
 
@@ -1016,16 +867,15 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 *
 	 * @param      object $copyObj An object of Organism (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
+	public function copyInto($copyObj, $deepCopy = false)
 	{
-		$copyObj->setName($this->getName());
-		$copyObj->setInstinct($this->getInstinct());
-		$copyObj->setToughness($this->getToughness());
-		$copyObj->setVitality($this->getVitality());
-		$copyObj->setType($this->getType());
+		$copyObj->setName($this->name);
+		$copyObj->setInstinct($this->instinct);
+		$copyObj->setToughness($this->toughness);
+		$copyObj->setVitality($this->vitality);
+		$copyObj->setType($this->type);
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -1052,10 +902,9 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 
 		} // if ($deepCopy)
 
-		if ($makeNew) {
-			$copyObj->setNew(true);
-			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-		}
+
+		$copyObj->setNew(true);
+		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
 	}
 
 	/**
@@ -1096,28 +945,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 		return self::$peer;
 	}
 
-
-	/**
-	 * Initializes a collection based on the name of a relation.
-	 * Avoids crafting an 'init[$relationName]s' method name
-	 * that wouldn't work when StandardEnglishPluralizer is used.
-	 *
-	 * @param      string $relationName The name of the relation to initialize
-	 * @return     void
-	 */
-	public function initRelation($relationName)
-	{
-		if ('UserPrivileges' == $relationName) {
-			return $this->initUserPrivilegess();
-		}
-		if ('Group' == $relationName) {
-			return $this->initGroups();
-		}
-		if ('Round' == $relationName) {
-			return $this->initRounds();
-		}
-	}
-
 	/**
 	 * Clears out the collUserPrivilegess collection
 	 *
@@ -1139,16 +966,10 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initUserPrivilegess($overrideExisting = true)
+	public function initUserPrivilegess()
 	{
-		if (null !== $this->collUserPrivilegess && !$overrideExisting) {
-			return;
-		}
 		$this->collUserPrivilegess = new PropelObjectCollection();
 		$this->collUserPrivilegess->setModel('UserPrivileges');
 	}
@@ -1187,30 +1008,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of UserPrivileges objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $userPrivilegess A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setUserPrivilegess(PropelCollection $userPrivilegess, PropelPDO $con = null)
-	{
-		$this->userPrivilegessScheduledForDeletion = $this->getUserPrivilegess(new Criteria(), $con)->diff($userPrivilegess);
-
-		foreach ($userPrivilegess as $userPrivileges) {
-			// Fix issue with collection modified by reference
-			if ($userPrivileges->isNew()) {
-				$userPrivileges->setOrganism($this);
-			}
-			$this->addUserPrivileges($userPrivileges);
-		}
-
-		$this->collUserPrivilegess = $userPrivilegess;
-	}
-
-	/**
 	 * Returns the number of related UserPrivileges objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1243,7 +1040,8 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * through the UserPrivileges foreign key attribute.
 	 *
 	 * @param      UserPrivileges $l UserPrivileges
-	 * @return     Organism The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addUserPrivileges(UserPrivileges $l)
 	{
@@ -1251,19 +1049,9 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 			$this->initUserPrivilegess();
 		}
 		if (!$this->collUserPrivilegess->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddUserPrivileges($l);
+			$this->collUserPrivilegess[]= $l;
+			$l->setOrganism($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	UserPrivileges $userPrivileges The userPrivileges object to add.
-	 */
-	protected function doAddUserPrivileges($userPrivileges)
-	{
-		$this->collUserPrivilegess[]= $userPrivileges;
-		$userPrivileges->setOrganism($this);
 	}
 
 
@@ -1362,16 +1150,10 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initGroups($overrideExisting = true)
+	public function initGroups()
 	{
-		if (null !== $this->collGroups && !$overrideExisting) {
-			return;
-		}
 		$this->collGroups = new PropelObjectCollection();
 		$this->collGroups->setModel('Group');
 	}
@@ -1410,30 +1192,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of Group objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $groups A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setGroups(PropelCollection $groups, PropelPDO $con = null)
-	{
-		$this->groupsScheduledForDeletion = $this->getGroups(new Criteria(), $con)->diff($groups);
-
-		foreach ($groups as $group) {
-			// Fix issue with collection modified by reference
-			if ($group->isNew()) {
-				$group->setOrganism($this);
-			}
-			$this->addGroup($group);
-		}
-
-		$this->collGroups = $groups;
-	}
-
-	/**
 	 * Returns the number of related Group objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1466,7 +1224,8 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * through the Group foreign key attribute.
 	 *
 	 * @param      Group $l Group
-	 * @return     Organism The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addGroup(Group $l)
 	{
@@ -1474,19 +1233,9 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 			$this->initGroups();
 		}
 		if (!$this->collGroups->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddGroup($l);
+			$this->collGroups[]= $l;
+			$l->setOrganism($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	Group $group The group object to add.
-	 */
-	protected function doAddGroup($group)
-	{
-		$this->collGroups[]= $group;
-		$group->setOrganism($this);
 	}
 
 
@@ -1560,16 +1309,10 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initRounds($overrideExisting = true)
+	public function initRounds()
 	{
-		if (null !== $this->collRounds && !$overrideExisting) {
-			return;
-		}
 		$this->collRounds = new PropelObjectCollection();
 		$this->collRounds->setModel('Round');
 	}
@@ -1608,30 +1351,6 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of Round objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $rounds A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setRounds(PropelCollection $rounds, PropelPDO $con = null)
-	{
-		$this->roundsScheduledForDeletion = $this->getRounds(new Criteria(), $con)->diff($rounds);
-
-		foreach ($rounds as $round) {
-			// Fix issue with collection modified by reference
-			if ($round->isNew()) {
-				$round->setOrganism($this);
-			}
-			$this->addRound($round);
-		}
-
-		$this->collRounds = $rounds;
-	}
-
-	/**
 	 * Returns the number of related Round objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1664,7 +1383,8 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 	 * through the Round foreign key attribute.
 	 *
 	 * @param      Round $l Round
-	 * @return     Organism The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addRound(Round $l)
 	{
@@ -1672,19 +1392,9 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 			$this->initRounds();
 		}
 		if (!$this->collRounds->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddRound($l);
+			$this->collRounds[]= $l;
+			$l->setOrganism($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	Round $round The round object to add.
-	 */
-	protected function doAddRound($round)
-	{
-		$this->collRounds[]= $round;
-		$round->setOrganism($this);
 	}
 
 
@@ -1728,60 +1438,51 @@ abstract class BaseOrganism extends BaseObject  implements Persistent
 		$this->clearAllReferences();
 		$this->resetModified();
 		$this->setNew(true);
-		$this->setDeleted(false);
 	}
 
 	/**
-	 * Resets all references to other model objects or collections of model objects.
+	 * Resets all collections of referencing foreign keys.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect
-	 * objects with circular references (even in PHP 5.3). This is currently necessary
-	 * when using Propel in certain daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect objects
+	 * with circular references.  This is currently necessary when using Propel in certain
+	 * daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
+	 * @param      boolean $deep Whether to also clear the references on all associated objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collUserPrivilegess) {
-				foreach ($this->collUserPrivilegess as $o) {
+				foreach ((array) $this->collUserPrivilegess as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collGroups) {
-				foreach ($this->collGroups as $o) {
+				foreach ((array) $this->collGroups as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collRounds) {
-				foreach ($this->collRounds as $o) {
+				foreach ((array) $this->collRounds as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
-		if ($this->collUserPrivilegess instanceof PropelCollection) {
-			$this->collUserPrivilegess->clearIterator();
-		}
 		$this->collUserPrivilegess = null;
-		if ($this->collGroups instanceof PropelCollection) {
-			$this->collGroups->clearIterator();
-		}
 		$this->collGroups = null;
-		if ($this->collRounds instanceof PropelCollection) {
-			$this->collRounds->clearIterator();
-		}
 		$this->collRounds = null;
 	}
 
 	/**
-	 * Return the string representation of this object
-	 *
-	 * @return string
+	 * Catches calls to virtual methods
 	 */
-	public function __toString()
+	public function __call($name, $params)
 	{
-		return (string) $this->exportTo(OrganismPeer::DEFAULT_STRING_FORMAT);
+		if (preg_match('/get(\w+)/', $name, $matches) && $this->hasVirtualColumn($matches[1])) {
+			return $this->getVirtualColumn($matches[1]);
+		}
+		throw new PropelException('Call to undefined method: ' . $name);
 	}
 
 } // BaseOrganism

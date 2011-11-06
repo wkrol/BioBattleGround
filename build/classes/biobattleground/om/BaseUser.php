@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base class that represents a row from the 'user' table.
  *
@@ -14,7 +13,7 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	/**
 	 * Peer class name
 	 */
-	const PEER = 'UserPeer';
+  const PEER = 'UserPeer';
 
 	/**
 	 * The Peer class.
@@ -71,18 +70,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 * @var        boolean
 	 */
 	protected $alreadyInValidation = false;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $userPrivilegessScheduledForDeletion = null;
-
-	/**
-	 * An array of objects scheduled for deletion.
-	 * @var		array
-	 */
-	protected $simulationPrivilegessScheduledForDeletion = null;
 
 	/**
 	 * Get the [id] column value.
@@ -248,7 +235,7 @@ abstract class BaseUser extends BaseObject  implements Persistent
 				$this->ensureConsistency();
 			}
 
-			return $startcol + 4; // 4 = UserPeer::NUM_HYDRATE_COLUMNS.
+			return $startcol + 4; // 4 = UserPeer::NUM_COLUMNS - UserPeer::NUM_LAZY_LOAD_COLUMNS).
 
 		} catch (Exception $e) {
 			throw new PropelException("Error populating User object", $e);
@@ -335,21 +322,21 @@ abstract class BaseUser extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(UserPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		try {
-			$deleteQuery = UserQuery::create()
-				->filterByPrimaryKey($this->getPrimaryKey());
 			$ret = $this->preDelete($con);
 			if ($ret) {
-				$deleteQuery->delete($con);
+				UserQuery::create()
+					->filterByPrimaryKey($this->getPrimaryKey())
+					->delete($con);
 				$this->postDelete($con);
 				$con->commit();
 				$this->setDeleted(true);
 			} else {
 				$con->commit();
 			}
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -377,7 +364,7 @@ abstract class BaseUser extends BaseObject  implements Persistent
 		if ($con === null) {
 			$con = Propel::getConnection(UserPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
 		}
-
+		
 		$con->beginTransaction();
 		$isInsert = $this->isNew();
 		try {
@@ -401,7 +388,7 @@ abstract class BaseUser extends BaseObject  implements Persistent
 			}
 			$con->commit();
 			return $affectedRows;
-		} catch (Exception $e) {
+		} catch (PropelException $e) {
 			$con->rollBack();
 			throw $e;
 		}
@@ -424,24 +411,27 @@ abstract class BaseUser extends BaseObject  implements Persistent
 		if (!$this->alreadyInSave) {
 			$this->alreadyInSave = true;
 
-			if ($this->isNew() || $this->isModified()) {
-				// persist changes
-				if ($this->isNew()) {
-					$this->doInsert($con);
-				} else {
-					$this->doUpdate($con);
-				}
-				$affectedRows += 1;
-				$this->resetModified();
+			if ($this->isNew() ) {
+				$this->modifiedColumns[] = UserPeer::ID;
 			}
 
-			if ($this->userPrivilegessScheduledForDeletion !== null) {
-				if (!$this->userPrivilegessScheduledForDeletion->isEmpty()) {
-					UserPrivilegesQuery::create()
-						->filterByPrimaryKeys($this->userPrivilegessScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->userPrivilegessScheduledForDeletion = null;
+			// If this object has been modified, then save it to the database.
+			if ($this->isModified()) {
+				if ($this->isNew()) {
+					$criteria = $this->buildCriteria();
+					if ($criteria->keyContainsValue(UserPeer::ID) ) {
+						throw new PropelException('Cannot insert a value for auto-increment primary key ('.UserPeer::ID.')');
+					}
+
+					$pk = BasePeer::doInsert($criteria, $con);
+					$affectedRows = 1;
+					$this->setId($pk);  //[IMV] update autoincrement primary key
+					$this->setNew(false);
+				} else {
+					$affectedRows = UserPeer::doUpdate($this, $con);
 				}
+
+				$this->resetModified(); // [HL] After being saved an object is no longer 'modified'
 			}
 
 			if ($this->collUserPrivilegess !== null) {
@@ -449,15 +439,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 					if (!$referrerFK->isDeleted()) {
 						$affectedRows += $referrerFK->save($con);
 					}
-				}
-			}
-
-			if ($this->simulationPrivilegessScheduledForDeletion !== null) {
-				if (!$this->simulationPrivilegessScheduledForDeletion->isEmpty()) {
-					SimulationPrivilegesQuery::create()
-						->filterByPrimaryKeys($this->simulationPrivilegessScheduledForDeletion->getPrimaryKeys(false))
-						->delete($con);
-					$this->simulationPrivilegessScheduledForDeletion = null;
 				}
 			}
 
@@ -474,92 +455,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 		}
 		return $affectedRows;
 	} // doSave()
-
-	/**
-	 * Insert the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @throws     PropelException
-	 * @see        doSave()
-	 */
-	protected function doInsert(PropelPDO $con)
-	{
-		$modifiedColumns = array();
-		$index = 0;
-
-		$this->modifiedColumns[] = UserPeer::ID;
-		if (null !== $this->id) {
-			throw new PropelException('Cannot insert a value for auto-increment primary key (' . UserPeer::ID . ')');
-		}
-
-		 // check the columns in natural order for more readable SQL queries
-		if ($this->isColumnModified(UserPeer::ID)) {
-			$modifiedColumns[':p' . $index++]  = '`ID`';
-		}
-		if ($this->isColumnModified(UserPeer::LOGIN)) {
-			$modifiedColumns[':p' . $index++]  = '`LOGIN`';
-		}
-		if ($this->isColumnModified(UserPeer::PASSWORD)) {
-			$modifiedColumns[':p' . $index++]  = '`PASSWORD`';
-		}
-		if ($this->isColumnModified(UserPeer::NAME)) {
-			$modifiedColumns[':p' . $index++]  = '`NAME`';
-		}
-
-		$sql = sprintf(
-			'INSERT INTO `user` (%s) VALUES (%s)',
-			implode(', ', $modifiedColumns),
-			implode(', ', array_keys($modifiedColumns))
-		);
-
-		try {
-			$stmt = $con->prepare($sql);
-			foreach ($modifiedColumns as $identifier => $columnName) {
-				switch ($columnName) {
-					case '`ID`':
-						$stmt->bindValue($identifier, $this->id, PDO::PARAM_INT);
-						break;
-					case '`LOGIN`':
-						$stmt->bindValue($identifier, $this->login, PDO::PARAM_STR);
-						break;
-					case '`PASSWORD`':
-						$stmt->bindValue($identifier, $this->password, PDO::PARAM_STR);
-						break;
-					case '`NAME`':
-						$stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
-						break;
-				}
-			}
-			$stmt->execute();
-		} catch (Exception $e) {
-			Propel::log($e->getMessage(), Propel::LOG_ERR);
-			throw new PropelException(sprintf('Unable to execute INSERT statement [%s]', $sql), $e);
-		}
-
-		try {
-			$pk = $con->lastInsertId();
-		} catch (Exception $e) {
-			throw new PropelException('Unable to get autoincrement id.', $e);
-		}
-		$this->setId($pk);
-
-		$this->setNew(false);
-	}
-
-	/**
-	 * Update the row in the database.
-	 *
-	 * @param      PropelPDO $con
-	 *
-	 * @see        doSave()
-	 */
-	protected function doUpdate(PropelPDO $con)
-	{
-		$selectCriteria = $this->buildPkeyCriteria();
-		$valuesCriteria = $this->buildCriteria();
-		BasePeer::doUpdate($selectCriteria, $valuesCriteria, $con);
-	}
 
 	/**
 	 * Array of ValidationFailed objects.
@@ -700,20 +595,14 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 * type constants.
 	 *
 	 * @param     string  $keyType (optional) One of the class type constants BasePeer::TYPE_PHPNAME, BasePeer::TYPE_STUDLYPHPNAME,
-	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM.
+	 *                    BasePeer::TYPE_COLNAME, BasePeer::TYPE_FIELDNAME, BasePeer::TYPE_NUM. 
 	 *                    Defaults to BasePeer::TYPE_PHPNAME.
 	 * @param     boolean $includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
-	 * @param     array $alreadyDumpedObjects List of objects to skip to avoid recursion
-	 * @param     boolean $includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.
 	 *
 	 * @return    array an associative array containing the field names (as keys) and field values
 	 */
-	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true, $alreadyDumpedObjects = array(), $includeForeignObjects = false)
+	public function toArray($keyType = BasePeer::TYPE_PHPNAME, $includeLazyLoadColumns = true)
 	{
-		if (isset($alreadyDumpedObjects['User'][$this->getPrimaryKey()])) {
-			return '*RECURSION*';
-		}
-		$alreadyDumpedObjects['User'][$this->getPrimaryKey()] = true;
 		$keys = UserPeer::getFieldNames($keyType);
 		$result = array(
 			$keys[0] => $this->getId(),
@@ -721,14 +610,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 			$keys[2] => $this->getPassword(),
 			$keys[3] => $this->getName(),
 		);
-		if ($includeForeignObjects) {
-			if (null !== $this->collUserPrivilegess) {
-				$result['UserPrivilegess'] = $this->collUserPrivilegess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-			if (null !== $this->collSimulationPrivilegess) {
-				$result['SimulationPrivilegess'] = $this->collSimulationPrivilegess->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
-			}
-		}
 		return $result;
 	}
 
@@ -871,14 +752,13 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 *
 	 * @param      object $copyObj An object of User (or compatible) type.
 	 * @param      boolean $deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-	 * @param      boolean $makeNew Whether to reset autoincrement PKs and make the object new.
 	 * @throws     PropelException
 	 */
-	public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
+	public function copyInto($copyObj, $deepCopy = false)
 	{
-		$copyObj->setLogin($this->getLogin());
-		$copyObj->setPassword($this->getPassword());
-		$copyObj->setName($this->getName());
+		$copyObj->setLogin($this->login);
+		$copyObj->setPassword($this->password);
+		$copyObj->setName($this->name);
 
 		if ($deepCopy) {
 			// important: temporarily setNew(false) because this affects the behavior of
@@ -899,10 +779,9 @@ abstract class BaseUser extends BaseObject  implements Persistent
 
 		} // if ($deepCopy)
 
-		if ($makeNew) {
-			$copyObj->setNew(true);
-			$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
-		}
+
+		$copyObj->setNew(true);
+		$copyObj->setId(NULL); // this is a auto-increment column, so set to default value
 	}
 
 	/**
@@ -943,25 +822,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 		return self::$peer;
 	}
 
-
-	/**
-	 * Initializes a collection based on the name of a relation.
-	 * Avoids crafting an 'init[$relationName]s' method name
-	 * that wouldn't work when StandardEnglishPluralizer is used.
-	 *
-	 * @param      string $relationName The name of the relation to initialize
-	 * @return     void
-	 */
-	public function initRelation($relationName)
-	{
-		if ('UserPrivileges' == $relationName) {
-			return $this->initUserPrivilegess();
-		}
-		if ('SimulationPrivileges' == $relationName) {
-			return $this->initSimulationPrivilegess();
-		}
-	}
-
 	/**
 	 * Clears out the collUserPrivilegess collection
 	 *
@@ -983,16 +843,10 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initUserPrivilegess($overrideExisting = true)
+	public function initUserPrivilegess()
 	{
-		if (null !== $this->collUserPrivilegess && !$overrideExisting) {
-			return;
-		}
 		$this->collUserPrivilegess = new PropelObjectCollection();
 		$this->collUserPrivilegess->setModel('UserPrivileges');
 	}
@@ -1031,30 +885,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of UserPrivileges objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $userPrivilegess A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setUserPrivilegess(PropelCollection $userPrivilegess, PropelPDO $con = null)
-	{
-		$this->userPrivilegessScheduledForDeletion = $this->getUserPrivilegess(new Criteria(), $con)->diff($userPrivilegess);
-
-		foreach ($userPrivilegess as $userPrivileges) {
-			// Fix issue with collection modified by reference
-			if ($userPrivileges->isNew()) {
-				$userPrivileges->setUser($this);
-			}
-			$this->addUserPrivileges($userPrivileges);
-		}
-
-		$this->collUserPrivilegess = $userPrivilegess;
-	}
-
-	/**
 	 * Returns the number of related UserPrivileges objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1087,7 +917,8 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 * through the UserPrivileges foreign key attribute.
 	 *
 	 * @param      UserPrivileges $l UserPrivileges
-	 * @return     User The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addUserPrivileges(UserPrivileges $l)
 	{
@@ -1095,19 +926,9 @@ abstract class BaseUser extends BaseObject  implements Persistent
 			$this->initUserPrivilegess();
 		}
 		if (!$this->collUserPrivilegess->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddUserPrivileges($l);
+			$this->collUserPrivilegess[]= $l;
+			$l->setUser($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	UserPrivileges $userPrivileges The userPrivileges object to add.
-	 */
-	protected function doAddUserPrivileges($userPrivileges)
-	{
-		$this->collUserPrivilegess[]= $userPrivileges;
-		$userPrivileges->setUser($this);
 	}
 
 
@@ -1206,16 +1027,10 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 * however, you may wish to override this method in your stub class to provide setting appropriate
 	 * to your application -- for example, setting the initial array to the values stored in database.
 	 *
-	 * @param      boolean $overrideExisting If set to true, the method call initializes
-	 *                                        the collection even if it is not empty
-	 *
 	 * @return     void
 	 */
-	public function initSimulationPrivilegess($overrideExisting = true)
+	public function initSimulationPrivilegess()
 	{
-		if (null !== $this->collSimulationPrivilegess && !$overrideExisting) {
-			return;
-		}
 		$this->collSimulationPrivilegess = new PropelObjectCollection();
 		$this->collSimulationPrivilegess->setModel('SimulationPrivileges');
 	}
@@ -1254,30 +1069,6 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	}
 
 	/**
-	 * Sets a collection of SimulationPrivileges objects related by a one-to-many relationship
-	 * to the current object.
-	 * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-	 * and new objects from the given Propel collection.
-	 *
-	 * @param      PropelCollection $simulationPrivilegess A Propel collection.
-	 * @param      PropelPDO $con Optional connection object
-	 */
-	public function setSimulationPrivilegess(PropelCollection $simulationPrivilegess, PropelPDO $con = null)
-	{
-		$this->simulationPrivilegessScheduledForDeletion = $this->getSimulationPrivilegess(new Criteria(), $con)->diff($simulationPrivilegess);
-
-		foreach ($simulationPrivilegess as $simulationPrivileges) {
-			// Fix issue with collection modified by reference
-			if ($simulationPrivileges->isNew()) {
-				$simulationPrivileges->setUser($this);
-			}
-			$this->addSimulationPrivileges($simulationPrivileges);
-		}
-
-		$this->collSimulationPrivilegess = $simulationPrivilegess;
-	}
-
-	/**
 	 * Returns the number of related SimulationPrivileges objects.
 	 *
 	 * @param      Criteria $criteria
@@ -1310,7 +1101,8 @@ abstract class BaseUser extends BaseObject  implements Persistent
 	 * through the SimulationPrivileges foreign key attribute.
 	 *
 	 * @param      SimulationPrivileges $l SimulationPrivileges
-	 * @return     User The current object (for fluent API support)
+	 * @return     void
+	 * @throws     PropelException
 	 */
 	public function addSimulationPrivileges(SimulationPrivileges $l)
 	{
@@ -1318,19 +1110,9 @@ abstract class BaseUser extends BaseObject  implements Persistent
 			$this->initSimulationPrivilegess();
 		}
 		if (!$this->collSimulationPrivilegess->contains($l)) { // only add it if the **same** object is not already associated
-			$this->doAddSimulationPrivileges($l);
+			$this->collSimulationPrivilegess[]= $l;
+			$l->setUser($this);
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @param	SimulationPrivileges $simulationPrivileges The simulationPrivileges object to add.
-	 */
-	protected function doAddSimulationPrivileges($simulationPrivileges)
-	{
-		$this->collSimulationPrivilegess[]= $simulationPrivileges;
-		$simulationPrivileges->setUser($this);
 	}
 
 	/**
@@ -1347,51 +1129,45 @@ abstract class BaseUser extends BaseObject  implements Persistent
 		$this->clearAllReferences();
 		$this->resetModified();
 		$this->setNew(true);
-		$this->setDeleted(false);
 	}
 
 	/**
-	 * Resets all references to other model objects or collections of model objects.
+	 * Resets all collections of referencing foreign keys.
 	 *
-	 * This method is a user-space workaround for PHP's inability to garbage collect
-	 * objects with circular references (even in PHP 5.3). This is currently necessary
-	 * when using Propel in certain daemon or large-volumne/high-memory operations.
+	 * This method is a user-space workaround for PHP's inability to garbage collect objects
+	 * with circular references.  This is currently necessary when using Propel in certain
+	 * daemon or large-volumne/high-memory operations.
 	 *
-	 * @param      boolean $deep Whether to also clear the references on all referrer objects.
+	 * @param      boolean $deep Whether to also clear the references on all associated objects.
 	 */
 	public function clearAllReferences($deep = false)
 	{
 		if ($deep) {
 			if ($this->collUserPrivilegess) {
-				foreach ($this->collUserPrivilegess as $o) {
+				foreach ((array) $this->collUserPrivilegess as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 			if ($this->collSimulationPrivilegess) {
-				foreach ($this->collSimulationPrivilegess as $o) {
+				foreach ((array) $this->collSimulationPrivilegess as $o) {
 					$o->clearAllReferences($deep);
 				}
 			}
 		} // if ($deep)
 
-		if ($this->collUserPrivilegess instanceof PropelCollection) {
-			$this->collUserPrivilegess->clearIterator();
-		}
 		$this->collUserPrivilegess = null;
-		if ($this->collSimulationPrivilegess instanceof PropelCollection) {
-			$this->collSimulationPrivilegess->clearIterator();
-		}
 		$this->collSimulationPrivilegess = null;
 	}
 
 	/**
-	 * Return the string representation of this object
-	 *
-	 * @return string
+	 * Catches calls to virtual methods
 	 */
-	public function __toString()
+	public function __call($name, $params)
 	{
-		return (string) $this->exportTo(UserPeer::DEFAULT_STRING_FORMAT);
+		if (preg_match('/get(\w+)/', $name, $matches) && $this->hasVirtualColumn($matches[1])) {
+			return $this->getVirtualColumn($matches[1]);
+		}
+		throw new PropelException('Call to undefined method: ' . $name);
 	}
 
 } // BaseUser

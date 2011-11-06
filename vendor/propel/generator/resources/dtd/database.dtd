@@ -31,6 +31,7 @@ PHP class or method name.
   basePeer CDATA #IMPLIED
   defaultPhpNamingMethod (nochange|underscore|phpname) "underscore"
   heavyIndexing (true|false) "false"
+  tablePrefix CDATA #IMPLIED
 >
 
 <!ELEMENT external-schema EMPTY>
@@ -50,6 +51,7 @@ PHP class or method name.
   skipSql (true|false) "false"
   readOnly (true|false) "false"
   abstract (true|false) "false"
+  isCrossRef (true|false) "false"
   treeMode (MaterializedPath|NestedSet|AdjacencyList) "AdjacencyList"
   package CDATA #IMPLIED
   baseClass CDATA #IMPLIED

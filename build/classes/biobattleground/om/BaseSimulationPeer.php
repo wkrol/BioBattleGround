@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base static class for performing query and update operations on the 'simulation' table.
  *
@@ -24,15 +23,12 @@ abstract class BaseSimulationPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'SimulationTableMap';
-
+	
 	/** The total number of columns. */
 	const NUM_COLUMNS = 5;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
-
-	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 5;
 
 	/** the column name for the ID field */
 	const ID = 'simulation.ID';
@@ -49,9 +45,6 @@ abstract class BaseSimulationPeer {
 	/** the column name for the DATE field */
 	const DATE = 'simulation.DATE';
 
-	/** The default string format for model objects of the related table **/
-	const DEFAULT_STRING_FORMAT = 'YAML';
-
 	/**
 	 * An identiy map to hold any loaded instances of Simulation objects.
 	 * This must be public so that other peer classes can access this when hydrating from JOIN
@@ -67,7 +60,7 @@ abstract class BaseSimulationPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	protected static $fieldNames = array (
+	private static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'IdClimate', 'IdMap', 'SimulationLength', 'Date', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'idClimate', 'idMap', 'simulationLength', 'date', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::ID_CLIMATE, self::ID_MAP, self::SIMULATION_LENGTH, self::DATE, ),
@@ -82,7 +75,7 @@ abstract class BaseSimulationPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	protected static $fieldKeys = array (
+	private static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'IdClimate' => 1, 'IdMap' => 2, 'SimulationLength' => 3, 'Date' => 4, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'idClimate' => 1, 'idMap' => 2, 'simulationLength' => 3, 'date' => 4, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::ID_CLIMATE => 1, self::ID_MAP => 2, self::SIMULATION_LENGTH => 3, self::DATE => 4, ),
@@ -218,7 +211,7 @@ abstract class BaseSimulationPeer {
 		return $count;
 	}
 	/**
-	 * Selects one object from the DB.
+	 * Method to select one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -237,7 +230,7 @@ abstract class BaseSimulationPeer {
 		return null;
 	}
 	/**
-	 * Selects several row from the DB.
+	 * Method to do selects.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -291,7 +284,7 @@ abstract class BaseSimulationPeer {
 	 * @param      Simulation $value A Simulation object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool($obj, $key = null)
+	public static function addInstanceToPool(Simulation $obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -364,12 +357,12 @@ abstract class BaseSimulationPeer {
 	 */
 	public static function clearRelatedInstancePool()
 	{
-		// Invalidate objects in GroupPeer instance pool,
-		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+		// invalidate objects in GroupPeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
 		GroupPeer::clearInstancePool();
-		// Invalidate objects in RoundPeer instance pool,
-		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+
+		// invalidate objects in RoundPeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
 		RoundPeer::clearInstancePool();
+
 	}
 
 	/**
@@ -392,7 +385,7 @@ abstract class BaseSimulationPeer {
 	}
 
 	/**
-	 * Retrieves the primary key from the DB resultset row
+	 * Retrieves the primary key from the DB resultset row 
 	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
 	 * a multi-column primary key, an array of the primary key columns will be returned.
 	 *
@@ -452,7 +445,7 @@ abstract class BaseSimulationPeer {
 			// We no longer rehydrate the object, since this can cause data loss.
 			// See http://www.propelorm.org/ticket/509
 			// $obj->hydrate($row, $startcol, true); // rehydrate
-			$col = $startcol + SimulationPeer::NUM_HYDRATE_COLUMNS;
+			$col = $startcol + SimulationPeer::NUM_COLUMNS;
 		} else {
 			$cls = SimulationPeer::OM_CLASS;
 			$obj = new $cls();
@@ -461,7 +454,6 @@ abstract class BaseSimulationPeer {
 		}
 		return array($obj, $col);
 	}
-
 
 	/**
 	 * Returns the number of rows matching criteria, joining the related Map table
@@ -489,9 +481,9 @@ abstract class BaseSimulationPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -539,9 +531,9 @@ abstract class BaseSimulationPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -582,7 +574,7 @@ abstract class BaseSimulationPeer {
 		}
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol = SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol = (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 		MapPeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(SimulationPeer::ID_MAP, MapPeer::ID, $join_behavior);
@@ -648,7 +640,7 @@ abstract class BaseSimulationPeer {
 		}
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol = SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol = (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 		ClimatePeer::addSelectColumns($criteria);
 
 		$criteria->addJoin(SimulationPeer::ID_CLIMATE, ClimatePeer::ID, $join_behavior);
@@ -721,9 +713,9 @@ abstract class BaseSimulationPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY won't ever affect the count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -766,13 +758,13 @@ abstract class BaseSimulationPeer {
 		}
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol2 = SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		MapPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + MapPeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		ClimatePeer::addSelectColumns($criteria);
-		$startcol4 = $startcol3 + ClimatePeer::NUM_HYDRATE_COLUMNS;
+		$startcol4 = $startcol3 + (ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(SimulationPeer::ID_MAP, MapPeer::ID, $join_behavior);
 
@@ -856,7 +848,7 @@ abstract class BaseSimulationPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(SimulationPeer::TABLE_NAME);
-
+		
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -864,9 +856,9 @@ abstract class BaseSimulationPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -906,7 +898,7 @@ abstract class BaseSimulationPeer {
 		// it will be impossible for the BasePeer::createSelectSql() method to determine which
 		// tables go into the FROM clause.
 		$criteria->setPrimaryTableName(SimulationPeer::TABLE_NAME);
-
+		
 		if ($distinct && !in_array(Criteria::DISTINCT, $criteria->getSelectModifiers())) {
 			$criteria->setDistinct();
 		}
@@ -914,9 +906,9 @@ abstract class BaseSimulationPeer {
 		if (!$criteria->hasSelectClause()) {
 			SimulationPeer::addSelectColumns($criteria);
 		}
-
+		
 		$criteria->clearOrderByColumns(); // ORDER BY should not affect count
-
+		
 		// Set the correct dbName
 		$criteria->setDbName(self::DATABASE_NAME);
 
@@ -960,10 +952,10 @@ abstract class BaseSimulationPeer {
 		}
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol2 = SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		ClimatePeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + ClimatePeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (ClimatePeer::NUM_COLUMNS - ClimatePeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(SimulationPeer::ID_CLIMATE, ClimatePeer::ID, $join_behavior);
 
@@ -1033,10 +1025,10 @@ abstract class BaseSimulationPeer {
 		}
 
 		SimulationPeer::addSelectColumns($criteria);
-		$startcol2 = SimulationPeer::NUM_HYDRATE_COLUMNS;
+		$startcol2 = (SimulationPeer::NUM_COLUMNS - SimulationPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		MapPeer::addSelectColumns($criteria);
-		$startcol3 = $startcol2 + MapPeer::NUM_HYDRATE_COLUMNS;
+		$startcol3 = $startcol2 + (MapPeer::NUM_COLUMNS - MapPeer::NUM_LAZY_LOAD_COLUMNS);
 
 		$criteria->addJoin(SimulationPeer::ID_MAP, MapPeer::ID, $join_behavior);
 
@@ -1124,7 +1116,7 @@ abstract class BaseSimulationPeer {
 	}
 
 	/**
-	 * Performs an INSERT on the database, given a Simulation or Criteria object.
+	 * Method perform an INSERT on the database, given a Simulation or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Simulation object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -1167,7 +1159,7 @@ abstract class BaseSimulationPeer {
 	}
 
 	/**
-	 * Performs an UPDATE on the database, given a Simulation or Criteria object.
+	 * Method perform an UPDATE on the database, given a Simulation or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Simulation object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -1206,12 +1198,11 @@ abstract class BaseSimulationPeer {
 	}
 
 	/**
-	 * Deletes all rows from the simulation table.
+	 * Method to DELETE all rows from the simulation table.
 	 *
-	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll(PropelPDO $con = null)
+	public static function doDeleteAll($con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(SimulationPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -1237,7 +1228,7 @@ abstract class BaseSimulationPeer {
 	}
 
 	/**
-	 * Performs a DELETE on the database, given a Simulation or Criteria object OR a primary key value.
+	 * Method perform a DELETE on the database, given a Simulation or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or Simulation object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -1273,10 +1264,7 @@ abstract class BaseSimulationPeer {
 			// use transaction because $criteria could contain info
 			// for more than one table or we could emulating ON DELETE CASCADE, etc.
 			$con->beginTransaction();
-			
-			// cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-			$c = clone $criteria;
-			$affectedRows += SimulationPeer::doOnDeleteCascade($c, $con);
+			$affectedRows += SimulationPeer::doOnDeleteCascade($criteria, $con);
 			
 			// Because this db requires some delete cascade/set null emulation, we have to
 			// clear the cached instance *after* the emulation has happened (since
@@ -1351,7 +1339,7 @@ abstract class BaseSimulationPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate($obj, $cols = null)
+	public static function doValidate(Simulation $obj, $cols = null)
 	{
 		$columns = array();
 

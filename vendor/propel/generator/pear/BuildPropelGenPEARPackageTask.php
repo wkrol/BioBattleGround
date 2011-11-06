@@ -1,6 +1,14 @@
 <?php
+
+/**
+ * This file is part of the Propel package.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @license    MIT License
+ */
 /*
- *  $Id: BuildPropelGenPEARPackageTask.php 1262 2009-10-26 20:54:39Z francois $
+ *  $Id: BuildPropelGenPEARPackageTask.php 1681 2010-04-16 20:03:57Z francois $
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -27,9 +35,10 @@ include_once 'phing/tasks/ext/pearpackage/Fileset.php';
  *
  * @author     Hans Lellelid <hans@xmpl.org>
  * @package    phing.tasks.ext
- * @version    $Revision: 1262 $
+ * @version    $Revision: 1681 $
  */
-class BuildPropelGenPEARPackageTask extends MatchingTask {
+class BuildPropelGenPEARPackageTask extends MatchingTask
+{
 
 	/** Base directory for reading files. */
 	private $dir;
@@ -43,15 +52,16 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	/** Package file */
 	private $packageFile;
 
-	public function init() {
+	public function init()
+	{
 		include_once 'PEAR/PackageFileManager2.php';
 		if (!class_exists('PEAR_PackageFileManager2')) {
 			throw new BuildException("You must have installed PEAR_PackageFileManager2 (PEAR_PackageFileManager >= 1.6.0) in order to create a PEAR package.xml file.");
 		}
 	}
 
-	private function setOptions($pkg){
-
+	private function setOptions($pkg)
+	{
 		$options['baseinstalldir'] = 'propel';
 		$options['packagedirectory'] = $this->dir->getAbsolutePath();
 
@@ -76,24 +86,21 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 			$this->log("Creating [default] package.xml file in base directory.", Project::MSG_INFO);
 		}
 
-		// add install exceptions
-		$options['installexceptions'] = array(	'pear/pear-propel-gen' => '/',
-												'pear/pear-propel-gen.bat' => '/',
-												'pear/pear-build.xml' => '/',
-												'pear/build.properties' => '/',
-												);
+		// add baseinstalldir exceptions
+		$options['installexceptions'] = array(
+			'pear-propel-gen' => '/',
+			'pear-propel-gen.bat' => '/',
+		);
 
-		$options['dir_roles'] = array(	'projects' => 'data',
-										'test' => 'test',
-										'templates' => 'data',
-										'resources' => 'data');
-
-		$options['exceptions'] = array(	'pear/pear-propel-gen.bat' => 'script',
-										'pear/pear-propel-gen' => 'script',
-										'pear/pear-build.xml' => 'data',
-										'build.xml' => 'data',
-										'build-propel.xml' => 'data',
-									);
+		$options['dir_roles'] = array(
+			'lib' => 'data',
+			'resources' => 'data'
+		);
+		
+		$options['exceptions'] = array(
+			'pear-propel-gen.bat' => 'script', 
+			'pear-propel-gen' => 'script',
+		);
 
 		$pkg->setOptions($options);
 
@@ -103,8 +110,8 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 * Main entry point.
 	 * @return     void
 	 */
-	public function main() {
-
+	public function main()
+	{
 		if ($this->dir === null) {
 			throw new BuildException("You must specify the \"dir\" attribute for PEAR package task.");
 		}
@@ -121,7 +128,7 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 		$package->setPackage('propel_generator');
 		$package->setSummary('Generator component of the Propel PHP object persistence layer');
 		$package->setDescription('Propel is an object persistence layer for PHP5 based on Apache Torque. This package provides the generator engine that builds PHP classes and SQL DDL based on an XML representation of your data model.');
-		$package->setChannel('pear.phpdb.org');
+		$package->setChannel('pear.propelorm.org');
 		$package->setPackageType('php');
 
 		$package->setReleaseVersion($this->version);
@@ -132,64 +139,38 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 
 		$package->setNotes($this->notes);
 
-		$package->setLicense('LGPL', 'http://www.gnu.org/licenses/lgpl.html');
+		$package->setLicense('MIT', 'http://www.opensource.org/licenses/mit-license.php');
 
 		// Add package maintainers
 		$package->addMaintainer('lead', 'hans', 'Hans Lellelid', 'hans@xmpl.org');
 		$package->addMaintainer('lead', 'david', 'David Zuelke', 'dz@bitxtender.com');
 		$package->addMaintainer('lead', 'francois', 'Francois Zaninotto', 'fzaninotto@[gmail].com');
 
-		// (wow ... this is a poor design ...)
-		//
-		// note that the order of the method calls below is creating
-		// sub-"release" sections which have specific rules.  This replaces
-		// the platformexceptions system in the older version of PEAR's package.xml
-		//
-		// Programmatically, I feel the need to re-iterate that this API for PEAR_PackageFileManager
-		// seems really wrong.  Sub-sections should be encapsulated in objects instead of having
-		// a "flat" API that does not represent the structure being created....
-
-
 		// creating a sub-section for 'windows'
-			$package->addRelease();
-			$package->setOSInstallCondition('windows');
-			$package->addInstallAs('pear/pear-propel-gen.bat', 'propel-gen.bat');
-			$package->addIgnoreToRelease('pear/pear-propel-gen');
+		$package->addRelease();
+		$package->setOSInstallCondition('windows');
+		$package->addInstallAs('pear-propel-gen.bat', 'propel-gen.bat');
+		$package->addIgnoreToRelease('pear-propel-gen');
 
 		// creating a sub-section for non-windows
-			$package->addRelease();
-			$package->addInstallAs('pear/pear-propel-gen', 'propel-gen');
-			$package->addIgnoreToRelease('pear/pear-propel-gen.bat');
-
+		$package->addRelease();
+		$package->addInstallAs('pear-propel-gen', 'propel-gen');
+		$package->addIgnoreToRelease('pear-propel-gen.bat');
 
 		// "core" dependencies
 		$package->setPhpDep('5.2.4');
 		$package->setPearinstallerDep('1.4.0');
 
 		// "package" dependencies
-		$package->addPackageDepWithChannel( 'required', 'phing', 'pear.phing.info', '2.3.0');
+		$package->addPackageDepWithChannel('required', 'phing', 'pear.phing.info', '2.3.0');
 
 		$package->addExtensionDep('required', 'pdo');
 		$package->addExtensionDep('required', 'xml');
 		$package->addExtensionDep('required', 'xsl');
 
 		// now add the replacements ....
-		$package->addReplacement('Phing.php', 'pear-config', '@DATA-DIR@', 'data_dir');
-		$package->addReplacement('pear/pear-propel-gen.bat', 'pear-config', '@PHP-BIN@', 'php_bin');
-		$package->addReplacement('pear/pear-propel-gen.bat', 'pear-config', '@BIN-DIR@', 'bin_dir');
-		$package->addReplacement('pear/pear-propel-gen.bat', 'pear-config', '@PEAR-DIR@', 'php_dir');
-		$package->addReplacement('pear/pear-propel-gen.bat', 'pear-config', '@DATA-DIR@', 'data_dir');
-
-		$package->addReplacement('pear/pear-propel-gen', 'pear-config', '@PHP-BIN@', 'php_bin');
-		$package->addReplacement('pear/pear-propel-gen', 'pear-config', '@BIN-DIR@', 'bin_dir');
-		$package->addReplacement('pear/pear-propel-gen', 'pear-config', '@PEAR-DIR@', 'php_dir');
-		$package->addReplacement('pear/pear-propel-gen', 'pear-config', '@DATA-DIR@', 'data_dir');
-
-		$package->addReplacement('pear/pear-build.xml', 'pear-config', '@PHP-BIN@', 'php_bin');
-		$package->addReplacement('pear/pear-build.xml', 'pear-config', '@BIN-DIR@', 'bin_dir');
-		$package->addReplacement('pear/pear-build.xml', 'pear-config', '@PEAR-DIR@', 'php_dir');
-		$package->addReplacement('pear/pear-build.xml', 'pear-config', '@DATA-DIR@', 'data_dir');
-
+		$package->addReplacement('pear-propel-gen.bat', 'pear-config', '@DATA-DIR@', 'data_dir');
+		$package->addReplacement('pear-propel-gen', 'pear-config', '@DATA-DIR@', 'data_dir');
 
 		// now we run this weird generateContents() method that apparently
 		// is necessary before we can add replacements ... ?
@@ -207,7 +188,8 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 * Used by the PEAR_PackageFileManager_PhingFileSet lister.
 	 * @return     array FileSet[]
 	 */
-	public function getFileSets() {
+	public function getFileSets()
+	{
 		return $this->filesets;
 	}
 
@@ -220,7 +202,8 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 *
 	 * @return     FileSet The created fileset object
 	 */
-	function createFileSet() {
+	function createFileSet()
+	{
 		$num = array_push($this->filesets, new FileSet());
 		return $this->filesets[$num-1];
 	}
@@ -230,7 +213,8 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 * @param      string $v
 	 * @return     void
 	 */
-	public function setVersion($v){
+	public function setVersion($v)
+	{
 		$this->version = $v;
 	}
 
@@ -239,7 +223,8 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 * @param      string $v
 	 * @return     void
 	 */
-	public function setState($v) {
+	public function setState($v)
+	{
 		$this->state = $v;
 	}
 
@@ -248,7 +233,8 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 * @param      string $v
 	 * @return     void
 	 */
-	public function setNotes($v) {
+	public function setNotes($v)
+	{
 		$this->notes = $v;
 	}
 	/**
@@ -256,14 +242,16 @@ class BuildPropelGenPEARPackageTask extends MatchingTask {
 	 * @param      PhingFile $f
 	 * @return     void
 	 */
-	public function setDir(PhingFile $f) {
+	public function setDir(PhingFile $f)
+	{
 		$this->dir = $f;
 	}
 
 	/**
 	 * Sets the file to use for generated package.xml
 	 */
-	public function setDestFile(PhingFile $f) {
+	public function setDestFile(PhingFile $f)
+	{
 		$this->packageFile = $f;
 	}
 

@@ -64,6 +64,26 @@
 			<rule name="validValues" value="new|reviewed|archived" message="Invalid status. (new, reviewed, archived)" />
 		</validator>
 	</table>
+	
+	<!-- This table exists to test the related setters on identical table ("relatedByXXX" issues) and column phpNames -->
+	<table name="essay">
+		<column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER" description="Book Id" />
+		<column name="title" type="VARCHAR" required="true" primaryString="true" />
+		<column name="first_author" required="false" type="INTEGER" description="Foreign Key Author" />
+		<column name="second_author" required="false" type="INTEGER" description="Foreign Key Author" />
+		<column name="subtitle" type="VARCHAR" phpName="SecondTitle" />
+		<column name="next_essay_id" required="false" type="INTEGER" description="Book Id" />
+		<foreign-key foreignTable="author" onDelete="setnull" onUpdate="cascade">
+			<reference local="first_author" foreign="id" />
+		</foreign-key>
+		<foreign-key foreignTable="author" defaultJoin="INNER JOIN" onDelete="setnull" onUpdate="cascade">
+			<reference local="second_author" foreign="id" />
+		</foreign-key>
+		<foreign-key foreignTable="essay" onDelete="setnull" onUpdate="cascade">
+			<reference local="next_essay_id" foreign="id" />
+		</foreign-key>
+	</table>
+
 
 	<!-- This table exists to explore/test the handling of BLOB/CLOB objects. -->
 	<table name="media">
@@ -76,14 +96,14 @@
 		</foreign-key>
 	</table>
 
-	<!-- this table exists to test the many-to-many -->
+	<!-- test many-to-many relationships -->
 	<table name="book_club_list" description="Reading list for a book club.">
 		<column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER" description="Unique ID for a school reading list." />
 		<column name="group_leader" required="true" type="VARCHAR" size="100" description="The name of the teacher in charge of summer reading." />
 		<column name="theme" required="false" type="VARCHAR" size="50" description="The theme, if applicable, for the reading list." />
 	</table>
 
-	<table name="book_x_list" phpName="BookListRel"
+	<table name="book_x_list" phpName="BookListRel" isCrossRef="true"
 		description="Cross-reference table for many-to-many relationship between book rows and book_club_list rows.">
 		<column name="book_id" primaryKey="true" type="INTEGER" description="Fkey to book.id" />
 		<column name="book_club_list_id" primaryKey="true" type="INTEGER" description="Fkey to book_club_list.id" />
@@ -155,6 +175,7 @@
 		<column name="name" type="VARCHAR" size="50" />
 	</table>
 
+	<!-- Test composite primary keys -->
 	<table name="book_opinion">
 		<column name="book_id" type="INTEGER" primaryKey="true" />
 		<column name="reader_id" type="INTEGER" primaryKey="true" />
@@ -167,8 +188,9 @@
 			<reference local="reader_id" foreign="id" />
 		</foreign-key>
 	</table>
-
-	<table name="reader_favorite"><!--  this is just for the sake of testing multiple foreign keys for a single column -->
+	
+	<!--  Test multiple foreign keys for a single column -->
+	<table name="reader_favorite">
 		<column name="book_id" type="INTEGER" primaryKey="true" />
 		<column name="reader_id" type="INTEGER" primaryKey="true" />
 		<foreign-key foreignTable="book" onDelete="cascade">
@@ -225,6 +247,12 @@
 		<column name="name" type="VARCHAR" size="100" />
 	</table>
 
+	<!-- Test Views (read-only tables) -->
+	<table name="contest_view" readOnly="true">
+		<column name="id" type="INTEGER" primaryKey="true" autoIncrement="true" />
+		<column name="name" type="VARCHAR" size="100" />
+	</table>
+
 	<table name="bookstore_contest">
 		<column name="bookstore_id" type="INTEGER" primaryKey="true" />
 		<column name="contest_id" type="INTEGER" primaryKey="true" />
@@ -235,7 +263,7 @@
 		<foreign-key foreignTable="contest" onDelete="cascade">
 			<reference local="contest_id" foreign="id" />
 		</foreign-key>
-		<foreign-key foreignTable="book" onDelete="setnull">
+		<foreign-key foreignTable="book" onDelete="setnull" phpName="Work">
 			<reference local="prize_book_id" foreign="id" />
 		</foreign-key>
 	</table>

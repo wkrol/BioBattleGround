@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Base static class for performing query and update operations on the 'organism' table.
  *
@@ -24,15 +23,12 @@ abstract class BaseOrganismPeer {
 
 	/** the related TableMap class for this table */
 	const TM_CLASS = 'OrganismTableMap';
-
+	
 	/** The total number of columns. */
 	const NUM_COLUMNS = 6;
 
 	/** The number of lazy-loaded columns. */
 	const NUM_LAZY_LOAD_COLUMNS = 0;
-
-	/** The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS) */
-	const NUM_HYDRATE_COLUMNS = 6;
 
 	/** the column name for the ID field */
 	const ID = 'organism.ID';
@@ -52,9 +48,6 @@ abstract class BaseOrganismPeer {
 	/** the column name for the TYPE field */
 	const TYPE = 'organism.TYPE';
 
-	/** The default string format for model objects of the related table **/
-	const DEFAULT_STRING_FORMAT = 'YAML';
-
 	/**
 	 * An identiy map to hold any loaded instances of Organism objects.
 	 * This must be public so that other peer classes can access this when hydrating from JOIN
@@ -70,7 +63,7 @@ abstract class BaseOrganismPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
 	 */
-	protected static $fieldNames = array (
+	private static $fieldNames = array (
 		BasePeer::TYPE_PHPNAME => array ('Id', 'Name', 'Instinct', 'Toughness', 'Vitality', 'Type', ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id', 'name', 'instinct', 'toughness', 'vitality', 'type', ),
 		BasePeer::TYPE_COLNAME => array (self::ID, self::NAME, self::INSTINCT, self::TOUGHNESS, self::VITALITY, self::TYPE, ),
@@ -85,7 +78,7 @@ abstract class BaseOrganismPeer {
 	 * first dimension keys are the type constants
 	 * e.g. self::$fieldNames[BasePeer::TYPE_PHPNAME]['Id'] = 0
 	 */
-	protected static $fieldKeys = array (
+	private static $fieldKeys = array (
 		BasePeer::TYPE_PHPNAME => array ('Id' => 0, 'Name' => 1, 'Instinct' => 2, 'Toughness' => 3, 'Vitality' => 4, 'Type' => 5, ),
 		BasePeer::TYPE_STUDLYPHPNAME => array ('id' => 0, 'name' => 1, 'instinct' => 2, 'toughness' => 3, 'vitality' => 4, 'type' => 5, ),
 		BasePeer::TYPE_COLNAME => array (self::ID => 0, self::NAME => 1, self::INSTINCT => 2, self::TOUGHNESS => 3, self::VITALITY => 4, self::TYPE => 5, ),
@@ -223,7 +216,7 @@ abstract class BaseOrganismPeer {
 		return $count;
 	}
 	/**
-	 * Selects one object from the DB.
+	 * Method to select one object from the DB.
 	 *
 	 * @param      Criteria $criteria object used to create the SELECT statement.
 	 * @param      PropelPDO $con
@@ -242,7 +235,7 @@ abstract class BaseOrganismPeer {
 		return null;
 	}
 	/**
-	 * Selects several row from the DB.
+	 * Method to do selects.
 	 *
 	 * @param      Criteria $criteria The Criteria object used to build the SELECT statement.
 	 * @param      PropelPDO $con
@@ -296,7 +289,7 @@ abstract class BaseOrganismPeer {
 	 * @param      Organism $value A Organism object.
 	 * @param      string $key (optional) key to use for instance map (for performance boost if key was already calculated externally).
 	 */
-	public static function addInstanceToPool($obj, $key = null)
+	public static function addInstanceToPool(Organism $obj, $key = null)
 	{
 		if (Propel::isInstancePoolingEnabled()) {
 			if ($key === null) {
@@ -369,12 +362,12 @@ abstract class BaseOrganismPeer {
 	 */
 	public static function clearRelatedInstancePool()
 	{
-		// Invalidate objects in UserPrivilegesPeer instance pool,
-		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+		// invalidate objects in UserPrivilegesPeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
 		UserPrivilegesPeer::clearInstancePool();
-		// Invalidate objects in GroupPeer instance pool,
-		// since one or more of them may be deleted by ON DELETE CASCADE/SETNULL rule.
+
+		// invalidate objects in GroupPeer instance pool, since one or more of them may be deleted by ON DELETE CASCADE rule.
 		GroupPeer::clearInstancePool();
+
 	}
 
 	/**
@@ -397,7 +390,7 @@ abstract class BaseOrganismPeer {
 	}
 
 	/**
-	 * Retrieves the primary key from the DB resultset row
+	 * Retrieves the primary key from the DB resultset row 
 	 * For tables with a single-column primary key, that simple pkey value will be returned.  For tables with
 	 * a multi-column primary key, an array of the primary key columns will be returned.
 	 *
@@ -457,7 +450,7 @@ abstract class BaseOrganismPeer {
 			// We no longer rehydrate the object, since this can cause data loss.
 			// See http://www.propelorm.org/ticket/509
 			// $obj->hydrate($row, $startcol, true); // rehydrate
-			$col = $startcol + OrganismPeer::NUM_HYDRATE_COLUMNS;
+			$col = $startcol + OrganismPeer::NUM_COLUMNS;
 		} else {
 			$cls = OrganismPeer::OM_CLASS;
 			$obj = new $cls();
@@ -466,7 +459,6 @@ abstract class BaseOrganismPeer {
 		}
 		return array($obj, $col);
 	}
-
 	/**
 	 * Returns the TableMap related to this peer.
 	 * This method is not needed for general use but a specific application could have a need.
@@ -508,7 +500,7 @@ abstract class BaseOrganismPeer {
 	}
 
 	/**
-	 * Performs an INSERT on the database, given a Organism or Criteria object.
+	 * Method perform an INSERT on the database, given a Organism or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Organism object containing data that is used to create the INSERT statement.
 	 * @param      PropelPDO $con the PropelPDO connection to use
@@ -551,7 +543,7 @@ abstract class BaseOrganismPeer {
 	}
 
 	/**
-	 * Performs an UPDATE on the database, given a Organism or Criteria object.
+	 * Method perform an UPDATE on the database, given a Organism or Criteria object.
 	 *
 	 * @param      mixed $values Criteria or Organism object containing data that is used to create the UPDATE statement.
 	 * @param      PropelPDO $con The connection to use (specify PropelPDO connection object to exert more control over transactions).
@@ -590,12 +582,11 @@ abstract class BaseOrganismPeer {
 	}
 
 	/**
-	 * Deletes all rows from the organism table.
+	 * Method to DELETE all rows from the organism table.
 	 *
-	 * @param      PropelPDO $con the connection to use
 	 * @return     int The number of affected rows (if supported by underlying database driver).
 	 */
-	public static function doDeleteAll(PropelPDO $con = null)
+	public static function doDeleteAll($con = null)
 	{
 		if ($con === null) {
 			$con = Propel::getConnection(OrganismPeer::DATABASE_NAME, Propel::CONNECTION_WRITE);
@@ -621,7 +612,7 @@ abstract class BaseOrganismPeer {
 	}
 
 	/**
-	 * Performs a DELETE on the database, given a Organism or Criteria object OR a primary key value.
+	 * Method perform a DELETE on the database, given a Organism or Criteria object OR a primary key value.
 	 *
 	 * @param      mixed $values Criteria or Organism object or primary key or array of primary keys
 	 *              which is used to create the DELETE statement
@@ -657,10 +648,7 @@ abstract class BaseOrganismPeer {
 			// use transaction because $criteria could contain info
 			// for more than one table or we could emulating ON DELETE CASCADE, etc.
 			$con->beginTransaction();
-			
-			// cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-			$c = clone $criteria;
-			$affectedRows += OrganismPeer::doOnDeleteCascade($c, $con);
+			$affectedRows += OrganismPeer::doOnDeleteCascade($criteria, $con);
 			
 			// Because this db requires some delete cascade/set null emulation, we have to
 			// clear the cached instance *after* the emulation has happened (since
@@ -735,7 +723,7 @@ abstract class BaseOrganismPeer {
 	 *
 	 * @return     mixed TRUE if all columns are valid or the error message of the first invalid column.
 	 */
-	public static function doValidate($obj, $cols = null)
+	public static function doValidate(Organism $obj, $cols = null)
 	{
 		$columns = array();
 

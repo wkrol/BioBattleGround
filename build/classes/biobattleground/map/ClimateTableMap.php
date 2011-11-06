@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * This class defines the structure of the 'climate' table.
  *
@@ -14,8 +13,7 @@
  *
  * @package    propel.generator.biobattleground.map
  */
-class ClimateTableMap extends TableMap
-{
+class ClimateTableMap extends TableMap {
 
 	/**
 	 * The (dot-path) name of this class
@@ -31,7 +29,7 @@ class ClimateTableMap extends TableMap
 	 */
 	public function initialize()
 	{
-		// attributes
+	  // attributes
 		$this->setName('climate');
 		$this->setPhpName('Climate');
 		$this->setClassname('Climate');
@@ -51,8 +49,8 @@ class ClimateTableMap extends TableMap
 	 */
 	public function buildRelations()
 	{
-		$this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_climate', ), 'CASCADE', 'CASCADE', 'UserPrivilegess');
-		$this->addRelation('Simulation', 'Simulation', RelationMap::ONE_TO_MANY, array('id' => 'id_climate', ), null, null, 'Simulations');
+    $this->addRelation('UserPrivileges', 'UserPrivileges', RelationMap::ONE_TO_MANY, array('id' => 'id_climate', ), 'CASCADE', 'CASCADE');
+    $this->addRelation('Simulation', 'Simulation', RelationMap::ONE_TO_MANY, array('id' => 'id_climate', ), null, null);
 	} // buildRelations()
 
 } // ClimateTableMap
