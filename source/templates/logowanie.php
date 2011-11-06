@@ -39,7 +39,7 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		if ($nazwa_uz && $haslo) {
 
 			try {
-				UserPeer::loguj($nazwa_uz, $haslo);
+				UserPeer::login($nazwa_uz, $haslo);
     
 				$_SESSION['zalogowany'] = $nazwa_uz;
 				$wyswietl= 'Witaj '.$_SESSION['zalogowany'].'.<a href="index.php">Idź do strony głównej.</a>';
