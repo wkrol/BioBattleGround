@@ -9,11 +9,11 @@ $conf = array (
       'adapter' => 'mysql',
       'connection' => 
       array (
-        'dsn' => 'mysql:host=localhost;dbname=biobattleground;',
-        //'phptype' => 'mysql',
-        //'hostspec' => 'localhost',
-        //'database' => 'biobattleground',
-        'username' => 'root',
+        'dsn' => 'mysql:host=localhost;dbname=biobattleground',
+        'phptype' => 'mysql',
+        'hostspec' => 'localhost',
+        'database' => 'biobattleground',
+        'user' => 'root',
         'password' => '',
       ),
     ),
