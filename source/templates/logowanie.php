@@ -1,4 +1,4 @@
-﻿<?php
+﻿﻿<?php
 session_start();
 // Include the main Propel script
 require_once '../../vendor/propel/runtime/lib/Propel.php';
