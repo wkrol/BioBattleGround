@@ -18,6 +18,11 @@ Uruchamiamy generowanie klas Propela
    (dla wygody, można to pominąć)
  - Wchodzimy do katalogu projektu, odpalamy polecenie 'propel-gen om'
    lub, jeśli nie mamy dowiązania w Path 'vendor\propel\generator\bin\propel-gen om'
+ - Jeśli chcemy wygenerować SQL, uruchamiamy te polecenie z parametrem 'sql' zamiast 'om'
+ - Generujemy config, te same polecenie z parametrem 'convert-conf'
+ 
+ - Ogólnie postępowanie wg. tutoriala: http://blog.jondh.me.uk/2011/02/some-pointers-on-propel-1-5/
+   Jak widać w vendor/ mamy właśnie Propela 1.5, żeby wszystko mogło być jak w instrukcji
  
 -------------------------------------------------------------------------
 Pliki w build/conf służą do konfiguracji podczas inicjalizacji runtime Propela. (uzyskuje się przez "propel-gen convert-conf")
