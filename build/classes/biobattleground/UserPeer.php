@@ -18,7 +18,7 @@ public static function login($nazwa_uz, $haslo) {
     $tmp = new Criteria();
     $tmp->add(UserPeer::LOGIN, $nazwa_uz);
     $tmp->add(UserPeer::PASSWORD, $haslo);
-    $login = UserPeer::doSelect($tmp);
+    $login = UserPeer::doSelectOne($tmp);
     if (count($login) == 0) {
       return false;
     } else {	

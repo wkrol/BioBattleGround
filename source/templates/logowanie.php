@@ -35,21 +35,16 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	public function FunkcjaLogowanie() {
 		$nazwa_uz = $_POST['nazwa_uz'];
 		$haslo = $_POST['haslo'];
-		//$db = new DB();
 		if ($nazwa_uz && $haslo) {
-
-			try {
-				UserPeer::login($nazwa_uz, $haslo);
-    
+				//Uzycie funckji logowania z klasy UserPeer, ktora zwraca true lub false.
+				$tmp=UserPeer::login($nazwa_uz, $haslo);
+    			if($tmp==true){
 				$_SESSION['zalogowany'] = $nazwa_uz;
-				$wyswietl= 'Witaj '.$_SESSION['zalogowany'].'.<a href="index.php">Idź do strony głównej.</a>';
-
-			}
-			catch (Exception $e) {
-    
-				echo 'Zalogowanie niemożliwe. <a href="index.php">Powróć do strony głównej i popraw dane.</a>';
-				exit;
-			}
+				header('Location:index.php');
+    			} else {
+    			echo 'Zalogowanie niemożliwe. <a href="index.php">Powróć do strony głównej i popraw dane.</a>';
+    			}
+						
 		} else {
 			echo '<center><h1>Zalogowanie niemożliwe. Nie uzupełniono wszystkich pól. Popraw dane.</h1></center>';
 		}
@@ -80,17 +75,12 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	$strona = new Logowanie();
 	$strona -> nazwadzialu = "Strona Główna";
 	$strona -> Wyswietl();
-	if(isset($_POST['nazwa_uz'])){
-	$nazwa_uz = $_POST['nazwa_uz'];
-	}
-	if(isset($_POST['haslo'])){
-		$haslo = $_POST['haslo'];
-	}
+	
 	if(isset($_GET['akcja'])){
 	if($_GET['akcja']=="loguj"){
 
 	$strona->FunkcjaLogowanie();
-	header('Location:index.php');
+	
 	}
 	}
 ?>

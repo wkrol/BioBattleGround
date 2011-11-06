@@ -13,7 +13,7 @@ $conf = array (
         //'phptype' => 'mysql',
         //'hostspec' => 'localhost',
         //'database' => 'biobattleground',
-        'username' => 'root',
+        'user' => 'root',
         'password' => '',
       ),
     ),

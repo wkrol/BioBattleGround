@@ -1,7 +1,14 @@
 ﻿<?php
 session_start();
+// Include the main Propel script
+require_once '../../vendor/propel/runtime/lib/Propel.php';
+
+// Initialize Propel with the runtime configuration
+Propel::init("../../build/conf/biobattleground-conf.php");
+
+// Add the generated 'classes' directory to the include path
+set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	require("strona.php");
-	require("db2.php");
 	class DodajUsera extends Strona {
 	
 	public function Wypelniony($zmienne_formularza) {
@@ -25,20 +32,10 @@ session_start();
 			$haslo2=$_POST['haslo2'];
 		//}
 		//if(isset($POST["opis"])){
-			$opis=strip_tags($_POST['opis']);
+			$nazwa=$_POST['nazwa'];
 		//}
 		
-		if(isset($POST["mistrz"])){
-			$mistrz=$_POST['mistrz'];
-		} else {
-			$mistrz = "No";
-		}
 		
-		if(isset($POST["admin"])){
-			$admin=$_POST['admin'];
-		} else {
-			$admin = "No";
-		}
 
 		try {
      
@@ -61,10 +58,13 @@ session_start();
 				throw new Exception('Hasło musi mieć co najmniej 4 i maksymalnie 16 znaków — proszę wrócić i spróbować ponownie.');
 			}
 
-     		$db = new DB();
-			$db -> Rejestruj($nazwa_uz, $haslo, $opis, $mistrz, $admin);
-     
-			
+     		//$db = new DB();
+			//$db -> Rejestruj($nazwa_uz, $haslo, $nazwa);
+     		$adduser = new User();
+     		$adduser->setLogin($nazwa_uz);
+     		$adduser->setPassword($haslo);
+     		$adduser->setName($nazwa);
+     		$adduser->save();
 			echo 'Zarejestrowano! Powrót do strony głównej <a href="index.php">Idź do strony głównej.</a>';
 		}
 		catch (Exception $e) {
@@ -89,15 +89,10 @@ session_start();
 			<td>Powtórz hasło:</td>
 			<td><input type=\"password\" name=\"haslo2\" size=\"16\" maxlength=\"16\"/>*</td></tr>
 			<tr>
-			<td>Opis użytkownika:</td>
-			<td><textarea name=\"opis\" cols=\"60\" rows=\"10\"></textarea></td></tr>
-			<tr>
-			<td>Nadaj prawa użytkownikowi: </td>
-			<td>	 
-			<input type=\"checkbox\" name=\"mistrz\" value=\"Yes\" />Mistrz Gry 
-
-			<input type=\"checkbox\" name=\"admin\" value=\"Yes\" />Administrator 
-			</td></tr>
+			<td>Nazwa:</td>
+			<td><input type=\"text\" name=\"nazwa\"
+                     size=\"16\" maxlength=\"16\"/>*</td></tr>
+			
 			<tr>
 			<td colspan=\"2\" align=\"center\">
 			<input type=\"submit\" class=\"submit\" value=\"Rejestracja\"></td></tr>
