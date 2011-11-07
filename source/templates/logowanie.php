@@ -37,10 +37,11 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		$haslo = $_POST['haslo'];
 		if ($nazwa_uz && $haslo) {
 				//Uzycie funckji logowania z klasy UserPeer, ktora zwraca true lub false.
-				$tmp=UserPeer::login($nazwa_uz, $haslo);
-    			if($tmp==true){
-				$_SESSION['zalogowany'] = $nazwa_uz;
-				header('Location:index.php');
+				$user_id=UserPeer::login($nazwa_uz, $haslo);
+    			if($user_id!=false){
+					$_SESSION['zalogowany'] = $nazwa_uz;
+					$_SESSION["user_id"] = $user_id;
+					header('Location:index.php');
     			} else {
     			echo 'Zalogowanie niemożliwe. <a href="index.php">Powróć do strony głównej i popraw dane.</a>';
     			}

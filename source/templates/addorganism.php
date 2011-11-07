@@ -1,7 +1,14 @@
 ﻿<?php
-session_start();
-	require("strona.php");
-	require("db2.php");
+session_start();	
+require("strona.php");
+// Include the main Propel script
+require_once '../../vendor/propel/runtime/lib/Propel.php';
+
+// Initialize Propel with the runtime configuration
+Propel::init("../../build/conf/biobattleground-conf.php");
+
+// Add the generated 'classes' directory to the include path
+set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	class DodajOrganizm extends Strona {
 	
 	
@@ -72,8 +79,29 @@ session_start();
 	}
 	if(isset($_GET['name'])){
 		$id = $_SESSION["zalogowany"];
-		$db = new DB();
-		$db->insertOrganism($name,$stat1,$stat2,$stat3,$type,$id);
+		
+		$org = new Organism();
+		$org->setName($name);
+		$org->setVitality($stat1);
+		$org->setInstinct($stat2);
+		$org->setToughness($stat3);
+		$org->setType($type);
+		$org->save();
+		
+		$userPrivileges = new UserPrivileges();
+		$userPrivileges->setIdOrganism(5);
+		$userPrivileges->setIdUser(1);
+		$userPrivileges->setIdClimate(NULL);
+		$userPrivileges->setIdMap(NULL);
+		/*TODO: próba ustawienia parametrów play, fight, edit i show stats skutkuje
+	 			przerwaniem zapisu do bazy danych - naprawić!
+		$userPrivileges->setPlay(1);
+		$userPrivileges->setFight(1);
+		$userPrivileges->setEdit(1);
+		$userPrivileges->setShowStats(1);
+		*/
+		$userPrivileges->save();
+
 	}
 		
 ?>

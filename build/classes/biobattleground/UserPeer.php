@@ -22,7 +22,7 @@ public static function login($nazwa_uz, $haslo) {
     if (count($login) == 0) {
       return false;
     } else {	
-      return true;	
+      return $login->getId();	
     }	
   }
 } // UserPeer

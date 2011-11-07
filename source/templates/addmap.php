@@ -1,7 +1,15 @@
 ﻿<?php
 session_start();
-	require("db2.php");
-	require("strona.php");
+require("strona.php");
+// Include the main Propel script
+require_once '../../vendor/propel/runtime/lib/Propel.php';
+
+// Initialize Propel with the runtime configuration
+Propel::init("../../build/conf/biobattleground-conf.php");
+
+// Add the generated 'classes' directory to the include path
+set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
+
 	class DodajMape extends Strona {
 	
 	public function encodeMap($tab){
@@ -125,13 +133,28 @@ if(isset($_GET['name'])){
 		}
 		echo "</tr>";
 	}
-echo "</table>";
+	echo "</table>";
 
 
-$test = $this->encodeMap($map);
-$id = $_SESSION["zalogowany"];
-$db = new DB();
-$db->insertMap($name,$test,$id);
+	$test = $this->encodeMap($map);
+	//$id = $_SESSION["zalogowany"];
+
+	$map = new Map();
+	$map->setName($name);
+	$map->setMapString($test);
+	$map->save();
+	
+	$userPrivileges = new UserPrivileges();
+	$userPrivileges->setIdMap($map->getId());
+	$userPrivileges->setIdUser($_SESSION["user_id"]);
+	/* TODO: próba ustawienia parametrów play, fight, edit i show stats skutkuje
+	 *  	 przerwaniem zapisu do bazy danych - naprawić 
+	$userPrivileges->setPlay(1);
+	$userPrivileges->setEdit(1);
+	*/
+	$userPrivileges->save();
+	
+
 }
 	}
 	}

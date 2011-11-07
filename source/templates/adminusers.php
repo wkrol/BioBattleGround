@@ -1,7 +1,7 @@
 ﻿<?php
 session_start();
 	require("strona.php");
-	require("db2.php");
+
 	class AdministracjaUzytkownikami extends Strona {	
 	
 	public function WyswietlZawartosc() {

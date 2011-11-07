@@ -58,14 +58,20 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 				throw new Exception('Hasło musi mieć co najmniej 4 i maksymalnie 16 znaków — proszę wrócić i spróbować ponownie.');
 			}
 
-     		//$db = new DB();
-			//$db -> Rejestruj($nazwa_uz, $haslo, $nazwa);
-     		$adduser = new User();
-     		$adduser->setLogin($nazwa_uz);
-     		$adduser->setPassword($haslo);
-     		$adduser->setName($nazwa);
-     		$adduser->save();
-			echo 'Zarejestrowano! Powrót do strony głównej <a href="index.php">Idź do strony głównej.</a>';
+     		$c = new Criteria();
+     		$c->add(UserPeer::LOGIN, $nazwa_uz);
+     		$users = UserPeer::doSelect($c);
+			if(!$users){
+	     		$adduser = new User();
+	     		$adduser->setLogin($nazwa_uz);
+	     		$adduser->setPassword($haslo);
+	     		$adduser->setName($nazwa);
+	     		$adduser->save();
+				echo 'Zarejestrowano! Powrót do strony głównej <a href="index.php">Idź do strony głównej.</a>';
+			}
+			else {
+				throw new Exception('Istnieje już użytkownik o podanym loginie!');
+			}
 		}
 		catch (Exception $e) {
 			echo $e->getMessage();  
