@@ -89,17 +89,17 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		$org->save();
 		
 		$userPrivileges = new UserPrivileges();
-		$userPrivileges->setIdOrganism(5);
-		$userPrivileges->setIdUser(1);
+		$userPrivileges->setIdOrganism($org->getId());
+		$userPrivileges->setIdUser($_SESSION["user_id"]);
 		$userPrivileges->setIdClimate(NULL);
 		$userPrivileges->setIdMap(NULL);
 		/*TODO: próba ustawienia parametrów play, fight, edit i show stats skutkuje
-	 			przerwaniem zapisu do bazy danych - naprawić!
+	 			przerwaniem zapisu do bazy danych - naprawić!*/
 		$userPrivileges->setPlay(1);
 		$userPrivileges->setFight(1);
 		$userPrivileges->setEdit(1);
 		$userPrivileges->setShowStats(1);
-		*/
+		
 		$userPrivileges->save();
 
 	}
