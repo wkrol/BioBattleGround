@@ -293,22 +293,22 @@ function typeTooltip(id){
 			break;
 		
 		case "Roslina":
-			typeTooltip.innerHTML="<h3>Rośliny</h3><img src=\"images/organism/roslina.png\"> <p>Organizmy, które potrzebują słońca i wody by przeżyć.</p><p>Są pokarmem dla roślinożerców</p><p><b>Umiejętność specjalna:</b> rozsiew</p>";
+			typeTooltip.innerHTML="<h3>Rośliny</h3><img src=\"../../images/organism/roslina.png\"> <p>Organizmy, które potrzebują słońca i wody by przeżyć.</p><p>Są pokarmem dla roślinożerców</p><p><b>Umiejętność specjalna:</b> rozsiew</p>";
 			typeTooltip.style.display="block";
 			break;
 	
 		case "Roslinozerca":
-			typeTooltip.innerHTML="<h3>Roślinożercy</h3><img src=\"images/organism/roslinozerca.png\"> <p>Organizmy, które odżywiają się roślinami.</p><p>Są pokarmem dla mięsożerców</p><p><b>Umiejętność specjalna:</b> unik</p>";
+			typeTooltip.innerHTML="<h3>Roślinożercy</h3><img src=\"../../images/organism/roslinozerca.png\"> <p>Organizmy, które odżywiają się roślinami.</p><p>Są pokarmem dla mięsożerców</p><p><b>Umiejętność specjalna:</b> unik</p>";
 			typeTooltip.style.display="block";
 			break;
 			
 		case "Miesozerca":
-			typeTooltip.innerHTML="<h3>Mięsożercy</h3><img src=\"images/organism/mieso.png\"></img> <p>Organizmy, które odżywiają się roślinożercami.</p><p>Zabijają by przeżyć</p><p><b>Umiejętność specjalna:</b> atak</p>";
+			typeTooltip.innerHTML="<h3>Mięsożercy</h3><img src=\"../../images/organism/mieso.png\"></img> <p>Organizmy, które odżywiają się roślinożercami.</p><p>Zabijają by przeżyć</p><p><b>Umiejętność specjalna:</b> atak</p>";
 			typeTooltip.style.display="block";
 			break;
 		
 		case "Padlinozerca":
-			typeTooltip.innerHTML="<h3>Padlinożercy</h3><img src=\"images/organism/padlina.png\"> <p>Organizmy, które odżywiają się padliną.</p><p>Nie potrafią atakować</p><p><b>Umiejętność specjalna:</b> węch</p>";
+			typeTooltip.innerHTML="<h3>Padlinożercy</h3><img src=\"../../images/organism/padlina.png\"> <p>Organizmy, które odżywiają się padliną.</p><p>Nie potrafią atakować</p><p><b>Umiejętność specjalna:</b> węch</p>";
 			typeTooltip.style.display="block";
 			break;	
 	}
