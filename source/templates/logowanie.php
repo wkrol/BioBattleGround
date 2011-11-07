@@ -56,7 +56,7 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		if (isset($_SESSION['zalogowany'])) {
 
 			if(isset($_GET["wyloguj"])) {
-			if($_GET["wyloguj"]=="tak"){$_SESSION["zalogowany"]=NULL; echo 'Wylogowano! Idź do strony głównej';}
+			if($_GET["wyloguj"]=="tak"){$_SESSION["zalogowany"]=NULL; echo 'Wylogowano! <a href="index.php">Idź do strony głównej</a>';}
 			}
 			else{
 			echo  '<br/>Zalogowano jako '.$_SESSION['zalogowany'].'. <a href="?wyloguj=tak">Wyloguj</a><br />';
@@ -74,7 +74,9 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	}
 	}
 	$strona = new Logowanie();
-	$strona -> nazwadzialu = "Strona Główna";
+	$strona -> przyciski = array(
+                        );
+	$strona -> nazwadzialu = "Logowanie";
 	$strona -> Wyswietl();
 	
 	if(isset($_GET['akcja'])){

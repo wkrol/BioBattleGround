@@ -9,7 +9,6 @@ class Strona
   
   //nadpisywane w zależności od obecnego działu
   public $przyciski = array("Startowa"   => "index.php",
-						"Logowanie"   => "logowanie.php",
 						"Administracja"   => "admin.php"
                         );
   //nadpisywane w zależności od obecnego działu
@@ -76,9 +75,9 @@ public function WyswietlNaglowek()
 	<div id="top">
 		<?php
 			if (isset($_SESSION['zalogowany'])) {
-				echo "Witaj ".$_SESSION['zalogowany']."!";
+				echo "Witaj ".$_SESSION['zalogowany']."! <a href=\"logowanie.php?wyloguj=tak\">Wyloguj</a>";
 			} else {
-				echo "Odwiedzasz stronę jako niezalogowany użytkownik.";
+				echo "Odwiedzasz stronę jako niezalogowany użytkownik. <a href=\"logowanie.php\">Zaloguj się</a>";
 			}
 		?>
 	</div>
