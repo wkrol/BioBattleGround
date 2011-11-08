@@ -147,11 +147,8 @@ if(isset($_GET['name'])){
 	$userPrivileges = new UserPrivileges();
 	$userPrivileges->setIdMap($map->getId());
 	$userPrivileges->setIdUser($_SESSION["user_id"]);
-	/* TODO: próba ustawienia parametrów play, fight, edit i show stats skutkuje
-	 *  	 przerwaniem zapisu do bazy danych - naprawić 
 	$userPrivileges->setPlay(1);
 	$userPrivileges->setEdit(1);
-	*/
 	$userPrivileges->save();
 	
 
