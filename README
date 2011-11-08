@@ -30,3 +30,19 @@ Dołączanie do projektu jest opisane tutaj http://www.propelorm.org/documentati
 
 -------------------------------------------------------------------------
 Database connection options: DB-Final.php (database, user, password, host)
+-------------------------------------------------------------------------
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+-------------------------------------------------------------------------
+TODOs:
+1. Widok dodawania klimatu, wywalić te wykresy albo je faktycznie generować
+2. Widok Symulacji poprawić selecty do organizmów:
+	Jeden select z listą organizmów aktualnego użytkownika
+	Drugi multichoice (lub lista z możliwością dodawania kolejnych organizmów)
+	z listą organizmów do których mamy uprawnienia 'fight'
+3. Widok Administracja - połączyć widoki 'zarządzaj użytkownikami' i 'wyświetl
+	użytkowników' w jeden wspólny widok, z którego będzie można usuwać użytkowników,
+	zmieniać im uprawienia do symulacji i do elementów symulacji.
+4. Widok 'wyświetl organizmy' dodać tooltip ze skutecznością organizmu na podstawie
+	danych zbieranych w tabeli 'group'
+5. Implementacja nowego widoku do prezentowania wykresów i statystyk na podstawie
+	danych zebranych w tabeli 'round'
