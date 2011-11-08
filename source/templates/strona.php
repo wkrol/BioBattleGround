@@ -66,6 +66,7 @@ class Strona
   public function WyswietlSkrypty()
   {
 	echo "<script type=\"text/javascript\" src=\"../../scripts/script.js\"></script>";
+	echo "<script type=\"text/javascript\" src=\"../../scripts/jquery-ui-1.8.9.custom/js/jquery-1.4.4.min.js\"></script>";
   }
 
 public function WyswietlNaglowek()
