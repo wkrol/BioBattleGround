@@ -25,47 +25,47 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	public function WyswietlZawartosc() {
 		echo '
 		<div id="addMapPage">
-	<div id="tooltip">aaaaaaaaa</div>
+	<div id="tooltip"></div>
 
 	<h3> Typy terenu: </h3>
 
-		<p>Step:
+		<p id="steppeField">Step:
 		<INPUT TYPE="button" id="steppeDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="steppe" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="steppeUp"  value=">"></INPUT>
 		</p>
 		
-		<p>Bagno: 
+		<p id="swampField">Bagno: 
 		<INPUT TYPE="button" id="swampDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="swamp" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="swampUp"  value=">"></INPUT>
 		</p>
 		
-		<p>Pustynia:
+		<p id="desertField">Pustynia:
 		<INPUT TYPE="button" id="desertDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="desert" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="desertUp"  value=">"></INPUT>
 		</p>
 		
-		<p>Las:
+		<p id="forestField">Las:
 		<INPUT TYPE="button" id="forestDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="forest" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="forestUp"  value=">"></INPUT>
 		</p>
 		
-		<p>Góry:
+		<p id="mountainField">Góry:
 		<INPUT TYPE="button" id="mountainDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="mountain" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="mountainUp"  value=">"></INPUT>
 		</p>
 		
-		<p>Wzgórza: 
+		<p id="hillField">Wzgórza: 
 		<INPUT TYPE="button" id="hillDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="hill" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="hillUp"  value=">"></INPUT>
 		</p>
 		
-		<p>Rzeka: 
+		<p id="riverField">Rzeka: 
 		<INPUT TYPE="button" id="riverDown"  value="<"></INPUT>
 		<INPUT TYPE="text" name="terrain" id="river" value="50%" READONLY></INPUT>
 		<INPUT TYPE="button" id="riverUp"  value=">"></INPUT>
