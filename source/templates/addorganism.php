@@ -28,17 +28,17 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	<div id=\"typeTooltip\"></div>
 	<div id=\"tooltip\"></div>
 	<h3>Cechy organizmu: </h3>
-	<p>Punkty życia: <INPUT TYPE=\"button\" id=\"substractHP\" value=\"-\"></input> 
+	<p id='hpField'>Punkty życia: <INPUT TYPE=\"button\" id=\"substractHP\" value=\"-\"></input> 
 			<INPUT TYPE=\"text\" id=\"hp\" value=\"1\" READONLY></input> 
 			<INPUT TYPE=\"button\" id =\"addHP\" value=\"+\"></input> 
 	</p>
 	
-	<p>Instynkt: <INPUT TYPE=\"button\" id=\"substractInstinct\"  value=\"-\"></input>
+	<p id='instinctField'>Instynkt: <INPUT TYPE=\"button\" id=\"substractInstinct\"  value=\"-\"></input>
 			<INPUT TYPE=\"text\" id=\"instinct\" value=\"1\" READONLY></input>
 			<INPUT TYPE=\"button\" id=\"addInstinct\"  value=\"+\"></input>
 	</p>
 	
-	<p>Odporność: <INPUT TYPE=\"button\" id=\"substractToughness\"  value=\"-\"></input>
+	<p id='toughnessField'>Odporność: <INPUT TYPE=\"button\" id=\"substractToughness\"  value=\"-\"></input>
 			<INPUT TYPE=\"text\" id=\"toughness\" value=\"1\" READONLY></input>
 			<INPUT TYPE=\"button\" id=\"addToughness\" value=\"+\"></input>
 	</p>
