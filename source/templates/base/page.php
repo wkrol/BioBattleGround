@@ -31,8 +31,15 @@ class Page {
 	
 	private $subpageName = '';
 	
+	/**
+	 * Sprawdzamy, czy istnieje ID sesji.
+	 * Jeśli nie, tworzymy nową sesję
+	 */
 	public function __construct() {
-		
+		if(!session_id()) {
+			session_start();
+			session_name('bbg');
+		}
 	}
 	
 	/*
@@ -58,6 +65,9 @@ class Page {
 		array_push($this->styles, $style);
 	}
 	
+	public function setButtons($buttons) {
+		$this->buttons = $buttons;
+	}
 	public function setSubpageName($name) {
 		$this->subpageName = $name;
 	}

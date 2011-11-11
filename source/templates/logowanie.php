@@ -1,5 +1,4 @@
 ﻿﻿<?php
-session_start();
 // Include the main Propel script
 require_once '../../vendor/propel/runtime/lib/Propel.php';
 
@@ -9,30 +8,11 @@ Propel::init("../../build/conf/biobattleground-conf.php");
 // Add the generated 'classes' directory to the include path
 set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 
-	require_once 'strona.php';
+	require_once 'base/page.php';
 
-	//require("db2.php");
-	class Logowanie extends Strona {
-	public function Wyswietl()
-  {
-	echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">";
-    echo "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n";
-	$this->WyswietlKodowanie();
-    $this->WyswietlTytul();
-    $this->WyswietlSlowaKluczowe();
-    $this->WyswietlStyle();
-	$this->WyswietlSkrypty();
-    echo "</head>\n<body>\n";
-    $this->WyswietlNaglowek();
-    $this->WyswietlMenu($this->przyciski, $this->nazwadzialu);
-	$this->WyswietlZawartosc();
-    $this->WyswietlStopke();
-    echo "</body>\n</html>\n";
-  }
-  
+	class Logowanie extends Page {
 
-
-	public function FunkcjaLogowanie() {
+	public function logIn() {
 		$nazwa_uz = $_POST['nazwa_uz'];
 		$haslo = $_POST['haslo'];
 		if ($nazwa_uz && $haslo) {
@@ -72,18 +52,18 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		}
 	echo "</div>";
 	}
-	}
-	$strona = new Logowanie();
-	$strona -> przyciski = array(
-                        );
-	$strona -> nazwadzialu = "Logowanie";
-	$strona -> Wyswietl();
-	
-	if(isset($_GET['akcja'])){
-	if($_GET['akcja']=="loguj"){
+}
 
-	$strona->FunkcjaLogowanie();
+
 	
+$page = new Logowanie();
+$page ->setButtons(array());
+$page ->setSubpageName('Logowanie');
+$page ->render();
+	
+if(isset($_GET['akcja'])){
+	if($_GET['akcja']=="loguj"){
+		$page->logIn();
 	}
-	}
-?>
+}
+
