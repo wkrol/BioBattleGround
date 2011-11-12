@@ -11,7 +11,6 @@ session_start();
 	$strona -> przyciski = array("Startowa"   => "admin.php",
 						"Wyświetl użytkowników"   => "viewusers.php",
 						"Dodaj użytkownika"   => "addusers.php",
-						"Zarządzaj użytkownikami"   => "adminusers.php"
                         );
 	$strona -> Wyswietl();
 ?>

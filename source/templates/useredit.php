@@ -1,5 +1,6 @@
-﻿<?php
+<?php
 session_start();
+require("strona.php");
 // Include the main Propel script
 require_once '../../vendor/propel/runtime/lib/Propel.php';
 
@@ -8,9 +9,8 @@ Propel::init("../../build/conf/biobattleground-conf.php");
 
 // Add the generated 'classes' directory to the include path
 set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
-	require("strona.php");
-	class DodajUsera extends Strona {
-	
+
+	class UsersEdit extends Strona {
 	public function Wypelniony($zmienne_formularza) {
 		foreach ($zmienne_formularza as $klucz => $wartosc) {
 			if ((!isset($klucz)) || ($wartosc == '')) {
@@ -20,10 +20,10 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		return true;
 	}
 	
-	public function Rejestracja() {
+	public function edit() {
 
 		//if(isset($POST["nazwa_uz"])){
-			$nazwa_uz = strip_tags($_POST['nazwa_uz']);
+			$nazwa_uz = $_POST['nazwa_uz'];
 		//}
 		//if(isset($POST["haslo"])){
 			$haslo = $_POST['haslo'];
@@ -40,17 +40,17 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		try {
      
 			if (!($this -> Wypelniony($_POST))) {
-				throw new Exception('Formularz wypełniony nieprawidłowo. <a href="addusers.php">Powróć do rejestracji i popraw dane.</a>');
+				throw new Exception('Formularz wypełniony nieprawidłowo.');
 			}
 
         
 			if ($haslo != $haslo2) {
-				throw new Exception('Niepasujące do siebie hasła. <a href="addusers.php">Powróć do rejestracji i popraw dane.</a>');
+				throw new Exception('Niepasujące do siebie hasła.');
 			}
 
     
 			if (strlen($nazwa_uz) > 16) {
-				throw new Exception('Nazwa uzytkownika nie może mieć więcej niż 16 znaków. <a href="addusers.php">Powróć do rejestracji i popraw dane.</a>');
+				throw new Exception('Nazwa uzytkownika nie może mieć więcej niż 16 znaków.');
 			}
 
      
@@ -58,16 +58,19 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 				throw new Exception('Hasło musi mieć co najmniej 4 i maksymalnie 16 znaków — proszę wrócić i spróbować ponownie.');
 			}
 
-     		$c = new Criteria();
+			$c = new Criteria();
      		$c->add(UserPeer::LOGIN, $nazwa_uz);
      		$users = UserPeer::doSelect($c);
 			if(!$users){
-	     		$adduser = new User();
-	     		$adduser->setLogin($nazwa_uz);
-	     		$adduser->setPassword($haslo);
-	     		$adduser->setName($nazwa);
-	     		$adduser->save();
-				echo 'Zarejestrowano! Powrót do strony głównej <a href="index.php">Idź do strony głównej.</a>';
+				if(isset($_GET['id'])){
+					$id = $_GET['id'];
+				}
+	     		$edituser = UserPeer::retrieveByPK($id);
+	     		$edituser->setLogin($nazwa_uz);
+	     		$edituser->setPassword($haslo);
+	     		$edituser->setName($nazwa);
+	     		$edituser->save();
+				echo 'Zedytowano! Powrót do strony głównej <a href="index.php">Idź do strony głównej.</a>';
 			}
 			else {
 				throw new Exception('Istnieje już użytkownik o podanym loginie!');
@@ -80,42 +83,49 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 	}
 	
 	public function WyswietlZawartosc() {
-		echo "
-			<form method=\"POST\" action=\"?akcja=dodaj\">
+		if(isset($_GET['id'])){
+			$id = $_GET['id'];
+			$user = UserPeer::retrieveByPK($id);
+			echo "
+			<form method=\"POST\" action=\"?akcja=edytuj&id=".$id."\">
 			<table>
 			<tr>
 			<td>Podaj nazwę użytkownika <br />(max. 16 znaków):</td>
 			<td><input type=\"text\" name=\"nazwa_uz\"
-                     size=\"16\" maxlength=\"16\"/>*</td></tr>
+                     size=\"16\" maxlength=\"16\" value=\"".$user->getLogin()."\"/>*</td></tr>
 			<tr>
 			<td>Podaj hasło <br />(4-25 znaków):</td>
 			<td><input type=\"password\" name=\"haslo\"
-                     size=\"16\" maxlength=\"25\"/>*</td></tr>
+                     size=\"16\" maxlength=\"25\" value=\"".$user->getPassword()."\"/>*</td></tr>
 			<tr>
 			<td>Powtórz hasło:</td>
-			<td><input type=\"password\" name=\"haslo2\" size=\"16\" maxlength=\"16\"/>*</td></tr>
+			<td><input type=\"password\" name=\"haslo2\" size=\"16\" maxlength=\"16\" value=\"".$user->getPassword()."\"/>*</td></tr>
 			<tr>
 			<td>Nazwa:</td>
 			<td><input type=\"text\" name=\"nazwa\"
-                     size=\"16\" maxlength=\"16\"/>*</td></tr>
+                     size=\"16\" maxlength=\"16\" value=\"".$user->getName()."\"/>*</td></tr>
 			
 			<tr>
 			<td colspan=\"2\" align=\"center\">
-			<input type=\"submit\" class=\"submit\" value=\"Rejestracja\"></td></tr>
+			<input type=\"submit\" class=\"submit\" value=\"Edytuj\"></td></tr>
 			</table></form></br>* obowiązkowe pola do uzupełnienia
 			";
-	}
+			
+		} 
+		
+		
 	}
 	
-	$strona = new DodajUsera();
+	}
+	$strona = new UsersEdit();
 	$strona -> nazwadzialu = "Administracja";
 	$strona -> przyciski = array("Startowa"   => "admin.php",
 						"Wyświetl użytkowników"   => "viewusers.php",
 						"Dodaj użytkownika"   => "addusers.php",
                         );
-	if(isset($_GET["akcja"])){
-		if($_GET["akcja"]=="dodaj"){
-			$strona -> Rejestracja();
+    if(isset($_GET["akcja"])){
+		if($_GET["akcja"]=="edytuj"){
+			$strona -> edit();
 		}
 	}
 	$strona -> Wyswietl();
