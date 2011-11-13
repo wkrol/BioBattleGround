@@ -1,16 +1,14 @@
 ﻿<?php
-session_start();
-require("strona.php");
 // Include the main Propel script
 require_once '../../vendor/propel/runtime/lib/Propel.php';
-
 // Initialize Propel with the runtime configuration
 Propel::init("../../build/conf/biobattleground-conf.php");
-
 // Add the generated 'classes' directory to the include path
 set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 
-	class Symulacja extends Strona {
+require_once 'base/page.php';
+
+class Symulacja extends Page {
 	
 	public function WyswietlZawartosc() {
 		
@@ -98,8 +96,7 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		$c->add(UserPrivilegesPeer::ID_USER, $_SESSION["user_id"]);
 		$mapy = MapPeer::doSelect($c);
 
-		foreach($mapy as $mapa)
-		{
+		foreach($mapy as $mapa) {
 			echo '<option>'.$mapa->getName().'</option>';
 		} 
 		echo "</select></br></br>";
@@ -109,10 +106,13 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		
 	
 	}
-	}
+}
+
+	/*
+	 * Execute
+	 */
 	$strona = new Symulacja();
-	$strona -> nazwadzialu = "Symulacja";
-	$strona -> przyciski = array(
-                        );
-	$strona -> Wyswietl();
+	$strona ->setSubpageName("Symulacja");
+	$strona ->setButtons(array());
+	$strona ->render();
 ?>
