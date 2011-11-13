@@ -223,4 +223,7 @@ body {
 	width: 50px;
 }
 
-instinct toughness
+.enemyField {
+	border: 1px dashed black;
+	width: 100px;
+}

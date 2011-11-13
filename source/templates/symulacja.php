@@ -12,9 +12,11 @@ class Symulacja extends Page {
 	
 	public function WyswietlZawartosc() {
 		
+		echo "<div id='simulationPage'>";
+		
 		echo "<h3>Moje organizmy: </h3></br>";
 
-		echo "<select id=\"myOrganismsSelect\">";
+		echo "<label>1. </label><select id=\"myOrganismsSelect\">";
 		$c = new Criteria();
 		$c->addJoin(OrganismPeer::ID, UserPrivilegesPeer::ID_ORGANISM);
 		$c->add(UserPrivilegesPeer::ID_USER, $_SESSION["user_id"]);
@@ -37,6 +39,18 @@ class Symulacja extends Page {
 			echo "<option value=",$enemy->getId(),">",$enemy->getName()."</option>";
 		endforeach;
 		echo "</select><br/><br/>";
+		
+		echo "<input id=\"addEnemyButton\" type=\"button\" value=\"Dodaj\" /><br />";
+		echo "<table>
+			<label>Organizmy konkurencyjne: </label>
+			<tr><td class='enemyField'></td></tr>
+			<tr><td class='enemyField'></td></tr>
+			<tr><td class='enemyField'></td></tr>
+			<tr><td class='enemyField'></td></tr>
+			<tr><td class='enemyField'></td></tr>
+			<tr><td class='enemyField'></td></tr>
+			<tr><td class='enemyField'></td></tr>
+		</table>";
 		
 		echo "</br></br><h3>Klimaty stworzone przez użytkownika ".$_SESSION["zalogowany"].":</h3></br></br>";
 		echo "<select id=\"climateSelect\">";
@@ -67,7 +81,7 @@ class Symulacja extends Page {
 		
 		echo "<p><input type=\"button\" id=\"startSimulate\" value=\"Start symulacji\"></INPUT></p>";
 		
-		
+		echo "</div>";
 	
 	}
 }
@@ -77,6 +91,7 @@ class Symulacja extends Page {
 	 */
 	$strona = new Symulacja();
 	$strona ->setSubpageName("Symulacja");
+	$strona ->addScript('simulationPrepare.js');
 	$strona ->setButtons(array());
 	$strona ->render();
 ?>
