@@ -13,24 +13,18 @@ class Page {
 	
 	private $dtd = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">';
-	
 	private $keywords = 'symulacja, biobattleground';
-	
 	private $pageName = 'BioBattleground';
-	
 	private $encoding = 'utf-8';
-	
 	private $styles = array('style.css');
-	
 	private $scripts = array('jquery-ui-1.8.9.custom/js/jquery-1.4.4.min.js',
 							 'script.js'
 							 );
 	private $buttons = array("Startowa"   => "index.php",
 						"Administracja"   => "admin.php"
                         );
-	
 	private $subpageName = '';
-	
+	private $allowedForUnregistered = array('Strona główna', 'Logowanie', 'Rejestracja');
 	/**
 	 * Sprawdzamy, czy istnieje ID sesji.
 	 * Jeśli nie, tworzymy nową sesję
@@ -51,9 +45,15 @@ class Page {
 		
 		print '<body>'.
 		$this->generateTop().
-		$this->generateMenu($this->buttons, $this->subpageName).
-		$this->WyswietlZawartosc().
-		$this->generateFooter().
+		$this->generateMenu();
+		
+		if ($_SESSION['zalogowany'] || (in_array($this->subpageName, $this->allowedForUnregistered))) {
+			$this->WyswietlZawartosc();
+		} else {
+			$this->showNotification();
+		}
+		
+		print$this->generateFooter().
 		'	</body>
 		</html>';
 	}
@@ -102,9 +102,11 @@ class Page {
 			<div id="top">
 				<?php
 					if (isset($_SESSION['zalogowany'])) {
-						echo "Witaj ".$_SESSION['zalogowany']."! <a href=\"logowanie.php?wyloguj=tak\">Wyloguj</a>";
+						echo 'Witaj '.$_SESSION['zalogowany'].'! <a href="logowanie.php?wyloguj=tak">Wyloguj</a>';
 					} else {
-						echo "Odwiedzasz stronę jako niezalogowany użytkownik. <a href=\"logowanie.php\">Zaloguj się</a>";
+						echo 'Odwiedzasz stronę jako niezalogowany użytkownik. 
+						<a href="logowanie.php">Zaloguj się</a> 
+						lub <a href="register.php">zarejestruj się</a>';
 					}
 				?>
 			</div>
@@ -132,27 +134,30 @@ class Page {
 		<?php
 	}
 	
-	private function generateMenu($przyciski, $nazwadzialu) {
+	private function generateMenu() {	//$this->buttons, $this->subpageName
 		echo "<div id=\"submenu\">";
 		echo "<div id=\"tytulsubmenu\">";
-		echo "<p>".$nazwadzialu."</p>";
+		echo "<p>".$this->subpageName."</p>";
 		echo "</div>\n";
-		echo "<ul>\n";
+		
 		
 		//wyświetlanie przycisków
 		
-		
-		foreach ($przyciski as $nazwa=>$url)
-		{
-			$this->generateButton($nazwa, $url,
-			!$this->ifActiveUrl($url));
+		if (NULL != $this->buttons) {
+			echo "<ul>\n";
+			foreach ($this->buttons as $nazwa=>$url)
+			{
+				$this->generateButton($nazwa, $url,
+				!$this->isActiveUrl($url));
+			}
+			echo "</ul>\n";
 		}
-		echo "</ul>\n";
 		echo "</div>";
 		echo "<div id=\"content\">";
+		
 	}
 	
-	private function ifActiveUrl($url) {
+	private function isActiveUrl($url) {
 		if(strpos($_SERVER['PHP_SELF'], $url)==false) {
 			return false;
 		}
@@ -161,8 +166,7 @@ class Page {
 		}
 	}
 	
-	private function generateButton($nazwa, $url, $active = true)
-	{
+	private function generateButton($nazwa, $url, $active = true) {
 		if($active) {
 			echo "<li><a href=\"".$url."\" class=\"deactive\">".$nazwa."</a></li>";
 		} else {
@@ -170,9 +174,12 @@ class Page {
 		}
 	}
 	
-	private function showNotification()
-	{
-		echo "<img src=\"../../images/error.png\"><br/>By wyświetlić zawartość podstron należy się zalogować";
+	private function showNotification($notification = NULL) {
+		if (!is_null($notification)) {
+			echo '<img src=\"../../images/error.png\"><br/>'.$notification;
+		} else {
+			echo "<img src=\"../../images/error.png\"><br/>By wyświetlić zawartość podstron należy się zalogować";
+		}
 	}
 	
 	private function generateFooter() {
@@ -184,11 +191,10 @@ class Page {
 		<?php
 	}
 	
-	/* nadpisywane w zależności od obecnej strony
-	 * TODO zmienić sposób generowania zawartości...
+	/* 
+	 * Nadpisywane w zależności od obecnej strony
 	 */
-	public function WyswietlZawartosc()
-	{
+	public function WyswietlZawartosc()	{
 	
 	}
 }
