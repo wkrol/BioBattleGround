@@ -12,66 +12,30 @@ class Symulacja extends Page {
 	
 	public function WyswietlZawartosc() {
 		
-		echo "<h3>Organizmy stworzone przez użytkownika ".$_SESSION["zalogowany"].":</h3></br>";
-		
-		echo "Rośliny:<br/>";
-		echo "<select id=\"organismroslinaSelect\">";
-		$gatunek = "Roslina";
-		
+		echo "<h3>Moje organizmy: </h3></br>";
+
+		echo "<select id=\"myOrganismsSelect\">";
 		$c = new Criteria();
-		$c->add(OrganismPeer::TYPE, $gatunek);
 		$c->addJoin(OrganismPeer::ID, UserPrivilegesPeer::ID_ORGANISM);
 		$c->add(UserPrivilegesPeer::ID_USER, $_SESSION["user_id"]);
-		$rosliny = OrganismPeer::doSelect($c);
-		foreach($rosliny as $roslina)
-		{
-			echo '<option>'.$roslina->getName().'</option>';
-		} 
+		$c->add(UserPrivilegesPeer::EDIT, 1);
+		$organisms = OrganismPeer::doSelect($c);
+		foreach($organisms as $organism):
+			echo "<option value=",$organism->getId(),">",$organism->getName(),"</option>";
+		endforeach;
 		echo "</select><br/><br/>";
 		
-		echo "Roślinożercy:<br/>";
-		echo "<select id=\"organismroslinozercaSelect\">";
-		$gatunek = "Roslinozerca";
+		echo "<h3>Organizmy mi dostępne: </h3><br />";
 		
+		echo "<select id=\"enemyOrganisms\">";
 		$c = new Criteria();
-		$c->add(OrganismPeer::TYPE, $gatunek);
 		$c->addJoin(OrganismPeer::ID, UserPrivilegesPeer::ID_ORGANISM);
 		$c->add(UserPrivilegesPeer::ID_USER, $_SESSION["user_id"]);
-		$roslinozercy = OrganismPeer::doSelect($c);
-		foreach($roslinozercy as $roslinozerca)
-		{
-			echo '<option>'.$roslinozerca->getName().'</option>';
-		} 
-		echo "</select><br/><br/>";
-		
-		echo "Miesożercy:<br/>";
-		echo "<select id=\"organismmiesozercaSelect\">";
-		$gatunek = "Miesozerca";
-		
-		$c = new Criteria();
-		$c->add(OrganismPeer::TYPE, $gatunek);
-		$c->addJoin(OrganismPeer::ID, UserPrivilegesPeer::ID_ORGANISM);
-		$c->add(UserPrivilegesPeer::ID_USER, $_SESSION["user_id"]);
-		$miesozercy = OrganismPeer::doSelect($c);
-		foreach($miesozercy as $miesozerca)
-		{
-			echo '<option>'.$miesozerca->getName().'</option>';
-		} 
-		echo "</select><br/><br/>";
-		
-		echo "Padlinożercy:<br/>";
-		echo "<select id=\"organismpadlinozercaSelect\">";
-		$gatunek = "Padlinozerca";
-		
-		$c = new Criteria();
-		$c->add(OrganismPeer::TYPE, $gatunek);
-		$c->addJoin(OrganismPeer::ID, UserPrivilegesPeer::ID_ORGANISM);
-		$c->add(UserPrivilegesPeer::ID_USER, $_SESSION["user_id"]);
-		$padlinozercy = OrganismPeer::doSelect($c);
-		foreach($padlinozercy as $padlinozerca)
-		{
-			echo '<option>'.$padlinozerca->getName().'</option>';
-		} 
+		$c->add(UserPrivilegesPeer::FIGHT, 1);
+		$enemies = OrganismPeer::doSelect($c);
+		foreach($enemies as $enemy):
+			echo "<option value=",$enemy->getId(),">",$enemy->getName()."</option>";
+		endforeach;
 		echo "</select><br/><br/>";
 		
 		echo "</br></br><h3>Klimaty stworzone przez użytkownika ".$_SESSION["zalogowany"].":</h3></br></br>";
