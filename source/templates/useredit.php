@@ -1,16 +1,14 @@
 <?php
-session_start();
-require("strona.php");
 // Include the main Propel script
 require_once '../../vendor/propel/runtime/lib/Propel.php';
-
 // Initialize Propel with the runtime configuration
 Propel::init("../../build/conf/biobattleground-conf.php");
-
 // Add the generated 'classes' directory to the include path
 set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 
-	class UsersEdit extends Strona {
+require_once 'base/page.php';
+
+class UsersEdit extends Page {
 	public function Wypelniony($zmienne_formularza) {
 		foreach ($zmienne_formularza as $klucz => $wartosc) {
 			if ((!isset($klucz)) || ($wartosc == '')) {
@@ -34,27 +32,19 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		//if(isset($POST["opis"])){
 			$nazwa=$_POST['nazwa'];
 		//}
-		
-		
 
 		try {
-     
 			if (!($this -> Wypelniony($_POST))) {
 				throw new Exception('Formularz wypełniony nieprawidłowo.');
 			}
-
         
 			if ($haslo != $haslo2) {
 				throw new Exception('Niepasujące do siebie hasła.');
 			}
-
     
 			if (strlen($nazwa_uz) > 16) {
 				throw new Exception('Nazwa uzytkownika nie może mieć więcej niż 16 znaków.');
-			}
-
-     
-			if ((strlen($haslo) < 4) || (strlen($haslo) > 16)) {
+			} else if ((strlen($haslo) < 4) || (strlen($haslo) > 16)) {
 				throw new Exception('Hasło musi mieć co najmniej 4 i maksymalnie 16 znaków — proszę wrócić i spróbować ponownie.');
 			}
 
@@ -116,17 +106,17 @@ set_include_path("../../build/classes" . PATH_SEPARATOR . get_include_path());
 		
 	}
 	
-	}
-	$strona = new UsersEdit();
-	$strona -> nazwadzialu = "Administracja";
-	$strona -> przyciski = array("Startowa"   => "admin.php",
+}
+	$page = new UsersEdit();
+	$page->setSubpageName("Administracja");
+	$page ->setButtons(array("Startowa"   => "admin.php",
 						"Wyświetl użytkowników"   => "viewusers.php",
 						"Dodaj użytkownika"   => "addusers.php",
-                        );
+                        ));
     if(isset($_GET["akcja"])){
 		if($_GET["akcja"]=="edytuj"){
-			$strona -> edit();
+			$page->edit();
 		}
 	}
-	$strona -> Wyswietl();
+	$page ->render();
 ?>
